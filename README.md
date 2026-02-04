@@ -1,8 +1,5 @@
 # Unser Schulessen
 
-[![build status](http://git.helliwood.de/helliwood/unser-schulessen/badges/master/pipeline.svg)](https://git.helliwood.de/helliwood/unser-schulessen/pipelines)
-[![coverage report](http://git.helliwood.de/helliwood/unser-schulessen/badges/master/coverage.svg)](http://git.helliwood.de/helliwood/unser-schulessen/commits/master)
-
 Ein umfassendes Qualitätsmanagement-System für Schulverpflegung, entwickelt mit Symfony 5.4. Die Anwendung unterstützt Schulen in allen deutschen Bundesländern bei der Verwaltung und Bewertung ihrer Essensqualität durch strukturierte Fragebögen, Qualitätschecks und Berichtsfunktionen.
 
 ## Features
