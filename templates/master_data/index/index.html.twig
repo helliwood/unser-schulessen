@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <div class="print">
+            <h1><span class="printOnly">{{ school.name }} | </span>Unsere Schule<span
+                    class="printOnly"> vom {{ "now"|date("d.m.Y") }}</span></h1>
+        </div>
+        <div class="row no-print">
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="fas fa-edit text-primary2 mr-1"></i>Stammdaten</h2>
+                    <div class="mb-2">
+                        Bearbeiten Sie hier Daten zum Schulessen, um mit dem Qualitäts-Check beginnen zu können.
+                    </div>
+                    <div class="mt-auto">
+                        {% if hasFinalisedMasterData %}
+                            <a href="{{ path('master_data_show') }}" class="btn btn-primary mt-2"><i
+                                        class="far fa-eye mr-1"></i>Stammdaten anzeigen</a>
+                        {% endif %}
+                        {% if is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')%}
+                            <a href="{{ path('master_data_edit') }}" class="btn btn-secondary mt-2">
+                                <i class="fas fa-edit mr-1"></i>Stammdaten bearbeiten</a>
+                        {% endif %}
+                        {% if hasFinalisedMasterData %}
+                            <a href="{{ path('master_data_export') }}" class="btn btn-primary mt-2">
+                                <i class="fas fa-print mr-1"></i>Stammdaten - PDF</a>
+                            <a href="{{ path('master_data_portrait') }}" class="btn btn-primary mt-2">
+                                <i class="far fa-file-pdf mr-1"></i>Steckbrief Mensa</a>
+                        {% else %}
+                            <div class="inline mt-2 p-2 text-muted float-right">
+                                Bitte füllen Sie ihre Stammdaten aus!
+                            </div>
+                        {% endif %}
+                        <a href="{{ path('master_data_export_blank') }}" class="btn btn-primary mt-2">
+                            <i class="fas fa-file-pdf mr-1"></i>Stammdaten - Blanko</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="fas fa-university text-primary2 mr-1"></i>{{ school.name }}</h2>
+                    <div class="mb-2">
+                        {{ school.address | nl2br }}
+                    </div>
+                    <div class="mt-auto">
+                        {% if is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+                            <a href="{{ path('master_data_edit_school') }}" class="btn btn-secondary"><i
+                                        class="fas fa-edit mr-1"></i>Schule
+                                bearbeiten</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% if is_granted('ROLE_MENSA_AG') or is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+
+            {% include('master_data/index/snippets/_members.html.twig') %}
+
+            {% include('master_data/index/snippets/_contacts.html.twig') %}
+
+        {% endif %}
+    </div>
+{% endblock %}

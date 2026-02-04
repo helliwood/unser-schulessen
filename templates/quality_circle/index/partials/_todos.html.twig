@@ -1,0 +1,75 @@
+<div class="row">
+    <div class="col">
+        <div class="panel">
+            <h2 class="mb-3"><i class="fas fa-clipboard-check text-primary2 mr-1"></i>To Do's</h2>
+            <div class="mb-2">Hier finden Sie Ihre aktuellen To Do´s und die dazugehörigen Aktionspläne
+                (Offen/Erledigt/Erstellt).
+            </div>
+            <data-table
+                    sort-by="category"
+                    :sort-desc="false"
+                    :per-page="10"
+                    :fields="[
+
+                                {key: 'category', label: 'Kriterium', sortable: true},
+                                {key: 'createdAt', label: 'Datum', sortable: true,
+                                    formatter: (value, key, item) => {
+                                    return moment(value.date).format('DD.MM.YYYY');
+                                }},
+                                {key: 'action_plans', label: 'Aktionspläne', sortable: true,
+                                    formatter: (value, key, item) => {
+                                    return item.action_plans_open + '/' + item.action_plans_completed + '/' + value;
+                                }},
+                                {key: 'createdBy', label: 'Ersteller', sortable: true,
+                                    formatter: (value, key, item) => {
+                                    return value;
+                                }},
+                                {key: 'actions', label: 'Optionen', sortable: false, class:'options'}
+                            ]">
+                <template v-slot:cell(category)="row">
+                    {% verbatim %}
+                    <div v-if="row.item.question">
+                      <div class="text-muted small">
+                        {{row.item.question.parent_category_name ? row.item.question.parent_category_name+': ': ''}}
+                        {{row.item.question.category_name}}
+                      </div>
+                      {{row.item.question.question}}
+                      <!-- SRP-konforme Flag-Icons über Vue-Component -->
+                      <question-flags :question="row.item.question"></question-flags>
+                    </div>
+                    <div v-else><div class="text-muted small">--- Offenes To Do ---</div>{{row.item.name}}</div>
+                    {% endverbatim %}
+                </template>
+                <template v-slot:cell(actions)="row">
+                    <b-button size="sm" variant="primary"
+                              :href="'/quality_circle/todo/show/'+row.item.id" class="mr-2">
+                        <i class="fas fa-eye mr-1"></i>Anzeigen
+                    </b-button>
+                    <b-button size="sm" variant="primary"
+                              :href="'/quality_circle/todo/export/'+row.item.id" class="mr-2">
+                        <i class="fas fa-file-pdf mr-1"></i>PDF-Download
+                    </b-button>
+                    {% if is_granted('ROLE_MENSA_AG') %}
+                        <b-button v-if="!row.item.closed" size="sm" :href="'/quality_circle/todo/edit/'+row.item.id"
+                                  class="mr-2">
+                            <i class="fas fa-edit mr-1"></i>Bearbeiten
+                        </b-button>
+                    {% endif %}
+                    {% if is_granted('ROLE_MENSA_AG') or is_granted('ROLE_FOOD_COMMISSIONER') %}
+                        <b-button variant="danger" v-if="!row.item.closed && row.item.action_plans <=0"
+                                  size="sm" v-b-modal="'modal-delete-todo-'+row.item.id"
+                                  class="mr-2" aria-label="To Do löschen"><i class="fas fa-trash mr-1"></i>Löschen</b-button>
+                        <b-modal :id="'modal-delete-todo-'+row.item.id"
+                                 title="To Do löschen"
+                                 @ok="goto('/quality_circle/todo/delete-todo/'+row.item.id)"
+                                 ok-variant="danger"
+                                 ok-title="To Do löschen"
+                                 cancel-title="Abbrechen" cancel-variant="primary-light">
+                            <p class="">Möchten Sie das To Do wirklich löschen?</p>
+                        </b-modal>
+                    {% endif %}
+                </template>
+            </data-table>
+        </div>
+    </div>
+</div>

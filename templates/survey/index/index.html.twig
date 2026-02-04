@@ -1,0 +1,217 @@
+{% extends 'base.html.twig' %}
+{% set stateActive = constant('App\\Entity\\Survey\\Survey::STATE_ACTIVE') %}
+{% set stateNotActivated = constant('App\\Entity\\Survey\\Survey::STATE_NOT_ACTIVATED') %}
+{% set stateClosed = constant('App\\Entity\\Survey\\Survey::STATE_CLOSED') %}
+{% block body %}
+    <div>
+        <h1>Zufriedenheitsumfragen</h1>
+        <div class="row d-flex">
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="fas fa-chart-bar text-primary2 mr-1"></i>Umfragen</h2>
+                    <div>Erstellen Sie eine neue Umfrage mit Fragen aus unserem Pool oder mit individuellen Fragen.
+                    </div>
+                    <div>
+                        {% if is_granted('ROLE_MENSA_AG')
+                            or is_granted('ROLE_FOOD_COMMISSIONER')
+                            or is_granted('ROLE_CONSULTANT')
+                            or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+                            <a class="btn btn-secondary mt-3" href="{{ path('survey_new') }}"><i
+                                        class="fas fa-plus mr-1"></i>Umfrage erstellen</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="far fa-life-ring text-primary2 mr-1"></i>Hilfe</h2>
+                    <p>Wie erstelle ich eine Umfrage?</p>
+                    <p>Die Online-Hilfe gibt Ihnen nützliche Tipps.</p>
+                    <p>
+                        <button v-b-modal.modal-help class="btn btn-secondary" href="#"><i class="fas fa-link mr-1"></i>Hilfe
+                            aufrufen
+                        </button>
+                        <a class="btn btn-secondary" target="_blank"
+                           href="/documents/Checkliste_Zufriedenheitsumfrage.pdf"><i class="fas fa-file mr-1"></i>Checkliste
+                            Downloaden
+                        </a>
+                        <a class="btn btn-primary" target="_blank"
+                           href="https://www.unser-schulessen.de/qualitaet/qualitaet-gestalten/tutorials-funktionsbereich-zufriedenheitsumfragen">
+                            <i class="fas fa-file-video mr-1"></i>Video Tutorial
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="row d-flex">
+            {% if is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+
+                {% include ('survey/index/partials/_survey_templates.html.twig') %}
+
+            {% endif %}
+
+            {% include ('survey/index/partials/_current_surveys.html.twig') %}
+
+            {% include ('survey/index/partials/_archived_surveys.html.twig') %}
+
+        </div>
+        <!-- Modal Component -->
+        <b-modal id="modal-help" title="Hilfe Zufriedenheitsumfragen" size="xl" ok-only>
+            <h5>Wie können Umfragen mit den Zufriedenheitsumfragen erstellt werden?</h5>
+            <strong>Wie können Umfragen erstellt werden?</strong>
+            <p>Das Umfrage-Modul ermöglicht es, einfache Zufriedenheits- und Bewertungsumfragen zu allen Aspekten des
+                Schulessens zu erstellen.</p>
+            <p>Es gibt grundsätzlich mehrere Wege eine schulindividuell passende Umfrage zu erstellen:</p>
+            <ul>
+                <li>über den roten „Umfrage erstellen“ – Button</li>
+                <li>über das „Kopieren“ einer durch die Vernetzungsstelle bereitgestellten Umfragen-Vorlage</li>
+                <li>über den roten „Kopieren“-Button eine abgeschlossene, im Archiv gespeicherten Umfrage erneut
+                    nutzen
+                </li>
+            </ul>
+
+            <h5>Eigene Umfrage erstellen</h5>
+            <p>Mit <strong>„Umfrage erstellen“</strong> startet die Eingabemaske zum Erzeugen einer Umfrage. Geben Sie
+                der Umfrage einen kurzen Titel, der verdeutlicht, worum es genau geht.</p>
+            <p>Verfassen Sie unter <strong>„Einleitungstext“</strong> eine kurze Textansprache für die Zielgruppe(n) der
+                Umfrage, in der
+                Sie erklären, was Gegenstand der Umfrage ist und welches Ziel damit verfolgt wird. </p>
+            <p>Mit dem <strong>Erstellen eines Ablaufdatums</strong> werden Tag und Uhrzeit benannt bis zu dem an der
+                Umfrage teilgenommen
+                werden kann.</p>
+            <p>Mit dem <strong>„Speichern“</strong> der Rahmendaten „Titel“, „Typ“ und „Ablaufdatum“ öffnet sich
+                automatisch die Eingabemaske zum Eingeben der Fragen</p>
+
+
+            <h5>Voucher oder offene Umfrage?</h5>
+            <p>Es muss grundsätzlich die Wahl getroffen werden, wie die Umfrage durchgeführt wird. Dafür gibt es zwei
+                Optionen (Typen):</p>
+            <p>Bei einer <strong>offenen Umfrage</strong> wird ein Link zur fertigen Umfrage erstellt, den Sie den
+                Teilnehmenden zukommen lassen. Jeder der den Link hat, kann an der Umfrage teilnehmen – Hinweis: eine
+                mehrmalige Teilnahme ist möglich! Beispielsweise wenn per Tablet oder Touchscreen direkt in der Mensa
+                abgestimmt wird oder wenn Klassen/ Gruppen von Lehrkräften begleitet die Umfrage im PC-Raum der Schule
+                beantworten.</p>
+            <p>Bei der <strong>Voucher-Umfrage</strong> wird eine gewünschte Anzahl an einzelnen Teilnahme-Codes
+                erstellt. Dadurch kann sichergestellt werden, dass Personen einmalig an der Umfrage teilnehmen.</p>
+            <p>Diese Voucher-Liste kann über den Button Herunterladen außerhalb des QM-Tools abgespeichert werden. Die
+                Zuordnung der Teilnahme-Codes zu einzelnen Personen erfolgt außerhalb des QM-Tools.</p>
+            <p> Prinzipiell sind hier zwei Varianten denkbar. In einer „halb-analogen“ Variante wird die Excel-Liste mit
+                Vouchern skaliert ausgedruckt und die Einzel-Voucher werden gemeinsam mit dem Link einzeln den
+                Teilnehmenden zugeordnet und verteilt. Es können aber auch jeweils die Mailadressen der Teilnehmenden
+                direkt in der Excel-Tabelle den Voucher-Codes zugeordnet und dann per Serien-Mail mit dem Link zur
+                Umfrage verschickt werden.
+            </p>
+
+            <h5>Verschiedene Frage-Typen auswählen</h5>
+            <p>In der <strong>Eingabemaske für die Fragen</strong> öffnen sich beim <strong>Button „Frage
+                    hinzufügen“</strong> verschiedene
+                Fragetyp-Optionen zwischen denen gewählt werden kann.</p>
+            <blockquote><strong>1. Frage(n) aus Fragenpool auswählen</strong></blockquote>
+            <p>Gehen Sie auf den <strong>Button „Frage(n) aus Pool hinzufügen“</strong>. Es öffnet sich ein
+                Pop-Up-Dialog-Fenster. Hier
+                können Sie zu allen Qualitätskriterien der 9 Qualitätsfelder aus dem Qualitäts-Check entsprechende
+                Vorschläge für Zufriedenheitsfragen finden. Nach dem Öffnen der einzelnen Qualitätsfelder können Sie
+                hier <strong>über Klickboxen und „Fragen einfügen“</strong> die gewünschten Fragen auswählen.</p>
+            <blockquote><strong>2. Zufrieden/ Unzufrieden – Frage(n)</strong></blockquote>
+            <p>Bei der Auswahl des frei zu erstellenden Fragen-Typs zufrieden/unzufrieden kann in dem sich öffnenden
+                Dialog-Fenster eine Frage zur Zufriedenheit zu einem bestimmten Einzelaspekt des Schulessens (z.B. das
+                Angebot der Salatbar) frei formuliert werden. Der vorgegebene Satzbaustein kann angepasst werden, sollte
+                jedoch <strong>Seid Ihr/ Sind Sie zufrieden mit...</strong> enthalten. Die bei dieser Frage vorgegebenen
+                Antworten sind
+                „zufrieden“, “unzufrieden“.</p>
+            <blockquote><strong>3. Einfachauswahl oder Mehrfachauswahl</strong></blockquote>
+            <p>Beim <strong>Frage-Typ „Einfachauswahl“</strong> kann im sich öffnenden Dialog-Fenster eine Frage frei
+                formuliert werden.
+                Hier müssen die Antworten ebenfalls hinzugefügt werden. Wichtig: beim Formulieren von Fragen und
+                Antwortmöglichkeiten muss beachtet werden, dass nur eine Antwort von den Teilnehmenden ausgewählt werden
+                kann. Im Fragebogen erscheinen hier runde Schaltflächen für die verschiedenen Antworten.
+                Der Fragentyp eignet sich besonders für Fragen mit nur zwei Antwortmöglichkeiten (z.B. Esser/
+                Nichtesser; stimmt/ stimmt nicht), Fragen mit Bewertungen (z.B. Schulnoten 1-6 für das Angebot an der
+                Salatbar), um Unterscheidungsmerkmale bei den Umfrage-Teilnehmenden herauszufinden (Frage zu welcher
+                Klassenstufe gehörst Du?)oder bei klaren Entscheidungsfragen (Welche Farbe soll das neue Mensa-Geschirr
+                haben?) .
+            </p>
+            <p>Beim <strong>Frage-Typ „Mehrfachauswahl“</strong> können die Fragen und Antwortmöglichkeiten ebenfalls
+                frei erstellt
+                werden. Hierbesteht für den Umfrage-Teilnehmenden im Vergleich zu vorher die Möglichkeit mehrere
+                Antworten auszuwählen. Bei diesen Multiple-Choice-Fragen werden die formulierten Antwortmöglichkeiten in
+                der aktiven Umfrage automatisch mit einem eckigen Kontrollkästchen versehen.<br/>
+                Der Frage-Typ „Mehrfachauswahl“ eignet sich für Fragen, bei denen mehrere Antworten möglich sind. Über
+                die Häufung der Antworten wird in der Auswertung eine Tendenz ablesbar. Zum Beispiel: „Welche der
+                folgenden Angebote sollten in der Salatbar vertreten sein?“
+            </p>
+
+            <h5>„Kopieren“ einer durch die Vernetzungsstelle bereitgestellten Umfragen-Vorlage</h5>
+            <p>Soll eine <strong>Umfragen-Vorlage</strong> der Vernetzungsstelle genutzt werden, wird über den <strong>„Kopieren“-Button</strong>
+                die
+                Umfragen-Vorlage in das Feld der Aktuellen Umfragen übernommen. Jetzt kann über
+                <strong>„Bearbeiten“</strong> diese
+                Vorlage mit Titel, Typ und Ablaufdatum und ggf. mit weiteren Fragen ergänzt werden.</p>
+
+            <h5>Mit „Kopieren“ eine abgeschlossene Umfrage erneut nutzen</h5>
+            <p>Sollen die Fragen einer schon abgeschlossenen Umfrage für eine erneute Befragung genutzt werden, so
+                kann über den Button „Kopieren“ der gewünschten Umfrage aus dem Archiv, die Umfrage in das Feld
+                aktuelle Umfragen übernommen werden. Jetzt kann über „Bearbeiten“ diese Vorlage mit Titel, Typ und
+                Ablaufdatum und ggf. mit weiteren Fragen ergänzt werden</p>
+            <p><strong>Tipp:</strong> Mit dem <strong>Button „ID kopieren“</strong> kann die Umfrage auch außerhalb des schulindividuellen
+                Arbeitsbereiches
+                anderen Schulen, die Unser Schulessen nutzen, als Vorlage zur Verfügung gestellt werden.</p>
+
+            <h5>Änderungen bei den Rahmendaten einer Umfrage vornehmen (Titel, Ablaufdatum)</h5>
+            <p><strong>Wichtig!</strong> Der Titel der Umfrage und das Ablaufdatum einer angelegten oder aktiven Umfrage
+                können geändert
+                werden, indem über die <strong>Listenansicht Aktuelle Umfragen</strong> die Umfrage über den <strong>Button
+                    „Bearbeiten“</strong>
+                angewählt und in der automatisch erscheinenden Eingabemaske die Änderungen vorgenommen werden. Das
+                bisherige Datum kann über den <strong>Button „Papierkorb“</strong> gelöscht und danach neu eingetragen
+                werden. Mit
+                <strong>„Speichern“</strong> werden die Änderungen übernommen.
+                Das Ändern des Ablaufdatums kann nötig werden, wenn noch nicht genügend Personen an der Umfrage
+                teilgenommen haben.
+            </p>
+
+            <h5>Änderungen bei den Fragen vornehmen</h5>
+            <p>Solange die Umfrage nicht aktiviert ist, können Sie Änderungen im Fragekatalog vornehmen. Gehen Sie dafür
+                über die Listenansicht der aktuellen Umfragen neben dem <strong>Button „Bearbeiten“</strong> und hier
+                über das kleine
+                Dreieck zu <strong>„Fragen“</strong>. In der Ansicht des Fragenkataloges der Umfrage können Fragen
+                bearbeitet, gelöscht
+                und über die <strong>„blauen Pfeile“</strong> die Reihenfolge der Fragen geändert werden.</p>
+
+            <h5>Bevor die Umfrage online geht</h5>
+            <p>Eine Kurz-Checkliste für die Erstellung eines Fragebogens finden Sie neben dem Hilfebutton als
+                Download.<br/>
+                <strong>Tipp!</strong> Gehen Sie die Prüf-Punkte der Checkliste durch bevor Sie Ihre Umfrage als
+                endgültigen Fragekatalog speichern und aktivieren.
+            </p>
+            <p>Sie können sich die Umfrage vor Aktivierung anschauen, indem Sie im Modul in der Listenansicht der
+                aktuellen Umfragen bei der entsprechenden Umfrage auf das kleine Dreieck neben dem <strong>„Bearbeiten-Button“</strong>
+                gehen und dort dann <strong>Vorschau</strong> auswählen.</p>
+            <p><strong>Die Aktivierung der Umfrage</strong> nehmen Sie in der Listenansicht der Umfragen über den
+                <strong>Button „Aktivieren“</strong> vor. </p>
+
+            <h5>Aktivierte Umfrage öffnen/ an offener Umfrage teilnehmen/ Link versenden</h5>
+            <p>Eine aktive Umfrage kann zur Beantwortung in der Listenansicht der aktuellen Umfragen über das <strong>kleine
+                    Dreieck am „Bearbeiten-Button“</strong> und die Option <strong>„Öffnen“</strong> geöffnet und
+                beantwortet werden. Nach Eingabe der
+                Antworten müssen über den <strong>Button „Speichern“</strong> die Antworten gesichert werden.
+                Bei geöffneter Umfrage kann <strong>im Browser-Fenster die URL kopiert werden</strong> und als Link
+                außerhalb des
+                QM-Tools weitergegeben werden.
+            </p>
+
+            <h5>Umfrage Beenden/ Umfrage archivieren</h5>
+            <p>Zum Anzeigen von <strong>Zwischenstände in einer aktiven Umfrage</strong> kann über das <strong>„Bearbeiten-Dreieck“</strong>
+                in der
+                Listenansicht der aktuellen Umfragen die Option <strong>„Auswertung“</strong> angewählt werden. Auf
+                einer Ergebnis-Seite
+                wird der Auswertungsstand angezeigt. Es ist sichtbar, wie viele Personen an der Umfrage schon
+                teilgenommen haben.</p>
+            <p>Bei <strong>beendeten Umfragen</strong> kann die Ergebnisauswertung in der <strong>Liste der archivierten
+                    Umfragen</strong> unter dem
+                <strong>Button „Auswertung“</strong> geöffnet werden. Mit Hilfe des „Drucken“-Buttons kann ein PDF der
+                Auswertung
+                erstellt werden und außerhalb des QM-Systems gespeichert werden.</p>
+        </b-modal>
+    </div>
+{% endblock %}

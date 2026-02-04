@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <h1>Aktionsplan anzeigen</h1>
+        <div class="row d-flex">
+            <div class="ml-auto no-print out-of-panel">
+                <button class="btn btn-primary flex-end" onclick="window.print();">
+                    <i class="fas fa-print mr-1"></i>Drucken
+                </button>
+            </div>
+            <div class="col-md-12 mb-4">
+                <div class="panel h-100 d-flex flex-column py-3">
+                    <h2>{{ todoItem.answer.question.question }}</h2>
+                    Hier können Sie die Schritte für das weitere Vorgehen zur Verbesserung notieren. Nutzen Sie den
+                    Ideen-Pool für mögliche Anregungen.
+                </div>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    {% if edit == true %}
+
+                        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                        {{ form_row(form.what) }}
+                        {{ form_widget(form) }}
+                        <div class="form-group row">
+                            <div class="col-sm-3"></div>
+                            <div class="col-sm-9 d-flex">
+                                <div class="ml-auto">
+                                    <button type="submit" id="cancel" name="cancel"
+                                            class="btn-warning btn no-print">Zurück
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {{ form_end(form) }}
+                    {% elseif edit == false %}
+                        <div class="container">
+                            <div class="form-group row">
+                                <div class="col-sm-3 ">
+                                    Was?:
+                                </div>
+                                <div class="col-sm-9 form-control h-auto "
+                                     style="min-height: 64px;  word-wrap: break-word;">
+                                    {{ todoItem.actionPlan.what|raw }}
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-3">
+                                    Wer?:
+                                </div>
+                                <div class="col-sm-9 form-control" style="min-height: 64px;">
+                                    <span>{{ todoItem.actionPlan.who }}</span>
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-3">
+                                    Wann?:
+                                </div>
+                                <div class="col-sm-9 form-control">
+                                    {{ todoItem.actionPlan.when|date("d.m.Y") }}
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <div class="col-sm-3"></div>
+                                <div class="col-sm-9 d-flex">
+                                    <div class="ml-auto">
+                                        <div class="mt-auto pl-2 mt-1 d-flex no-print">
+                                            <a href="{{ path('quality_circle_home') }}" class="btn btn-warning mt-1 no-print">Zurück</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+

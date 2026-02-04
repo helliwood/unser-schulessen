@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- https://phpunit.de/manual/current/en/appendixes.configuration.html -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/6.5/phpunit.xsd"
+         backupGlobals="false"
+         colors="true"
+         bootstrap="config/bootstrap.php"
+>
+    <php>
+        <ini name="error_reporting" value="-1"/>
+        <env name="XDEBUG_FILTER_CODE_COVERAGE" value="./src"/>
+        <env name="APP_ENV" value="test"/>
+        <env name="SHELL_VERBOSITY" value="-1"/>
+        <server name="KERNEL_CLASS" value="App\Kernel"/>
+        <server name="SYMFONY_PHPUNIT_REMOVE" value=""/>
+        <env name="SYMFONY_PHPUNIT_VERSION" value="9"/>
+        <env name="SYMFONY_DEPRECATIONS_HELPER" value="disabled"/>
+    </php>
+
+    <testsuites>
+        <testsuite name="Dashboard">
+            <file>tests/Controller/IndexControllerTest.php</file>
+            <file>tests/Controller/SecurityControllerTest.php</file>
+        </testsuite>
+        <testsuite name="BeforeFinalizedMasterData">
+            <file>tests/Controller/QualityCheck/BeforeFinalizedMasterDataTest.php</file>
+        </testsuite>
+        <testsuite name="Admin">
+            <file>tests/Controller/Admin/IndexControllerTest.php</file>
+            <file>tests/Controller/Admin/QuestionnaireControllerTest.php</file>
+            <file>tests/Controller/Admin/CategoryControllerTest.php</file>
+            <file>tests/Controller/Admin/QuestionControllerTest.php</file>
+            <file>tests/Controller/Admin/IdeaboxControllerTest.php</file>
+            <file>tests/Controller/Admin/Questionnaire2ControllerTest.php</file>
+            <file>tests/Controller/Admin/SchoolControllerTest.php</file>
+            <file>tests/Controller/Admin/MemberControllerTest.php</file>
+            <file>tests/Controller/Admin/Survey/IndexControllerTest.php</file>
+            <file>tests/Controller/Admin/Survey/QuestionControllerTest.php</file>
+        </testsuite>
+        <testsuite name="MasterData">
+            <directory>tests/Controller/MasterData</directory>
+        </testsuite>
+        <testsuite name="QualityCircleProvokeBeforeError">
+            <file>tests/Controller/QualityCircle/BeforeErrorControllerTest.php</file>
+        </testsuite>
+        <testsuite name="QualityCheck">
+            <directory>tests/Controller/QualityCheck</directory>
+        </testsuite>
+        <testsuite name="QualityCircle">
+            <file>tests/Controller/QualityCircle/IndexControllerTest.php</file>
+            <file>tests/Controller/QualityCircle/ToDoControllerTest.php</file>
+            <file>tests/Controller/QualityCircle/Index2ControllerTest.php</file>
+        </testsuite>
+        <testsuite name="Survey">
+            <directory>tests/Controller/Survey</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory>src</directory>
+            <exclude>
+                <directory suffix=".php">src/Migrations/</directory>
+                <directory suffix=".php">src/DataFixtures/</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
+    <listeners>
+        <listener class="Symfony\Bridge\PhpUnit\SymfonyTestsListener"/>
+    </listeners>
+
+    <logging>
+        <log type="coverage-html" target="./build/coverage" lowUpperBound="50" highLowerBound="80"/>
+    </logging>
+</phpunit>

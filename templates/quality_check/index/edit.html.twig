@@ -1,0 +1,245 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macros/flag_icons.twig' as flag_icons %}
+
+{% form_theme form _self %}
+
+{%- block choice_widget_expanded -%}
+    <div class="row">
+        {%- for child in form %}
+            {{ form_widget(child) }}
+        {%- endfor -%}
+    </div>
+{%- endblock -%}
+
+{%- block radio_widget -%}
+    <div class="col-3 mt-2">
+        <input type="radio"
+               class="qc_radio value{{ value }}" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
+    </div>
+{%- endblock radio_widget -%}
+
+{%- block form_row -%}
+    {%- if compound is defined and compound -%}
+        {{ block('fieldset_form_row') }}
+    {%- else -%}
+        {%- set widget_attr = {} -%}
+        {%- if help is not empty -%}
+            {%- set widget_attr = {attr: {'aria-describedby': id ~"_help"}} -%}
+        {%- endif -%}
+        <div class="form-group row{% if (not compound or force_error|default(false)) and not valid %} is-invalid{% endif %}">
+            {{- form_label(form) -}}
+            <div class="{{ block('form_group_class') }}">
+                <qc-input :question_id="{{ name }}">{{- form_widget(form, widget_attr) -}}</qc-input>
+                <div class="mt-2">{{- help|raw -}}</div>
+                {{- form_errors(form) -}}
+
+                {% if form.parent.vars.last_result is defined and form.parent.vars.last_result.answers[name] is defined %}
+                    <div class="result mt-2 text-muted qc_last_answer">Letzte Antwort:
+                        {% if not form.parent.vars.last_result.answers[name].calculateAnswer %}
+                            <div class="not_answered">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[form.parent.vars.last_result.answers[name].calculateAnswer] }}</div>
+                        {% elseif form.parent.vars.last_result.answers[name].question.type == constant('App\\Entity\\QualityCheck\\Question::TYPE_NOT_NEEDED') %}
+                            <div class="{{ form.parent.vars.last_result.answers[name].calculateAnswer }}">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[form.parent.vars.last_result.answers[name].calculateAnswer] }}</div>
+                        {% else %}
+                            <div class="{{ form.parent.vars.last_result.answers[name].calculateAnswer }}">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[form.parent.vars.last_result.answers[name].calculateAnswer] }}</div> ({{ form.parent.vars.last_result.answers[name].answer }})
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+            {##}</div>
+    {%- endif -%}
+{%- endblock form_row -%}
+
+{% block fieldset_form_row -%}
+    {%- if help is not empty -%}
+        {%- set widget_attr = {attr: {'aria-describedby': id ~"_help"}} -%}
+    {%- endif -%}
+    <quality-check-sub-category id="{{ name }}" :open="{{ row_attr.open ? 'true' : 'false' }}">
+        <template slot="label">{{- form_label(form) -}}</template>
+        <template slot="form">
+            <div class="px-3 pb-3">{{- help -}}</div>
+            {% set hasChoice = false %}
+            {% for child in form.children %}
+                {% if child.children | length == 4 %}
+                    {% set hasChoice = true %}
+                {% endif %}
+            {% endfor %}
+            {% if hasChoice %}
+                <div class="row w-100">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-9">
+                        <div class="row w-100">
+                            <div class="col-3">Trifft zu</div>
+                            <div class="col-3">Trifft teilweise zu</div>
+                            <div class="col-3">Trifft nicht zu</div>
+                            <div class="col-3">Nicht beantwortet</div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            {%- set widget_attr = {attr:{'class':attr.class|default('col-12'), style:""}} -%}
+            {{- form_widget(form, widget_attr) -}}
+        </template>
+    </quality-check-sub-category>
+{%- endblock fieldset_form_row %}
+
+{% block choice_row -%}
+    {%- set widget_attr = {} -%}
+    {%- if help is not empty -%}
+        {%- set widget_attr = {attr: {'aria-describedby': id ~"_help"}} -%}
+    {%- endif -%}
+    <div class="form-group row{% if (not compound or force_error|default(false)) and not valid %} is-invalid{% endif %}">
+        {{- block('form_simple_label') -}}
+        <div class="{{ block('form_group_class') }}">
+            {{- form_widget(form, widget_attr) -}}
+            <div class="mt-2">{{- help|raw -}}</div>
+            {{- form_errors(form) -}}
+
+            {% if form.parent.vars.last_result is defined and form.parent.vars.last_result.answers[name] is defined %}
+                <div class="result mt-2 text-muted qc_last_answer">Letzte Antwort:
+                    {% if not form.parent.vars.last_result.answers[name].calculateAnswer %}
+                        <div class="not_answered">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[form.parent.vars.last_result.answers[name].calculateAnswer] }}</div>
+                    {% elseif form.parent.vars.last_result.answers[name].question.type == constant('App\\Entity\\QualityCheck\\Question::TYPE_NOT_NEEDED') %}
+                        <div class="{{ form.parent.vars.last_result.answers[name].calculateAnswer }}">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[form.parent.vars.last_result.answers[name].calculateAnswer] }}</div>
+                    {% else %}
+                        <div class="{{ form.parent.vars.last_result.answers[name].calculateAnswer }}">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[form.parent.vars.last_result.answers[name].calculateAnswer] }}</div> ({{ form.parent.vars.last_result.answers[name].answer }})
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        {##}
+    </div>
+{%- endblock choice_row %}
+
+{% block body %}
+
+    <div class="example-wrapper">
+        <h1>Qualitäts-Check</h1>
+        
+        <div class="panel">
+            {{ include('quality_check/index/step_bar.html.twig') }}
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    <h2>{{ category.name }}
+                        {% if hideModal %}
+                            <a href="{{ path('quality_check_skip', {step: step}) }}"
+                               class="btn-outline-primary btn mr-2 order-2"
+                               v-b-modal.modal-skip>Überspringen</a>
+                        {% else %}
+                            <quality-check-skip-button category="{{ category.name }}"
+                                                       url="{{ path('quality_check_skip', {step: step}) }}"></quality-check-skip-button>
+                        {% endif %}
+                    </h2>
+                    {% if category.note %}
+                        <p>{{ category.note }}</p>
+                    {% endif %}
+                    {% if not onlyFormula %}
+                        <div class="row">
+                            <div class="col-sm-3"></div>
+                            <div class="col-sm-9">
+                                <div class="row">
+                                    <div class="col-3">Trifft zu</div>
+                                    <div class="col-3">Trifft teilweise zu</div>
+                                    <div class="col-3">Trifft nicht zu</div>
+                                    <div class="col-3">Nicht beantwortet</div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id' : 'quality-check-form'}}) }}
+                    {{ form_widget(form) }}
+                    
+                    {# Flag-Legende im roten Bereich #}
+                    {% if flag_definitions is defined and flag_definitions|length > 0 %}
+                        <div class="form-group row">
+                            <div class="col-sm-3"></div>
+                            <div class="col-sm-9">
+                                <div class="d-flex flex-wrap" style="margin: 20px 0;">
+                                    {% for flag, definition in flag_definitions %}
+                                        {% if definition.icon is defined %}
+                                            <div class="mr-3 mb-2 d-flex align-items-center">
+                                                <i class="{{ definition.icon }} flag-icon flag-icon-{{ flag }}" 
+                                                   title="{{ definition.description }}"
+                                                   {% if definition.color is defined %}style="color: {{ definition.color }};"{% endif %}></i>
+                                                <span class="ml-1" style="font-size: 0.9em;">{{ definition.description }}</span>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="form-group row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 d-flex">
+
+                            {% if step > 1 %}
+                                <button type="submit" id="back" name="back" class="btn-primary btn mr-2 order-0">
+                                    Zurück
+                                </button>
+                            {% endif %}
+
+                            <button type="submit" id="next"  name="next" class="btn-primary btn mr-2 order-1 {% if step == steps_total %} hidden {% endif %}">
+                                Weiter
+                            </button>
+
+                            <button type="submit" id="finalise" name="finalise" class="hidden"></button>
+                            <button type="submit" id="save" name="save" class="hidden"></button>
+
+                            <quality-check-save-button class="order-3"></quality-check-save-button>
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+
+    </div>
+{% endblock %}
+
+
+{% block javascripts %}
+    <script>
+        function saveAndMove(element) {
+            document.getElementById('Questionnaire_stepPointer').value = element.dataset.step;
+            document.getElementById('next').click();
+        }
+
+        // Flag-Icons dynamisch laden (nur CSS-Klassen-Ansatz)
+        document.addEventListener('DOMContentLoaded', function() {
+            const flagDefinitions = {{ flag_definitions|json_encode|raw }};
+            
+            const allLabels = document.querySelectorAll('.form-group label');
+            
+            allLabels.forEach((label, index) => {
+                if (label.className.includes('flag-')) {
+                    const flagClasses = label.className.split(' ').filter(cls => cls.startsWith('flag-'));
+                    
+                    flagClasses.forEach(flagClass => {
+                        const flagName = flagClass.replace('flag-', '');
+                        const flagDef = flagDefinitions[flagName];
+                        
+                        if (flagDef) {
+                            addIconToLabel(label, flagName, flagDef);
+                        }
+                    });
+                }
+            });
+            
+            function addIconToLabel(label, flagName, flagDef) {
+                const icon = document.createElement('i');
+                icon.className = flagDef.icon + ' flag-icon ml-2';
+                icon.title = flagDef.description;
+                icon.setAttribute('data-toggle', 'tooltip');
+                icon.setAttribute('data-placement', 'top');
+                if (flagDef.color) {
+                    icon.style.color = flagDef.color;
+                }
+                label.appendChild(icon);
+            }
+        });
+    </script>
+{% endblock %}

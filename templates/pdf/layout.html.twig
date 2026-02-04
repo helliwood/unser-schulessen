@@ -1,0 +1,120 @@
+<html>
+<head>
+    <style>
+        @page {
+            margin: 100px 100px 50px 100px;
+        }
+
+        body {
+            font-family: Helvetica;
+            font-size: 12px;
+        }
+
+        h1 {
+            font-weight: normal;
+        }
+
+        header {
+            position: fixed;
+            top: -100px;
+        }
+
+        header img.use {
+            position: absolute;
+            right: -10mm;
+            top: 2mm;
+
+            width: 2.6cm;
+            height: auto;
+        }
+
+        header .h1, span.h1, span.h2, span.h3, span.h4, span.h5 {
+            margin-left: -5mm;
+            color: #fff;
+            padding: 0 15px;
+            display: inline-block;
+            font-weight: bold;
+
+        }
+
+        header .h1 {
+            position: fixed;
+            top: 10mm;
+        }
+
+        span.h1 {
+            position: relative;
+            top: 13mm;
+        }
+
+        header .h1, span.h1 {
+            margin-bottom: 10px;
+            background-color: #16411C;
+            font-size: 22px;
+            line-height: 26px;
+            height: 30px;
+        }
+
+        main {
+            position: relative;
+            top: 20mm;
+            margin-bottom: 35mm;
+        }
+
+
+        .footer {
+            position: fixed;
+            bottom: -50px;
+            left: -100px;
+            right: 0px;
+            height: 50px;
+            font-size: 11px;
+            line-height: 40px;
+            padding-left: 40px;
+            z-index: 1000;
+            background-color: #16411C;
+            color: #fff;
+            width: 210mm;
+        }
+
+        .footer .page-number {
+            position: fixed;
+            width: 50px;
+            bottom: 0;
+            right: -50px;
+            /*border: 1px #990000 solid;*/
+        }
+
+        .footer .page-number:after {
+            content: counter(page);
+        }
+    </style>
+
+</head>
+<body>
+<header>
+
+    <img src="./img/logo.png" class="use"/>
+    <div class="h1">{{ topic }}</div>
+    <br>
+    <br>
+</header>
+
+
+<main>
+
+    {% block body %}{% endblock %}
+
+</main>
+
+<footer class="footer">
+    <div class="wrapper">
+        <div class="in_form_text">
+            Erstellt mit dem QM-System am {{ "now" | date('d.m.Y') }}
+            für {{ currentSchool.name }}. | www.unser-schulessen.de
+        </div>
+        <div class="page-number">Seite </div>
+    </div>
+</footer>
+</body>
+</html>

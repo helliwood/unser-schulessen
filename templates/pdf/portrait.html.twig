@@ -1,0 +1,247 @@
+{% extends 'pdf/layout.html.twig' %}
+
+{% block body %}
+    <h1>„Unser Schulessen – so läuft es“</h1>
+    <p>Hier finden Sie in einem kurzen Steckbrief die Informationen zu unserem Schulessen.</p>
+
+    {% if data.7.items.catering_provider is defined or data.7.items.catering_provider_mail is defined
+        or data.7.items.catering_provider_phone is defined %}
+        <p>Für die Bereitstellung der Mittagsversorgung in unserer Schule ist verantwortlich:</p>
+        {% if data.7.items.catering_provider.value is defined %}
+            <p><b>{{ data.7.items.catering_provider.value }}</b></p>
+        {% endif %}
+        {% if data.7.items.catering_provider_mail.value is defined %}
+            <p><b>{{ data.7.items.catering_provider_mail.value }}</b></p>
+        {% endif %}
+        {% if data.7.items.catering_provider_phone.value is defined %}
+            <p><b>{{ data.7.items.catering_provider_phone.value }}</b></p>
+        {% endif %}
+    {% endif %}
+
+    {% if data.3.items.ordering_type is defined %}
+        <p>Anträge zur Teilnahme am Essen sind hier zu stellen:
+            {% if data.3.items.ordering_type.value is defined %}
+                <b>{{ data.3.items.ordering_type.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.0.items.places is defined %}
+        <p>Sitzplätze in der Mensa:
+            {% if data.0.items.places.value is defined %}
+                <b>{{ data.0.items.places.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.0.items.opening_hours_from is defined and data.0.items.opening_hours_to is defined %}
+        <p>Öffnungszeiten der Speisenausgabe:
+            {% if data.0.items.opening_hours_from.value is defined %}
+                <b>{{ data.0.items.opening_hours_from.value }}</b> bis
+            {% endif %}
+            {% if data.0.items.opening_hours_to.value is defined %}
+                <b>{{ data.0.items.opening_hours_to.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.0.items.minutes is defined %}
+        <p>Die Pausenzeit für das Mittagessen in Minuten:
+            {% if data.0.items.minutes.value is defined %}
+                <b>{{ data.0.items.minutes.value }} Minuten</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.1.items is not empty %}
+        <p>Unser Schulessen wird in folgender Form angeboten:</p>
+        <ul>
+            {% for key, value in data.1.items %}
+                {% if value.value is defined and value.value == 'Ja' %}
+                    <li><b>{{ value.question }}</b></li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if data.2.items.number_menu_lines is defined %}
+        <p>
+            Anzahl der Menülinien:
+            {% if data.2.items.number_menu_lines.value is defined %}
+                <b>{{ data.2.items.number_menu_lines.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.2.items.menu_parts is defined or data.2.items.daily_salat is defined
+        or data.2.items.free_drink is defined or data.2.items.dessert is defined %}
+        <p>
+            Zu einem Menü gehören:
+            {% if data.2.items.menu_parts.value is defined and data.2.items.menu_parts.value != '' %}
+                <b>{{ data.2.items.menu_parts.value }}</b>,
+            {% endif %}
+            {% if data.2.items.daily_salat.value is defined and data.2.items.daily_salat.value == 'Ja' %}
+                <b>{{ data.2.items.daily_salat.question }}</b>,
+            {% endif %}
+            {% if data.2.items.free_drink.value is defined and data.2.items.free_drink.value == 'Ja' %}
+                <b>{{ data.2.items.free_drink.question }}</b>,
+            {% endif %}
+            {% if data.2.items.dessert.value is defined and data.2.items.dessert.value == 'Ja' %}
+            <b>{{ data.2.items.dessert.question }}</b>
+            {% endif %}.
+        </p>
+    {% endif %}
+
+    {% if data.2.items.vegetarian_menu_line.value is defined and data.2.items.vegetarian_menu_line.value == 'Ja' %}
+        <p>Es ist täglich ist ein vegetarisches Angebot verfügbar:
+            <b>{{ data.2.items.vegetarian_menu_line.value }}</b>
+        </p>
+    {% endif %}
+
+    {% if data.2.items.dge is defined %}
+        <p>Im Speisenplan werden die DGE-Qualitätskriterien, wie folgt umgesetzt:
+            {% if data.2.items.dge.value is defined %}
+                <b>{{ data.2.items.dge.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.2.items.dge_checks is defined %}
+        <p>Als weitere Qualitätskriterien sind für unser Schulessen wurde zusätzlich vereinbart:
+            {% if data.2.items.dge_checks.value is defined %}
+                <b>{{ data.2.items.dge_checks.question }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.2.items.food_counter is defined %}
+        <p>Das Essen wird wie folgt ausgegeben:
+            {% if data.2.items.food_counter.value is defined %}
+                <b>{{ data.2.items.food_counter.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.2.items.additional_self_service is defined %}
+        <p>Zusätzlich gibt es Selbstbedienung:
+            {% if data.2.items.additional_self_service.value is defined %}
+                <b>{{ data.2.items.additional_self_service.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.2.items.warm_keeping_period is defined %}
+        <p>
+            Als maximale Warmhaltezeiten für das Mittagessen wurde folgende Zeit in Minuten vereinbart:
+            {% if data.2.items.warm_keeping_period.value is defined %}
+                <b>{{ data.2.items.warm_keeping_period.value }} Stunden</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.2.items.imbiss_offer is defined %}
+        <p>Zusätzlich zur Mittagsverpflegung gibt es ein Imbissangebot. Das Angebot des Imbisses umfasst:
+            {% if data.2.items.imbiss_offer.value is defined %}
+                <b>{{ data.2.items.imbiss_offer.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.2.items.imbiss_dge.value is defined and data.2.items.imbiss_dge.value == 'Ja' %}
+        <p><b>Das Angebot des Kiosks entspricht dem DGE-Qualitätsstandard für die Schulverpflegung.</b></p>
+    {% endif %}
+
+    {% if data.0.items.opening_hours_kiosk_from is defined and data.0.items.opening_hours_kiosk_to is defined %}
+        <p>Die Öffnungszeiten des Kiosk sind von:
+            <b>
+                {% if data.0.items.opening_hours_kiosk_from.value is defined %}
+                    {{ data.0.items.opening_hours_kiosk_from.value }}
+                {% endif %}
+                -
+                {% if data.0.items.opening_hours_kiosk_to.value is defined %}
+                    {{ data.0.items.opening_hours_kiosk_to.value }}Uhr
+                {% endif %}
+            </b>
+        </p>
+    {% endif %}
+
+    {% if data.3.items.period is defined %}
+        <p>So kann das Mittagessen bestellt werden:
+            <b>{% if data.3.items.period.value is defined %}{{ data.3.items.period.value }}{% endif %}</b>.
+        </p>
+    {% endif %}
+
+    {% if data.3.items.ordering_cancellation is defined %}
+        <p>
+            Stornierungen sind wie folgt möglich:
+            {% if data.3.items.ordering_cancellation.value is defined %}
+                <b>{{ data.3.items.ordering_cancellation.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.3.items.ordering_type is defined %}
+        <p>
+            Die Abgabe einer Bestellung ist hier möglich:
+            {% if data.3.items.ordering_type.value is defined %}
+                <b>{{ data.3.items.ordering_type.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.4.items.by is defined %}
+        <p>
+            Die Abrechnung für das Mittagessen erfolgt per
+            {% if data.4.items.by.value is defined %}
+                <b>{{ data.4.items.by.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.5.items.recipient is defined %}
+        <p>
+            Hinweise oder Kritik zum Essen sind zu richten an:
+            {% if data.5.items.recipient.value is defined %}
+                <b>{{ data.5.items.recipient.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.5.items.catering_officer_contact is defined %}
+        <p>Die Schule verfügt über eine Essenskommission. Verantwortlich ist:
+            {% if data.5.items.catering_officer_contact.value is defined %}
+                <b>{{ data.5.items.catering_officer_contact.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.6.items.price is defined %}
+        <p>Der Preis für ein Mittagessen liegt derzeit bei:
+            {% if data.6.items.price is defined %}
+                <b>{{ data.6.items.price.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.6.items.price_from is defined and data.6.items.price_to is defined %}
+
+        <p>Für ein Mittagessen gibt es eine Preisspanne von:
+            {% if data.6.items.price_from.value is defined %}
+                <b>{{ data.6.items.price_to.value }}</b>
+            {% endif %}
+            bis
+            {% if data.6.items.price_to.value is defined %}
+                <b>{{ data.6.items.price_from.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+
+    {% if data.6.items.bund_subsidies.value is defined and data.6.items.bund_subsidies.value is not empty %}
+        <p>Das Mittagessen kann bei Vorliegen der entsprechenden Voraussetzungen über das Bildungs- und Teilhabepaket
+            des Bundes bezuschusst werden. So ist die Antragstellung dafür möglich:
+            {% if data.6.items.bund_subsidies.value is defined %}
+                <b>{{ data.6.items.bund_subsidies.value }}</b>
+            {% endif %}
+        </p>
+    {% endif %}
+{% endblock %}

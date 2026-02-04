@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="example-wrapper">
+        <a class="btn btn-secondary float-right" href="{{ path('admin_school_new') }}">Schule hinzufügen</a>
+        <h1>Schulen</h1>
+        <div class="panel col-12">
+            <div class="float-right mb-1">
+                <a class="btn btn-{{ tag == 'no-mini-check' ? 'warning' : 'primary' }} mr-1"
+                   href="{{ path('admin_school_home', {'tag':'no-mini-check'}) }}">Schulen</a>
+                <a class="btn btn-{{ tag == 'mini-check' ? 'warning' : 'primary' }} mr-1"
+                   href="{{ path('admin_school_home', {'tag':'mini-check'}) }}">Schnellstart</a>
+                {% if app_state_country == 'bb' %}
+                    <a class="btn btn-{{ tag == 'quali' ? 'warning' : 'primary' }} mr-1"
+                       href="{{ path('admin_school_home', {'tag':'quali'}) }}">Qualitätsprogramm</a>
+                {% endif %}
+                {% if app_state_country == 'by' %}
+                    {% for key, district in districts_by %}
+                        <a class="btn btn-{{ tag == key ? 'warning' : 'primary' }} mr-1"
+                           href="{{ path('admin_school_home', {'tag': key}) }}">{{ key }}</a>
+                    {% endfor %}
+                {% endif %}
+                <a class="btn btn-secondary " href="{{ path('admin_school_home') }}">Filter löschen</a>
+
+            </div>
+            <data-table
+                    api-url="{{ path('admin_school_list', {tag:tag}) }}"
+                    sort-by="name"
+                    :sort-desc="false"
+                    :per-page="10"
+                    :fields="[
+                    {key: 'name', label: 'Name', sortable: true},
+                    {key: 'address.city', label: 'Stadt', sortable: true},
+                    {key: 'hasCurrentMasterData', label: 'SD', sortable: true, formatter: (value) => value === true ? 'Ja' : 'Nein'},
+                    {key: 'lastQcDate', label: 'lQC', sortable: true},
+                    {key: 'finalisedCount', label: 'fQC', sortable: true},
+                    {key: 'unfinalisedCount', label: 'gQC', sortable: true},
+                    {key: 'surveys', label: 'ZU', sortable: true},
+                    {key: 'foodSurveys', label: 'TC', sortable: true},
+                    {key: 'userHasSchoolCount', label: 'Mitglieder', sortable: true,
+                        formatter: (value, key, item) => {
+                            return item.memberCount + ' / ' + item.userHasSchoolCount;
+                        }
+                    },
+                    {key: 'createdAt', label: 'ED', sortable: true,
+                        formatter: (value, key, item) => {
+                            return moment(item.createdAt.date).format('DD.MM.YYYY');
+                        }
+                    },
+                    {key: 'options', label: 'Optionen', sortable: false, class:'options'},
+                ]">
+                <template v-slot:cell(options)="{row, callAndRefresh}">
+                    <b-button size="sm" :href="'/admin/school/show/'+row.item.id" class="mr-2">
+                        Anzeigen
+                    </b-button>
+                    <b-button v-if="row.item.miniCheck && (!row.item.memberCount || row.item.memberCount == 0)" size="sm" variant="danger" v-b-modal="'modal-'+row.item.id">
+                        <i class="far fa-trash-alt"></i> Löschen
+                        <!-- Modal Component -->
+                        <b-modal :id="'modal-'+row.item.id"
+                                 @ok="callAndRefresh({action:'delete', id:row.item.id}, '{{ path('admin_school_list', {tag:tag}) }}')"
+                                 title="Einladung löschen" ok-variant="danger" ok-title="Löschen"
+                                 cancel-title="Abbrechen">
+                            <p class="my-4">Möchten Sie die Schule '{{ '{{' }}
+                                row.item.name{{ '}}' }}' wirklich löschen?</p>
+                        </b-modal>
+                    </b-button>
+                </template>
+                <template v-slot:cell(name)="row">
+                    {{ '{{' }} row.item.name {{ '}}' }} <span v-if="row.item.miniCheck && (!row.item.userHasSchoolCount || row.item.userHasSchoolCount == 0)" class="badge badge-dark">Schnellstart<span
+                                v-if="row.item.miniCheckFull"> komplett</span> </span>
+                </template>
+            </data-table>
+
+            <div class="mt-3">
+                <h6>Legende:</h6>
+                <small class="text-muted">
+                    <strong>SD:</strong> Stammdaten aktualisiert |
+                    <strong>lQC:</strong> letzter Qualitäts-Check |
+                    <strong>fQC:</strong> finalisierte Qualitäts-Checks |
+                    <strong>gQC:</strong> gestartete Qualitäts-Checks |
+                    <strong>ZU:</strong> Zufriedenheitsumfragen |
+                    <strong>TC:</strong> Tellerchecks |
+                    <strong>Mitglieder:</strong> angenommen/gesamt |
+                    <strong>ED:</strong> Erstellungsdatum
+                </small>
+            </div>
+        </div>
+    </div>
+{% endblock %}

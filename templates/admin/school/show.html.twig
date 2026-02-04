@@ -1,0 +1,117 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <h1>{{ school.name }} {% if school.miniCheck %}<span class="badge badge-dark align-middle" style="font-size: 0.8rem;">Mini-Check</span>{% endif %}</h1>
+        <div class="row">
+            <div class="col-xl-4 order-xl-last mb-4">
+                <div class="panel">
+                    <div class="d-flex">
+                        <h3>Allgemein</h3>
+                        <div class="ml-auto">
+                            <a href="{{ path('admin_school_edit', {id:school.id}) }}" class="btn btn-secondary">Bearbeiten</a>
+                        </div>
+                    </div>
+                    <div class="font-weight-bold">{{ school.name }}</div>
+                    {{ school.address | nl2br }}
+                    <div class="text-muted mt-2">Erstellt am {{ school.createdAt | date("d.m.Y") }}</div>
+                    {% if school.miniCheckName or school.miniCheckEmail %}
+                        <div class="row">
+                            <div class="col-12 mt-md-3">
+                                <h5>Schnellstart</h5>
+                                Name: {{ school.miniCheckName }}<br />
+                                E-Mail: {{ school.miniCheckEmail }}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-xl-8 mb-4">
+                <div class="panel">
+                    <div class="d-flex mb-3">
+                        <h2>Mitglieder</h2>
+                        <div class="ml-auto">
+                            <a href="{{ path('admin_school_members_new', {id:school.id}) }}" class="btn btn-secondary">Neues
+                                Mitglied</a>
+                            {% if app_state_country in ['rp','by','he'] %}
+                                <a href="{{ path('admin_school_members_new_consultant', {id:school.id}) }}"
+                                   class="btn btn-primary">Neuer {{ app_state_country == 'he' ? 'Berater VNS/ CleZi' :'Ernährungsberater' }}</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <data-table
+                            api-url="{{ path('admin_school_members_list', {id:school.id}) }}"
+                            sort-by="state"
+                            :sort-desc="false"
+                            :per-page="10"
+                            :fields="[
+                                {key: 'name', label: 'Name', sortable: true},
+                                {key: 'role', label: 'Zugriff', sortable: true},
+                                {key: 'state', label: 'Status', sortable: true},
+                                {key: 'options', label: 'Optionen', sortable: false, class:'options'}
+                            ]">
+                        <template v-slot:cell(role)="row">
+                            {{ '{{' }}row.item.roleText{{ '}}' }}
+                        </template>
+                        <template v-slot:cell(state)="row">
+                            {{ '{{' }}row.item.stateText{{ '}}' }}
+                        </template>
+                        <template v-slot:cell(name)="row">
+                            {{ '{{' }}row.item.user.displayName{{ '}}' }}
+                            <b-badge v-if="row.item.user.id=='{{ app.user.id }}'" variant="warning">ich</b-badge>
+                            <div class="small">
+                                {{ '{{' }}row.item.personType{{ '}}' }}
+                            </div>
+                            <div v-if="row.item.user.displayName != row.item.user.email" class="text-muted">
+                                {{ '{{' }}row.item.user.email{{ '}}' }}
+                            </div>
+                        </template>
+                        <template v-slot:cell(options)="{row, callAndRefresh}">
+                            <b-button-group size="sm" class="mr-2">
+                                <b-button size="sm"
+                                          :href="'/admin/school/members/{{ school.id }}/edit/'+row.item.user.id"
+                                          class="mr-0">
+                                    <i class="fas fa-edit mr-1"></i>Bearbeiten
+                                </b-button>
+                                <b-dropdown size="sm" right text="">
+                                    <b-dropdown-item
+                                            v-if="row.item.state=={{ constant('App\\Entity\\UserHasSchool::STATE_ACCEPTED') }}  && row.item.user.id != {{ app.user.id }}"
+                                            variant="primary"
+                                            :href="'/admin/school/members/{{ school.id }}/change-password/'+row.item.user.id">
+                                        <i class="fas fa-key text-primary"></i>
+                                        Passwort ändern
+                                    </b-dropdown-item>
+                                    <b-dropdown-item
+                                            v-if="row.item.state=={{ constant('App\\Entity\\UserHasSchool::STATE_REQUESTED') }}"
+                                            variant="danger"
+                                            v-b-modal="'modal-'+row.item.user.id"
+                                    >
+                                        <i class="far fa-trash-alt"></i> Löschen
+                                        <!-- Modal Component -->
+                                        <b-modal :id="'modal-'+row.item.user.id"
+                                                 @ok="callAndRefresh({action:'delete_invitation', user_id:row.item.user.id}, '{{ path('admin_school_members_list', {id:school.id}) }}')"
+                                                 title="Einladung löschen" ok-variant="danger" ok-title="Löschen"
+                                                 cancel-title="Abbrechen">
+                                            <p class="my-4">Möchten Sie die Einladung an '{{ '{{' }}
+                                                row.item.user.displayName{{ '}}' }}' wirklich löschen?</p>
+                                        </b-modal>
+                                    </b-dropdown-item>
+                                    <b-dropdown-item
+                                            v-if="(row.item.state == 1 || row.item.state == 4) && row.item.user.id != {{ app.user.id }} "
+                                            :href="'/?_switch_user='+row.item.user.email"
+                                            variant="primary"><i class="fas fa-user-secret"></i> Impersonieren
+
+                                        <b-button v-if="row.item.state == 0" v-b-modal="'modal-'+row.item.user.id"
+                                                  size="sm"
+                                                  variant="danger"><i class="far fa-trash-alt"></i>
+                                        </b-button>
+                                    </b-dropdown-item>
+                                </b-dropdown>
+                            </b-button-group>
+                        </template>
+                    </data-table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

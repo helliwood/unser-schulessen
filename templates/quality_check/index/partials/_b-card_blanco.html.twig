@@ -1,0 +1,28 @@
+{#{% if category.children is defined %}#}
+{#    {% set parentCategoryName = category.name %}#}
+{#    {% set category = category.children %}#}
+{#{% endif %}#}
+
+{% set questions = category.questions %}
+<b-card no-body class="mb-1" >
+    <b-card-header class="" style="page-break-inside: avoid;" role="tab" v-b-toggle.accordion-{{ category.id }}>
+        {{ category.name }}
+        <i class="fas collapse_arrow mt-1"></i>
+        <div class="float-right mr-3">
+            {% for id, name in category %}
+                <div class="{{ key }}">{{ value }}</div>
+            {% endfor %}
+        </div>
+    </b-card-header>
+    <b-collapse id="accordion-{{ category.id }}" visible accordion="my-accordion" role="tabpanel">
+        <b-card-body>
+            {% set border = "" %}
+            {% for question in category.questions %}
+                <b-card-text class="{{ border }}">
+                    {{ question }}
+                </b-card-text>
+                {% set border = "border-top pt-3" %}
+            {% endfor %}
+        </b-card-body>
+    </b-collapse>
+</b-card>

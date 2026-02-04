@@ -1,0 +1,50 @@
+{% extends 'base.html.twig' %}
+{% set stateActive = constant('App\\Entity\\FoodSurvey\\FoodSurvey::STATE_ACTIVE') %}
+{% set stateNotActivated = constant('App\\Entity\\FoodSurvey\\FoodSurvey::STATE_NOT_ACTIVATED') %}
+{% set stateClosed = constant('App\\Entity\\FoodSurvey\\FoodSurvey::STATE_CLOSED') %}
+{% block body %}
+    <div>
+        <h1>Teller-Check</h1>
+        <div class="row d-flex">
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="fas fa-chart-bar text-primary2 mr-1"></i>Teller-Check</h2>
+                    <div>Erstellen Sie einen neuen Teller-Check, in dem Sie ein Foto des aktuellen Speiseangebots
+                        hinterlegen. So können die Kinder selbst die einzelnen Komponenten bewerten.
+                    </div>
+                    <div>
+                        {% if is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') or is_granted('ROLE_KITCHEN') %}
+                            <a class="btn btn-secondary mt-3" href="{{ path('food_survey_creator') }}"><i
+                                        class="fas fa-plus mr-1"></i>Teller-Check erstellen</a>
+                            <a class="btn btn-secondary mt-3" href="{{ path('food_survey_clone') }}"><i
+                                        class="fas fa-clone mr-1"></i>Teller-Check kopieren</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="far fa-life-ring text-primary2 mr-1"></i>Hilfe</h2>
+                    <p>Wie erstelle ich einen Teller-Check?</p>
+                    <p>Die Schritt für Schritt Anleitung zum Download gibt nützliche Tipps.</p>
+                    <p>
+                        <a class="btn btn-secondary" target="_blank" href="/documents/Tellercheck_Schritt_für_Schritt_Schulessen.pdf">
+                            <i class="fas fa-link mr-1"></i>
+                            Schritt für Schritt Anleitung Downloaden
+                        </a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="row d-flex">
+            {% include ('food_survey/index/partials/_current_surveys.html.twig') %}
+
+            {% include ('food_survey/index/partials/_archived_surveys.html.twig') %}
+        </div>
+    </div>
+
+    <!-- Modal Component -->
+    <b-modal id="modal-help" title="Hilfe Zufriedenheitsbefragung" size="xl" ok-only>
+        Die Hilfe folgt später.
+    </b-modal>
+{% endblock %}

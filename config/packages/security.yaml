@@ -1,0 +1,55 @@
+security:
+  # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
+  encoders:
+    App\Entity\User: 'auto'
+  providers:
+    our_db_provider:
+      entity:
+        class: App\Entity\User
+  firewalls:
+    dev:
+      pattern: ^/(_(profiler|wdt)|css|images|js)/
+      security: false
+    main:
+      switch_user: true
+      pattern: ^/
+      anonymous: lazy
+      provider: our_db_provider
+      user_checker: App\Security\UserChecker
+      form_login:
+        login_path: login
+        check_path: login
+        default_target_path: home
+        always_use_default_target_path: true
+      logout:
+        path: /logout
+        target: /
+      remember_me:
+        secret: '%kernel.secret%'
+        lifetime: 604800 # 1 week in seconds
+        path: ~
+
+  # Easy way to control access for large sections of your site
+  # Note: Only the *first* access control that matches will be used
+  #access_control:
+  # - { path: ^/admin, roles: ROLE_ADMIN }
+  # - { path: ^/profile, roles: ROLE_USER }
+  role_hierarchy:
+    ROLE_GUEST: [ ROLE_USER ]
+    ROLE_KITCHEN: [ ROLE_USER ]
+    ROLE_SCHOOL_AUTHORITIES: [ ROLE_KITCHEN, ROLE_GUEST ]
+    ROLE_SCHOOL_AUTHORITIES_ACTIVE: [ ROLE_SCHOOL_AUTHORITIES ]
+    ROLE_MENSA_AG: [ ROLE_SCHOOL_AUTHORITIES ]
+    ROLE_FOOD_COMMISSIONER: [ ROLE_MENSA_AG ]
+    ROLE_HEADMASTER: [ ROLE_FOOD_COMMISSIONER ]
+    ROLE_CONSULTANT: [ ROLE_HEADMASTER ]
+    ROLE_ADMIN: [ ROLE_CONSULTANT, ROLE_ALLOWED_TO_SWITCH ]
+  access_control:
+    - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/reset, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/invitation, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/sendMail, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/Umfrage, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/Mini-Check, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/, roles: [ ROLE_USER, IS_AUTHENTICATED_REMEMBERED ] }
+  #always_authenticate_before_granting: true #damit die rollen bei jedem refresh aktualisiert werden (wichtig für schulwechsel) BUG: https://github.com/symfony/symfony/issues/32756

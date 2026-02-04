@@ -1,0 +1,14 @@
+{% extends 'pdf/layout.html.twig' %}
+
+{% block body %}
+    {% for category in data %}
+        {% if category.items | length > 0 %}
+            <h1>{{ category.name }}</h1>
+            {% for item in category.items %}
+                <div>
+                    <strong>{{ item.question }}</strong><br/>{% if item.value is defined %}{{ item.value | nl2br }}{% endif %}<br/><br/>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+{% endblock %}

@@ -1,0 +1,43 @@
+<div class="col-12 mb-4">
+    <div class="panel h-100">
+        <h2><i class="fas fa-chart-bar text-primary2 mr-1"></i>Archivierte Teller-Checks</h2>
+        <div class="mb-2">Hier finden Sie alle archivierten Teller-Checks.</div>
+        <data-table
+                api-url="{{ path('food_survey_list_closed') }}"
+                sort-by="createdAt"
+                :sort-desc="true"
+                :per-page="10"
+                :fields="[
+                            {key: 'name', label: 'Name', sortable: true},
+                            {key: 'type', label: 'Typ', sortable: true,
+                                formatter: (value, key, item) => {
+                                    return item.typeLabel;
+                            }},
+                            {key: 'numberOfParticipants', label: 'Teilnehmer', sortable: true},
+                            {key: 'createdAt', label: 'Zeitraum', sortable: true,
+                                formatter: (value, key, item) => {
+                                    return moment(item.activatedAt.date).format('DD.MM.YYYY HH:mm') + ' bis ' +
+                                    (item.closesAt ? moment(item.closesAt.date).format('DD.MM.YYYY HH:mm') : 'offen');
+                                }
+                            },
+                            {key: 'options', label: 'Optionen', sortable: false, class:'options'}
+                        ]">
+            <template v-slot:cell(options)="{ row, callAndRefresh }">
+                <b-button
+                        variant="secondary" size="sm"
+                        :href="'/food-survey/result/'+row.item.id"><i
+                            class="fas fa-chart-bar mr-1"></i>Auswertung
+                </b-button>
+                <b-button variant="secondary" size="sm"
+                        @click="copyTextToClipboard(row.item.uuid)">
+                    <i class="fas fa-copy mr-1" title=""></i>Id kopieren
+                </b-button>
+                <b-button
+                        variant="primary" size="sm"
+                        :href="'/food-survey/export/'+row.item.id"><i
+                            class="fas fa-file-pdf mr-1"></i>Download
+                </b-button>
+            </template>
+        </data-table>
+    </div>
+</div>

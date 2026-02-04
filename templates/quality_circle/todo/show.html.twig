@@ -1,0 +1,83 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macros/flag_icons.twig' as flag_icons %}
+
+{% block body %}
+
+    {# <header class="printOnly"><img src="../../../public/img/logo.jpeg"/></header> #}
+    {# <header class="printOnly"><img src="{{ asset('img/logo.svg') }}"/></header> #}
+
+    <div>
+        <h1>{{ school }}: To Do vom {{ todo.createdAt | date('d.m.Y') }}</h1>
+        <div class="ml-auto no-print out-of-panel">
+            <button class="btn btn-primary flex-end" onclick="window.print();">
+                <i class="fas fa-print mr-1"></i>Drucken
+            </button>
+        </div>
+        <div class="panel mb-4">
+            <div class="row result">
+                <div class="col-12">
+                    <h2>{{ todo.name }}</h2>
+                </div>
+                {% if todo.answer %}
+                    <div class="col-9">
+                        <p class="mb-1">{{ todo.answer.question.category.name }}</p>
+                        <h4>
+                            {{ todo.answer.question.question }}
+                            {% if flag_definitions is defined %}
+                                {{ flag_icons.render_flag_icons(todo.answer.question, flag_definitions) }}
+                            {% endif %}
+                        </h4>
+                    </div>
+                    <div class="col-3 text-right">
+                        <div class="{% if todo.answer.calculateAnswer %}{{ todo.answer.calculateAnswer }}{% else %}not_answered{% endif %}">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[todo.answer.calculateAnswer] }}</div>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <p>{{ todo.description }}</p>
+                    </div>
+                {% endif %}
+                {% if todo.note %}
+                    <div class="col-12">
+                        <div class="text-muted mt-2">Notiz:</div> {{ todo.note | nl2br }}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel">
+            <div class="d-flex mb-2">
+                <h3><i class="fas fa-clipboard-check text-primary2 mr-1"></i>Aktionspläne</h3>
+            </div>
+            <div class="row">
+                {% for actionPlan in todo.actionPlans %}
+                    <div class="col col-lg-6">
+                        <div class="card">
+                            <div class="card-header">
+                                Aktionsplan vom {{ actionPlan.createdAt | date("d.m.Y") }}
+                            </div>
+                            <div class="card-body">
+                                <div class="text-muted">Was?:</div> {{ actionPlan.what | nl2br }}
+                                <div class="text-muted">Wie?:</div> {{ actionPlan.how | nl2br }}
+                                <div class="text-muted mt-2">Wer?:</div> {{ actionPlan.who | nl2br }}
+                                <div class="text-muted mt-2">Wann?:</div> {{ actionPlan.when | date("d.m.Y") }}
+                                {% if actionPlan.note %}
+                                    <div class="text-muted mt-2">Notiz:</div> {{ actionPlan.note | nl2br }}
+                                {% endif %}
+                            </div>
+                            <div class="card-footer">
+                                Erledigt: {% if actionPlan.completed %}Ja{% else %}Nein{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="row">
+                <div class="col-12 d-flex mt-3">
+                    <div class="mt-auto surveyResult no-print">
+                        <a href="{{ path('quality_circle_home') }}" class="btn btn-warning">Zur Übersicht</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

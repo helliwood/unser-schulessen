@@ -1,0 +1,41 @@
+version: "3"
+
+services:
+  web:
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    links:
+      - db
+    volumes:
+      - .:/var/www:cached
+    environment:
+      - XDEBUG_CONFIG=idekey=PHPSTORM remote_host=host.docker.internal
+      - PHP_IDE_CONFIG=serverName=mein-schulessen
+  db:
+    image: mariadb:10.3
+    restart: always
+    volumes:
+      - ./mysql:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: your-password
+      MYSQL_DATABASE: mein-schulessen
+    ports:
+      - "8889:3306"
+  testdb:
+    image: mariadb:10.3
+    restart: always
+    volumes:
+      - ./mysql_test:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: your-password
+      MYSQL_DATABASE: mein-schulessen-test
+    ports:
+      - "8887:3306"

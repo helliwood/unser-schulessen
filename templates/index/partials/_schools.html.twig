@@ -1,0 +1,61 @@
+<h2><i class="fas fa-university mr-2 text-primary2 mr-1"></i>Ihre Schulen</h2>
+
+<div class="row">
+    {% for userHasSchool in app.user.userHasSchool %}
+        <div class="col-12 col-md-6 col-lg-4 mb-3">
+            <b-card>
+                <div slot="header">
+                    <i class="fas fa-university mr-2 text-primary2"></i>
+                    <strong>{{ userHasSchool.school.name }}</strong>
+                </div>
+                Zugriff: {{ constant('App\\Entity\\UserHasSchool::ROLE_LABELS')[userHasSchool.role] }}
+                <br/><br/>
+                {{ userHasSchool.school.address | nl2br }}
+                <div slot="footer" class="d-flex align-items-center justify-content-between">
+                    {% if userHasSchool.state  == constant('App\\Entity\\UserHasSchool::STATE_REQUESTED') %}
+                        Anfrage erhalten:
+                        <b-button variant="success" size="sm"
+                                  href="{{ path('accept_invite', {'school':userHasSchool.school.id}) }}">
+                            <i class="fas fa-plus mr-1"></i>Annehmen
+                        </b-button>
+                        <b-button variant="danger" size="sm"
+                                  v-b-modal.reject-{{ userHasSchool.school.id }}>Ablehnen
+                        </b-button>
+                        <b-modal id="reject-{{ userHasSchool.school.id }}"
+                                 title="Anfrage ablehnen"
+                                 cancel-title="Abbrechen">
+                            <div slot="modal-footer">
+                                <b-button variant="danger"
+                                          href="{{ path('decline_invite', {'school':userHasSchool.school.id}) }}">
+                                    <i class="fas fa-times mr-1"></i>Ablehnen
+                                </b-button>
+                            </div>
+                            Möchten Sie die Einladung von
+                            <strong>{{ userHasSchool.school.name }}</strong> wirklich
+                            ablehnen?<br/><br/>
+                            Die Ablehnung ist unwiderruflich!
+                        </b-modal>
+                    {% elseif userHasSchool.state  == constant('App\\Entity\\UserHasSchool::STATE_ACCEPTED') %}
+                        <div>Angenommen</div>
+                        {% if userHasSchool.school != app.user.currentSchool %}
+                            <a href="{{ path('change_school', {'school':userHasSchool.school.id}) }}"
+                               class="btn btn-secondary btn-sm"><i
+                                        class="fas fa-exchange-alt mr-1"></i>Wechseln</a>
+                        {% endif %}
+                    {% elseif userHasSchool.state  == constant('App\\Entity\\UserHasSchool::STATE_CONSULTANT') and app_state_country in constant('App\\Entity\\User::STATES_WITH_CONSULTANTS') %}
+                        <div>Ernährungsberater</div>
+                        {% if userHasSchool.school != app.user.currentSchool %}
+                            <a href="{{ path('change_school', {'school':userHasSchool.school.id}) }}"
+                               class="btn btn-secondary btn-sm"><i
+                                        class="fas fa-exchange-alt"></i> Wechseln</a>
+                        {% endif %}
+                    {% elseif userHasSchool.state  == constant('App\\Entity\\UserHasSchool::STATE_REJECTED') %}
+                        Abgelehnt
+                    {% elseif userHasSchool.state  == constant('App\\Entity\\UserHasSchool::STATE_BLOCKED') %}
+                        Blockiert
+                    {% endif %}
+                </div>
+            </b-card>
+        </div>
+    {% endfor %}
+</div>

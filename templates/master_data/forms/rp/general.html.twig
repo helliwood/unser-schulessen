@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+
+{#
+{% form_theme form _self %}
+
+{%- block _break_times_general_opening_hours_row -%}
+    <div class="form-group row">
+        <label for="{{ id }}" class="col-sm-3 col-form-label required">{{- label -}}</label>
+        <div class="{{ block('form_group_class') }}">
+            {{- form_widget(form) -}}
+        </div>
+    </div>
+{%- endblock _break_times_general_opening_hours_row -%}
+#}
+{% block body %}
+    <div class="example-wrapper">
+        <h1>Stammdaten: Allgemein</h1>
+        <div class="panel">
+            {{ include('master_data/forms/step_bar.html.twig') }}
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    <h3>Essensteilnehmer</h3>
+                    <p class="font-weight-bold">Anzahl der potenziellen Essenteilnehmer pro Tag:</p>
+                    {{ form_row(form.potential_current) }}
+                    {{ form_row(form.potential_feature) }}
+                    <p class="font-weight-bold mb-0">Essenteilnehmer aktuell pro Tag:</p>
+                    <p class="text-muted">Tragen Sie hier bitte ausschließlich die Anzahl der Schüler*innen ein, die in der Mittagspause essen.</p>
+                    {{ form_row(form.students_current) }}
+                    <p class="font-weight-bold">Essenteilnehmer nach Klassenstufen:</p>
+                    {{ form_row(form.class_level_1_4) }}
+                    {{ form_row(form.class_level_5_10) }}
+                    {{ form_row(form.class_level_11_13) }}
+                    <p class="font-weight-bold">Essenteilnehmer Lehrer:</p>
+                    {{ form_row(form.teacher_current) }}
+                    {{ form_row(form.teacher_obligatory) }}
+
+                    <h3 class="font-weight-bold">Pausenzeiten</h3>
+                    {{ form_row(form.description) }}
+                    {{ form_row(form.minutes) }}
+                    <div class="form-group row"><label for="break_times_description"
+                                                       class="col-sm-3 col-form-label required">Öffnungszeiten der
+                            Speisenausgabe</label>
+                        <div class="col-sm-9 d-flex align-items-center">{{- form_widget(form.opening_hours_from) -}}
+                            <div class="d-flex mx-2"> bis</div>{{- form_widget(form.opening_hours_to) -}}
+                        </div>
+                        <div class="col-sm-9 offset-sm-3">
+                            {{- form_errors(form.opening_hours_from) -}}
+                            {{- form_errors(form.opening_hours_to) -}}
+                        </div>
+                    </div>
+                    <div class="form-group row"><label for="break_times_description"
+                                                       class="col-sm-3 col-form-label">Öffnungszeiten des
+                            Kiosk/Imbiss</label>
+                        <div class="col-sm-9 d-flex align-items-center">{{- form_widget(form.opening_hours_kiosk_from) -}}
+                            <div class="d-flex mx-2"> bis</div>{{- form_widget(form.opening_hours_kiosk_to) -}}
+                        </div>
+                        <div class="col-sm-9 offset-sm-3">
+                            {{- form_errors(form.opening_hours_kiosk_from) -}}
+                            {{- form_errors(form.opening_hours_kiosk_to) -}}
+                        </div>
+                    </div>
+                    {{ form_row(form.bus_driving_times_earliest) }}
+                    {{ form_row(form.bus_driving_times_latest) }}
+
+                    <h3 class="font-weight-bold">Ausstattung, Räumlichkeiten</h3>
+                    {{ form_row(form.dining_room) }}
+                    {{ form_row(form.dining_only) }}
+                    {{ form_row(form.other_uses) }}
+                    {{ form_row(form.places) }}
+                    {{ form_row(form.features) }}
+
+                    <div class="form-group row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 d-flex">
+                            {% if step > 1 %}
+                                <button type="submit" id="back" name="back" class="btn-primary btn">Zurück</button>
+                            {% endif %}
+                            {% if step < max_steps %}
+                                <button type="submit" id="next" name="next" class="btn-primary btn ml-2">Weiter</button>
+                            {% else %}
+                                <button type="submit" id="finalise" name="finalise" class="btn-warning btn ml-2">
+                                    Finalisieren
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

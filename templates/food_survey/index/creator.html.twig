@@ -1,0 +1,24 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <h1>Neuer Teller-Check</h1>
+        <div class="panel">
+            <div class="col-md-12 mb-4">
+                    <b>Kurzanleitung</b>
+                    <ol>
+                        <li>Name eingeben, ein Bild des Essens hochladen und <i>speichern</i> drücken.</li>
+                        <li><i>Spot hinzufügen drücken</i> und die Speise die bewertet werden soll einkreisen.</li>
+                        <li>Unten in der Tabelle ist eine neue Zeile erscheinen, in der die markierte Speise bezeichnet werden muss.</li>
+                        <li>Sind alle Speisen markiert und beschriftet wieder auf <i>Speichern</i> klicken</li>
+                    </ol>
+            </div>
+            <food-survey :id="{{ foodSurvey ? foodSurvey.id : 'null' }}"
+                         load-uri="{{ path('food_survey_load') }}"
+                         upload-uri="{{ path('food_survey_upload') }}"
+                         save-spot-uri="{{ path('food_survey_save_spot') }}"
+                         home-uri="{{ path('food_survey_home') }}"
+                         remove-spot-uri="{{ path('food_survey_remove_spot') }}"></food-survey>
+        </div>
+    </div>
+{% endblock %}

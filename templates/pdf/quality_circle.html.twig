@@ -1,0 +1,80 @@
+{% extends 'pdf/layout.html.twig' %}
+
+{% block body %}
+    <style>
+        .result .true, .result .partial, .result .false, .result .not_answered {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 7px;
+            border: 1px solid #999;
+        }
+
+        .result .true {
+            background-color: #04B100;
+        }
+
+        .result .partial {
+            background-color: #FFA700;
+        }
+
+        .result .false {
+            background-color: #D30000;
+        }
+
+        .result .not_answered {
+            background-color: #999999;
+        }
+
+        .text-muted {
+            color: #666;
+        }
+
+        .pt-2 {
+            padding-top: 6px;
+        }
+    </style>
+
+    <h1 style="margin-bottom: 6px;">To Do vom {{ todo.createdAt | date('d.m.Y') }}</h1>
+    {% if todo.answer %}
+        <div>
+            <p class="mb-1">{{ todo.answer.question.category.name }}</p>
+            <h3>{{ todo.answer.question.question }}</h3>
+        </div>
+        <div class="result" style="margin-bottom: 10px;">
+            <div class="{% if todo.answer.calculateAnswer %}{{ todo.answer.calculateAnswer }}{% else %}not_answered{% endif %}"></div>
+            <div style="display: inline-block; line-height: 20px;">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[todo.answer.calculateAnswer] }}</div>
+        </div>
+    {% else %}
+        <div>
+            <p>{{ todo.description }}</p>
+        </div>
+    {% endif %}
+    {% if todo.note %}
+        <div>
+            <div class="text-muted">Notiz:</div> {{ todo.note | nl2br }}
+        </div>
+    {% endif %}
+    <hr style="color: #ebebeb;" />
+    {% for actionPlan in todo.actionPlans %}
+        <table class="result" width="100%" style="margin-top: 20px;">
+            <tr>
+                <td style="font-weight: bold;">Aktionsplan vom {{ actionPlan.createdAt | date("d.m.Y") }}</td>
+            </tr>
+            <tr>
+                <td>
+                    <div>
+                        <div class="text-muted">Was?:</div> {{ actionPlan.what | nl2br }}<br /><br />
+                        <div class="text-muted">Wie?:</div> {{ actionPlan.how | nl2br }}<br /><br />
+                        <div class="text-muted mt-2">Wer?:</div> {{ actionPlan.who | nl2br }}<br /><br />
+                        <div class="text-muted mt-2">Wann?:</div> {{ actionPlan.when | date("d.m.Y") }}<br /><br />
+                        <div class="text-muted mt-2">Erledigt:</div> {% if actionPlan.completed %}Ja{% else %}Nein{% endif %}<br /><br />
+                        {% if actionPlan.note %}
+                            <div class="text-muted mt-2">Notiz:</div> {{ actionPlan.note | nl2br }}
+                        {% endif %}
+                    </div>
+                </td>
+            </tr>
+        </table>
+    {% endfor %}
+{% endblock %}

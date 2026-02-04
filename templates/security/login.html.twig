@@ -1,0 +1,50 @@
+{% extends 'clear.html.twig' %}
+
+{% block body %}
+    <main>
+        <div class="login-box row no-gutters bg-white">
+            <div class="d-none d-md-flex col-6 login-teaser"></div>
+            <div class="col-12 col-md-6 login-form">
+                <img alt="Vernetzungsstelle Schulverpflegung {{ app_state_country|trans }}" src="{{ logo }}" class="vsvb"/>
+                <h1 class="text-center text-primary text-uppercase">Portal<br/>Unser Schulessen</h1>
+                <p class="text-muted text-center">Herzlich Willkommen. Bitte melden Sie sich an.</p>
+                {% if error is defined and error %}
+                    <div class="pb-3 text-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {% endif %}
+                <form method="POST" action="{{ path('login') }}" name="reset" novalidate="novalidate" class="d-block">
+                    <div class="form-group row required">
+                        <div class="col-12">
+                            <label for="username" class="sr-only">E-Mail</label>
+                            <input type="text" name="_username" required="required" id="username"
+                                   placeholder="E-Mail"
+                                   class="form-control" value="">
+                        </div>
+                    </div>
+                    <div class="form-group row required">
+                        <div class="col-12">
+                            <label for="password" class="sr-only">Passwort</label>
+                            <input type="password" name="_password" required="required"
+                                   id="password"
+                                   placeholder="Passwort"
+                                   class="form-control" value="">
+                        </div>
+                    </div>
+                    <div class="form-group row required text-muted">
+                        <div class="col-12 d-flex">
+                            <div class="">
+                                <input type="checkbox" id="remember_me" name="_remember_me" checked/>
+                                <label for="remember_me">Angemeldet bleiben?</label>
+                            </div>
+                            <div class="ml-auto">
+                                <a href="{{ path('reset') }}" class="text-primary">Passwort vergessen?</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-center"><input type="submit" name="submit" class="btn btn-primary" id="submit"
+                                                    value="Anmelden"></div>
+                </form>
+                <img src="/img/BMLEH_Fz_2025_WebSVG_de.svg" alt="Bundesministerium für Ernährung und Landwirtschaft" class="BMELV"/>
+            </div>
+        </div>
+    </main>
+{% endblock %}

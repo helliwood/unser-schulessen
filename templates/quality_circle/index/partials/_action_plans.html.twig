@@ -1,0 +1,37 @@
+<div class="row mb-4">
+    <div class="col">
+        <div class="panel">
+            <h3><i class="fas fa-clipboard-list text-primary2 mr-1"></i>Aktionspläne</h3>
+            <div class="mb-2">Hier finden Sie Ihre aktuelle Aktions-Pläne.</div>
+            <table class="table">
+                <thead>
+                <tr>
+                    <th width="40%">Was?</th>
+                    <th width="30%">Wer?</th>
+                    <th width="15%">Wann?</th>
+                    <th width="15%">Optionen</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for actionPlan in unarchivedToDo.actionPlans %}
+                    <tr>
+                        <td>{{ actionPlan.what | truncate(50) }}</td>
+                        <td>{{ actionPlan.who }}</td>
+                        <td>{{ actionPlan.when | date("d.m.Y") }}</td>
+                        <td>
+                            <a class="btn btn-primary btn-sm"
+                               href="{{ path('quality_circle_todo_action_plan_show', {'id':actionPlan.toDoItem.id}) }}"><i
+                                        class="fas fa-eye mr-1"></i>Anzeigen</a>
+                            {% if is_granted('ROLE_MENSA_AG') %}
+                                <a class="btn btn-secondary btn-sm"
+                                   href="{{ path('quality_circle_todo_action_plan', {'id':actionPlan.toDoItem.id}) }}"><i
+                                            class="fas fa-edit mr-1"></i>Bearbeiten</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

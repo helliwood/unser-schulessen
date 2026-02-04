@@ -1,0 +1,51 @@
+{% extends 'index/index.html' %}
+{% block index_members_admin_controlls %}
+    <b-button size="sm" :href="'/master_data/members/edit/'+row.item.user.id" class="mr-2">
+        <i class="fas fa-edit mr-1"></i>Bearbeiten
+    </b-button>
+
+    <span v-if="row.item.role != 'ROLE_FOOD_COMMISSIONER' && row.item.state != 0">
+                                    <b-button v-if="row.item.state == 2" v-b-modal="'modalUnblock-'+row.item.user.id"
+                                              size="sm" variant="primary"><i class="fas fa-check mr-1"></i>Entsperren
+                                    </b-button>
+        <!-- Modal Component -->
+                                    <b-modal :id="'modalUnblock-'+row.item.user.id"
+                                             @ok="callAndRefresh({action:'block_user', user_id:row.item.user.id}, '{{ path('master_data_members_list') }}')"
+                                             title="Entsperren" ok-variant="primary" ok-title="Entsperren"
+                                             cancel-title="Abbrechen">
+                                        <p class="my-4">Möchten Sie '{{ '{{' }}
+                                            row.item.user.displayName{{ '}}' }}' wirklich Entsperren?
+                                        </p>
+                                    </b-modal>
+
+                                    <b-button v-if="row.item.state != 2" v-b-modal="'modalBlock-'+row.item.user.id"
+                                              size="sm" variant="secondary">
+                                        <i class="fas fa-times mr-1"></i>Sperren
+                                    </b-button>
+        <!-- Modal Component -->
+                                    <b-modal :id="'modalBlock-'+row.item.user.id"
+                                             @ok="callAndRefresh({action:'block_user', user_id:row.item.user.id}, '{{ path('master_data_members_list') }}')"
+                                             title="Sperren" ok-variant="danger" ok-title="Sperren"
+                                             cancel-title="Abbrechen">
+                                        <p class="my-4">Möchten Sie '{{ '{{' }}
+                                            row.item.user.displayName{{ '}}' }}' wirklich Sperren?
+                                        </p>
+                                    </b-modal>
+                                </span>
+
+
+
+
+
+    <b-button v-if="row.item.state == 0" v-b-modal="'modal-'+row.item.user.id" size="sm"
+              variant="danger"><i class="far fa-trash-alt"></i>
+    </b-button>
+    <!-- Modal Component -->
+    <b-modal :id="'modal-'+row.item.user.id"
+             @ok="callAndRefresh({action:'delete_invitation', user_id:row.item.user.id}, '{{ path('master_data_members_list') }}')"
+             title="Einladung löschen" ok-variant="danger" ok-title="Löschen"
+             cancel-title="Abbrechen">
+        <p class="my-4">Möchten Sie die Einladung an '{{ '{{' }}
+            row.item.user.displayName{{ '}}' }}' wirklich löschen?</p>
+    </b-modal>
+{% endblock %}

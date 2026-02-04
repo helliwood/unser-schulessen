@@ -1,0 +1,153 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macros/flag_icons.twig' as flag_icons %}
+
+{% block body %}
+    <div>
+        <h1>Neues To Do</h1>
+        <div class="row d-flex">
+            <div class="col-md-12 mb-4">
+                <div class="panel h-100 d-flex flex-column py-3">
+                    Wählen Sie aus {{ 'xQualitaetsfelder'|trans({'%count%':result.answeredCategories | length}) }}
+                    maximal 3 To Dos aus.
+                </div>
+            </div>
+        </div>
+        <div class="row d-flex">
+            <div class="col-md-12 mb-4">
+                <div class="panel h-100 d-flex flex-column py-3">
+                    <label for="resultSelect">Zu welchem finalisiertem Qualitäts-Check möchten Sie To Dos
+                        erstellen?</label>
+                    <select class="form-control" id="resultSelect"
+                            onchange="window.location.replace('{{ path('quality_circle_todo_new') }}/' + this.value)">
+                        {% for relatedResult in relatedResults %}
+                            <option value="{{ relatedResult.id }}" {% if result.id == relatedResult.id %} selected {% endif %}>
+                                {{ relatedResult.finalisedAt|date("d.m.Y") }}
+                                ({{ relatedResult.countAnswers }} {% if relatedResult.countAnswers > 1 %} beantwortete Kriterien {% else %} beantwortetes Kriterium {% endif %}
+                                )
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="row">
+                <div class="col result">
+                    <h4>Qualitäts-Check vom {{ result.finalisedAt | date('d.m.Y') }}</h4>
+                    <quality-circle-to-do-form>
+                        <template slot-scope="props">
+                            {% for category in result.answeredCategories %}
+                                <b-card no-body class="my-2">
+                                    <b-card-header class="" role="tab" v-b-toggle.accordion-{{ category.id }}>
+                                        {{ category.name }} <i class="fas collapse_arrow mt-1"></i>
+                                    </b-card-header>
+                                    <b-collapse id="accordion-{{ category.id }}" visible accordion="my-accordion"
+                                                role="tabpanel">
+                                        <b-card-body>
+                                            {% for question in category.questions %}
+                                                <div class="{% if not loop.last %}border-bottom{% endif %} {% if loop.first %}pb-3{% elseif loop.last %}pt-3{% else %}py-3{% endif %} align-middle d-flex align-items-center">
+                                                    <div class="mr-auto">
+                                                        {{ question.question }}
+                                                        {% if flag_definitions is defined %}
+                                                            {{ flag_icons.render_flag_icons(question, flag_definitions) }}
+                                                        {% endif %}
+                                                    </div>
+                                                    <div>
+                                                        {% if result.answers[question.id] is defined %}
+                                                            <div class="
+                                                                {% if result.answers[question.id] is defined and result.answers[question.id].calculateAnswer %}
+                                                                    {{ result.answers[question.id].calculateAnswer }}
+                                                                {% else %}not_answered{% endif %}">
+                                                                {{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[result.answers[question.id].calculateAnswer] }}
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+                                                    <div class="pl-2">
+                                                        {% if result.answers[question.id] is defined
+                                                            and result.answers[question.id].calculateAnswer
+                                                            and result.answers[question.id].calculateAnswer != constant('App\\Entity\\QualityCheck\\Answer::ANSWER_TRUE') %}
+                                                            <a
+                                                                    href="javascript:void(0);"
+                                                                    @click="props.toggleAnswer({{ result.answers[question.id].id }})"
+                                                                    v-bind:class="{ 'btn-outline-primary-dark': !props.answers.includes({{ result.answers[question.id].id }}), 'btn-secondary': props.answers.includes({{ result.answers[question.id].id }}) }"
+                                                                    class="btn btn-sm"><i
+                                                                        class="fas fa-clipboard-check"></i>
+                                                                <span v-if="props.answers.includes({{ result.answers[question.id].id }})">Frage ausgewählt</span><span
+                                                                        v-else>Frage hinzufügen</span></a>
+                                                        {% else %}
+                                                            {% if result.answers[question.id] is defined %}
+                                                                <a href="javascript:void(0);"
+                                                                   @click="props.toggleAnswer({{ result.answers[question.id].id }})"
+                                                                   v-bind:class="{ 'btn-outline-primary-dark': !props.answers.includes({{ result.answers[question.id].id }}), 'btn-secondary': props.answers.includes({{ result.answers[question.id].id }}) }"
+                                                                   class="btn btn-sm btn-outline-primary-light"><i
+                                                                            class="fas fa-clipboard-check"></i>
+                                                                    Frage hinzufügen</a>
+                                                            {% endif %}
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </b-card-body>
+                                    </b-collapse>
+                                </b-card>
+
+                                {% if category.children | length > 0 %}
+                                    {% for subcategory in category.children %}
+                                        <b-card no-body class="my-2">
+                                            <b-card-header class="" role="tab"
+                                                           v-b-toggle.accordion-{{ subcategory.id }}>
+                                                {{ category.name }}: {{ subcategory.name }} <i
+                                                        class="fas collapse_arrow mt-1"></i>
+                                            </b-card-header>
+                                            <b-collapse id="accordion-{{ subcategory.id }}" visible
+                                                        accordion="my-accordion"
+                                                        role="tabpanel">
+                                                <b-card-body>
+                                                    {% for question in subcategory.questions %}
+                                                        {% if result.answers[question.id] is defined %}
+                                                            <div class="{% if not loop.last %}border-bottom{% endif %} {% if loop.first %}pb-3{% elseif loop.last %}pt-3{% else %}py-3{% endif %} align-middle d-flex align-items-center">
+                                                                <div class="mr-auto">
+                                                                    {{ question.question }}
+                                                                    {% if flag_definitions is defined %}
+                                                                        {{ flag_icons.render_flag_icons(question, flag_definitions) }}
+                                                                    {% endif %}
+                                                                </div>
+                                                                <div>
+                                                                    <div class="{% if result.answers[question.id].calculateAnswer %}{{ result.answers[question.id].calculateAnswer }}{% else %}not_answered{% endif %}">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[result.answers[question.id].calculateAnswer] }}</div>
+                                                                </div>
+                                                                <div class="pl-2">
+                                                                    {% if result.answers[question.id].calculateAnswer and result.answers[question.id].calculateAnswer != constant('App\\Entity\\QualityCheck\\Answer::ANSWER_TRUE') %}
+                                                                        <a
+                                                                                href="javascript:void(0);"
+                                                                                @click="props.toggleAnswer({{ result.answers[question.id].id }})"
+                                                                                v-bind:class="{ 'btn-outline-primary-dark': !props.answers.includes({{ result.answers[question.id].id }}), 'btn-secondary': props.answers.includes({{ result.answers[question.id].id }}) }"
+                                                                                class="btn btn-sm"><i
+                                                                                    class="fas fa-clipboard-check"></i>
+                                                                            <span v-if="props.answers.includes({{ result.answers[question.id].id }})">Frage ausgewählt</span><span
+                                                                                    v-else>Frage hinzufügen</span></a>
+                                                                    {% else %}
+                                                                        <a href="javascript:void(0);"
+                                                                           @click="props.toggleAnswer({{ result.answers[question.id].id }})"
+                                                                           v-bind:class="{ 'btn-outline-primary-dark': !props.answers.includes({{ result.answers[question.id].id }}), 'btn-secondary': props.answers.includes({{ result.answers[question.id].id }}) }"
+                                                                           class="btn btn-sm btn-outline-primary-light"><i
+                                                                                    class="fas fa-clipboard-check"></i>
+                                                                            Frage hinzufügen</a>
+                                                                    {% endif %}
+                                                                </div>
+                                                            </div>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </b-card-body>
+                                            </b-collapse>
+                                        </b-card>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endfor %}
+                        </template>
+                    </quality-circle-to-do-form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

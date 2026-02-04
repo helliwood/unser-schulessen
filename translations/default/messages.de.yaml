@@ -1,0 +1,69 @@
+xSchule: "1 Schule|%count% Schulen"
+xQualitaetsfelder: "dem Qualitätsfeld|den %count% Qualitätsfeldern"
+xFragebogen: "1 Fragebogen|%count% Fragebögen"
+xKategorien: "1 Kategorie|%count% Kategorien"
+xMitarbeiter: "%count% Mitarbeiter"
+Salutation: Anrede
+Academic title: Titel
+First name: Vorname
+Last name: Nachname
+Person type: Akteursgruppe
+Email: E-Mail
+Category: Kategorie
+Send invitation: Einladung per E-Mail versenden
+Telephone: Telefon
+School: Schule
+Name: Name
+School number: Schulnummer
+Headmaster: Schulleiter/in
+Phone number: Telefonnummer
+Fax number: Faxnummer
+Email address: E-Mail
+Webpage: Webseite
+Education authority: Schulamt
+School type: Schulform
+School operator: Schulträger
+Particularity: Besonderheit
+Address: Adresse
+Street: Straße
+Postalcode: PLZ
+City: Stadt/Gemeinde
+Question: Frage
+Sustainable: nachhaltig
+guideline: Leitlinie
+Type: Typ
+-- Select --: -- Bitte wählen --
+sum: Anzahl
+radiobuttons: Radiobuttons
+statement: Aussage
+Formula: Formel
+criterion: Kriterium
+Add formula: Formel hinzufügen
+Yes: Ja
+No: Nein
+What: Was?
+How: Wie?
+Who: Wer?
+When: Wann?
+Ideabox: Ideenbox
+idea: Idee
+Ideabox icons: Kategorie
+Completed: Erledigt?
+Note: Notiz
+Closes at: Ablaufdatum
+open: Offen
+voucher: Voucher
+Number of voucher: Anzahl der Voucher
+Questions: Fragen
+Choice: Antwort
+Role: Berechtigung
+Master data question: Stammdatenfrage
+Description: Beschreibung
+File: Datei
+quality_circle_action_header: "Hier finden Sie Ihre aktuelle Aktions-Pläne."
+survey: Zufriedenheitsumfrage
+Help: Hilfe
+
+contact_name: Vernetzungsstelle Kita- und Schulverpflegung Brandenburg
+contact_email: info@vernetzungsstelle-brandenburg.de
+Invalid UUID string: Ungültige Umfragen Id

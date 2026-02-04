@@ -1,0 +1,17 @@
+{% set bgColor = '#f0f0f6' %}
+
+{% extends 'clear.html.twig' %}
+
+{% block body %}
+        <div class="row pb-3 ">
+            <div class="col">
+                <div class="panel h-100 d-flex flex-column py-3 pb-4">
+                    <h3>{{ 'Kein Schnellstart verfügbar!'|trans }}</h3>
+                    <p>Leider ist in deinem Bundesland aktuell kein Schnellstart verfügbar!</p>
+                </div>
+            </div>
+        </div>
+{% endblock %}
+{% block javascripts %}
+    {% include ("mini-check/partial/resize.html.twig") %}
+{% endblock %}

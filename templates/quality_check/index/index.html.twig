@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% set labels = constant('App\\Entity\\QualityCheck\\Result::ANSWER_LABELS') %}
+{% set gaugeOnly = false %}
+
+{% block body %}
+    <div>
+        <h1>Qualitäts-Check</h1>
+        <div class="row d-flex">
+
+            {% include '/quality_check/index/partials/_gauge.html.twig' with {'title':'Gesamtauswertung'} %}
+
+            {% if is_granted('ROLE_FOOD_COMMISSIONER') %}
+                <div class="col-md-6 col-lg-3 mb-4">
+                    <div class="panel h-100 justify-content-center">
+                        <div class="row mb-5">
+                            <h2><i class="fas fa-list-alt text-primary2 mr-1"></i>Starten</h2>
+                            <p class="w-100">Bewerten Sie die Qualität des Schulessen in 9 Qualitätsfeldern</p>
+
+                            {% set startQc = path('quality_check_edit') %}
+                            {% if hasUnfinalised %}
+                                <a class="btn btn-secondary mb-1" href="{{ startQc }}">
+                                    <i class="fas fa-edit mr-1"></i>Fortfahren
+                                </a>
+                            {% else %}
+                                <a class="btn btn-secondary mb-1" href="{{ startQc }}">
+                                    <i class="fas fa-plus mr-1"></i>Starten</a>
+                                {% if result %}
+                                    {% set copyQc = path('quality_check_copy') %}
+                                    <a class="btn btn-secondary mb-1 ml-1" href="{{ copyQc }}"
+                                       title="Kopiervorlage: letzter Q-Check" v-b-tooltip.hover.right.v-danger>
+                                        <i class="fas fa-copy mr-1 mb-1"></i>Kopieren
+                                    </a>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                        <div class="row">
+                            <h2><i class="fas fa-leaf text-primary2 mr-1"></i>Fokus Nachhaltigkeit</h2>
+                            <p>So können Nachhaltigkeitsaspekte im Qualitäts-Check ausgewertet werden.</p>
+                            <button v-b-modal.modal-sustainable class="btn btn-secondary"
+                                    title="Fokus Nachhaltigkeit: Infos Abrufen" href="#">
+                                <i class="fas fa-leaf mr-1"></i>Infos abrufen
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="col-md-6 col-lg-3 mb-4">
+                <div class="panel h-100">
+                    <h2><i class="far fa-life-ring text-primary2 mr-1"></i>Hilfe</h2>
+                    <p>Wie führe ich einen neuen Qualitäts-Check durch?</p>
+                    <p>Die Online-Hilfe gibt Ihnen nützliche Tipps.</p>
+                    <button v-b-modal.modal-help class="btn btn-secondary mb-1" href="#">
+                        <i class="fas fa-link mr-1 "></i>Hilfe aufrufen
+                    </button>
+                    <a class="btn btn-primary" target="_blank"
+                       href="https://www.unser-schulessen.de/qualitaet/qualitaet-gestalten/tutorials-funktionsbereich-der-qualitaets-check">
+                        <i class="fas fa-file-video mr-1"></i>Video Tutorial
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="panel">
+                    <h2 class="mb-3"><i class="fas fa-list-alt text-primary2 mr-1"></i>Qualitäts-Checks</h2>
+                    <div class="ml-auto no-print float-right pb-1" style="margin-top: -15px;">
+                        {% set blanco = path('quality_check_blanco') %}
+                        <a class="btn btn-primary mt-1 flex-end" id="btnPrintGauge" href="{{ blanco }}">
+                            <i class="fas fa-print mr-1"></i>Blanko QC drucken
+                        </a>
+                    </div>
+                    {% include'/quality_check/index/partials/_datatable.twig' %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Modal Component -->
+    {% include '/quality_check/index/partials/_help_general.html.twig' %}
+
+    <!-- Modal Component -->
+    {% include '/quality_check/index/partials/_help_sustainability.html.twig' %}
+
+{% endblock %}

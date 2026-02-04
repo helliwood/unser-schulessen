@@ -1,0 +1,29 @@
+{% macro render_flag_icons(question, flag_definitions) %}
+    {% if question.flags is defined and question.flags %}
+        {% for flag, value in question.flags %}
+            {% if value and flag_definitions[flag] is defined and flag_definitions[flag].icon is defined %}
+                {% set description = flag_definitions[flag].description is defined ? flag_definitions[flag].description : flag|title %}
+                {% set color = flag_definitions[flag].color is defined ? flag_definitions[flag].color : '' %}
+                <i class="fas fa-{{ flag_definitions[flag].icon }} flag-icon"
+                   title="{{ description }}" 
+                   {% if color %}style="color: {{ color }};"{% endif %}
+                   data-toggle="tooltip" 
+                   data-placement="top"></i>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+{% endmacro %}
+
+{% macro render_form_flag_icons(flag_definitions) %}
+    {% for flag, definition in flag_definitions %}
+        {% if definition.icon is defined %}
+            {% set description = definition.description is defined ? definition.description : flag|title %}
+            {% set color = definition.color is defined ? definition.color : '' %}
+            <i class="fas fa-{{ definition.icon }} flag-icon"
+               title="{{ description }}"
+               {% if color %}style="color: {{ color }};"{% endif %}
+           data-toggle="tooltip" 
+           data-placement="top"></i>
+    {% endif %}
+    {% endfor %}
+{% endmacro %} 

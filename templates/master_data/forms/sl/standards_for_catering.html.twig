@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{#
+{% form_theme form _self %}
+
+{%- block _break_times_general_opening_hours_row -%}
+    <div class="form-group row">
+        <label for="{{ id }}" class="col-sm-3 col-form-label required">{{- label -}}</label>
+        <div class="{{ block('form_group_class') }}">
+            {{- form_widget(form) -}}
+        </div>
+    </div>
+{%- endblock _break_times_general_opening_hours_row -%}
+#}
+{% block body %}
+    <div class="example-wrapper">
+        <h1 class="d-inline-block">Stammdaten: Standards für die Mittagsverpflegung</h1> <span class="text-muted">mit <span class="text-danger">*</span> gekennzeichnete Felder sind Pflichtfelder</span>
+        <div class="panel">
+            {{ include('master_data/forms/step_bar.html.twig') }}
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    <h4>Allgemein</h4>
+                    {{ form_row(form.number_menu_lines) }}
+                    {{ form_row(form.vegetarian_menu) }}
+                    {{ form_row(form.vegetarian_menu_line) }}
+                    {{ form_row(form.menu_parts) }}
+                    {{ form_row(form.daily_salat) }}
+                    {{ form_row(form.free_drink) }}
+                    {{ form_row(form.dessert) }}
+                    {{ form_row(form.other_offers) }}
+                    {{ form_row(form.dge_certified) }}
+                    {{ form_row(form.dge) }}
+                    {{ form_row(form.dge_checks) }}
+                    {{ form_row(form.food_supplier_in_ag) }}
+                    {{ form_row(form.other_quality_criterias) }}
+                    {{ form_row(form.food_counter) }}
+                    {{ form_row(form.additional_self_service) }}
+                    {{ form_row(form.warm_keeping_period) }}
+                    {{ form_row(form.communication) }}
+
+                    <h4>Imbissangebot</h4>
+                    {{ form_row(form.imbiss) }}
+                    {{ form_row(form.imbiss_offer) }}
+                    {{ form_row(form.imbiss_dge) }}
+
+                    <div class="form-group row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 d-flex">
+                            {% if step > 1 %}
+                                <button type="submit" id="back" name="back" class="btn-primary btn">Zurück</button>
+                            {% endif %}
+                            {% if step < max_steps %}
+                                <button type="submit" id="next" name="next" class="btn-primary btn ml-2">Weiter</button>
+                            {% else %}
+                                <button type="submit" id="finalise" name="finalise" class="btn-warning btn ml-2">Finalisieren</button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+{% set stateNotActivated = constant('App\\Entity\\Survey\\Survey::STATE_NOT_ACTIVATED') %}
+{% set surveyQuestionTypeLabels = constant('\\App\\Entity\\Survey\\SurveyQuestion::TYPE_LABELS') %}
+{% block body %}
+    <div>
+        <h1>{{ survey.name }}</h1>
+        <div class="row d-flex">
+            <div class="col-12 mb-4">
+                <div class="panel h-100">
+                    {% if survey.getState == stateNotActivated %}
+                        <b-dropdown variant="secondary" class="float-right">
+                            <template slot="button-content">
+                                Frage hinzufügen
+                            </template>
+                            {% for type, label in surveyQuestionTypeLabels %}
+                                <b-dropdown-item href="{{ path('survey_questions_add', {id:survey.id, type:type}) }}">
+                                    {{ label }}
+                                </b-dropdown-item>
+                            {% endfor %}
+                            <form-survey-questions></form-survey-questions>
+                        </b-dropdown>
+                    {% endif %}
+                    <h3 class="d-inline-block"><i class="fas fa-list-ol text-primary2 mr-1 mb-2"></i>Fragen</h3> <span class="text-muted">Änderungen im Fragebogen werden sofort übernommen</span>
+                    <data-table
+                            sort-by="order"
+                            :sort-desc="false"
+                            :per-page="10"
+                            :fields="[
+                                    {key: 'question', label: 'Frage', sortable: true},
+                                    {key: 'type', label: 'Typ', sortable: true,
+                                    formatter: (value, key, item) => {
+                                    return item.typeLabel;
+                                    }
+                                    },
+                                    {key: 'options', label: 'Optionen', sortable: false, class:'options text-right'}
+                                    ]">
+                        <template v-slot:cell(question)="{ row, callAndRefresh }">
+                            {{ '{{' }}row.item.question{{ '}}' }}
+                            <i class="fa fa-leaf ml-1 " title="Nachhaltigkeitskriterium" style="color: #006600;" v-if="row.item.sustainable"></i>
+                        </template>
+                        <template v-slot:cell(options)="{ row, callAndRefresh }">
+                            <b-button size="sm" :href="'/survey/questions/edit/'+row.item.id"
+                                      class="mb-2">
+                                {% if survey.getState == stateNotActivated %}
+                                    Bearbeiten
+                                {% else %}
+                                    Öffnen
+                                {% endif %}
+                            </b-button>
+                            {% if survey.getState == stateNotActivated %}
+                                <b-button v-if="!row.item.first"
+                                          @click="callAndRefresh({action:'up', question_id:row.item.id})"
+                                          size="sm"
+                                          variant="info" class="mb-2"><i
+                                            class="fas fa-arrow-up"></i></b-button>
+                                <b-button v-if="!row.item.last"
+                                          @click="callAndRefresh({action:'down', question_id:row.item.id})"
+                                          size="sm"
+                                          variant="info" class="mb-2"><i
+                                            class="fas fa-arrow-down"></i>
+                                </b-button>
+                                <b-button v-b-modal="'modal-'+row.item.id" size="sm" variant="danger" class="mb-2" aria-label="Frage löschen"><i
+                                            class="far fa-trash-alt mr-1"></i>Löschen
+                                </b-button>
+                            {% endif %}
+                            <!-- Modal Component -->
+                            <b-modal :id="'modal-'+row.item.id"
+                                     @ok="callAndRefresh({action:'delete_question', question_id:row.item.id})"
+                                     title="Frage löschen" ok-variant="danger" ok-title="Löschen"
+                                     cancel-title="Abbrechen">
+                                <p class="my-4">Möchten Sie die Frage '{{ '{{' }}row.item.question{{ '}}' }}' wirklich
+                                    löschen?</p>
+                            </b-modal>
+                        </template>
+                    </data-table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

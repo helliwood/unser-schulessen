@@ -1,0 +1,47 @@
+<div class="row mt-4">
+    <div class="col-xl-12">
+        <div class="panel">
+            <div class="d-flex mb-2">
+                <h2><i class="fas fa-address-book text-primary2 mr-1"></i>Kontakte</h2>
+                <div class="ml-auto no-print">
+                    <button class="btn btn-primary flex-end" onclick="window.print();">
+                        <i class="fas fa-print mr-1"></i>Drucken
+                    </button>
+                    {% if is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+                        <a href="{{ path('master_data_contacts_new') }}" class="btn btn-secondary"><i
+                                    class="fas fa-plus mr-1"></i>Neuer Kontakt</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mb-2">Verzeichnis von relevanten Ansprechpartnern im Rahmen der Schulverpflegung, z.B. beim
+                Schulträger, Lebensmittelaufsicht usw..
+            </div>
+            <data-table
+                    api-url="{{ path('master_data_contacts_list') }}"
+                    sort-by="lastName"
+                    :sort-desc="false"
+                    :per-page="10"
+                    :fields="[
+                                {key: 'lastName', label: 'Name', sortable: true},
+                                {key: 'email', label: 'E-Mail', sortable: true},
+                                {key: 'options', label: 'Optionen', sortable: false, class:'options'}
+                            ]">
+                <template v-slot:cell(lastName)="row">
+                    {{ '{{' }}row.item.displayName{{ '}}' }}
+                </template>
+                <template v-slot:cell(options)="row">
+                    <b-button size="sm" :href="'/master_data/contacts/show/'+row.item.id" class="mr-2 no-print"
+                              variant="primary" v-if="row.item.id !== 0">
+                        <i class="far fa-eye mr-1"></i>Anzeigen
+                    </b-button>
+                    {% if is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+                        <b-button size="sm" :href="'/master_data/contacts/edit/'+row.item.id" class="mr-2 no-print"
+                                  v-if="row.item.id !== 0">
+                            <i class="fas fa-edit mr-1"></i>Bearbeiten
+                        </b-button>
+                    {% endif %}
+                </template>
+            </data-table>
+        </div>
+    </div>
+</div>

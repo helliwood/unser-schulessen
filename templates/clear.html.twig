@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html class="h-100" lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no"/>
+    <title>
+        {% block title %}
+            {% for breadcrumb in knp_menu_get_breadcrumbs_array(knp_menu_get_current_item('main')) | reverse %}
+                {% if breadcrumb.item.level > 0 %}
+                    {{ breadcrumb.label }} -
+                {% endif %}
+            {% endfor %}
+            Unser Schulessen
+        {% endblock %}
+    </title>
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('app') }}
+    {% endblock %}
+</head>
+<body class="clear-layout h-100 d-flex p-3" {% if bgColor | default(null) %}style="background-color: {{ bgColor }}" {% endif %}>
+<div id="app" class="w-100 h-100 clear">
+    <div id="inner-app">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <b-alert :show="5" fade dismissible variant="{{ label }}">
+                {{ message }}
+            </b-alert>
+        {% endfor %}
+    {% endfor %}
+    {% block body %}{% endblock %}
+    </div>
+</div>
+{{ encore_entry_script_tags('app') }}
+{% block javascripts %}{% endblock %}
+</body>
+</html>

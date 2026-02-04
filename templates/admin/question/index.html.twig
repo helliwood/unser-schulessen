@@ -1,0 +1,116 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macros/flag_icons.twig' as flag_icons %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <a class="btn btn-secondary float-right"
+           href="{{ path('admin_questionnaire_category_questions_new', {id:category.id}) }}">Frage
+            hinzufügen</a>
+        <h1>{{ category.name }} Fragen</h1>
+        <div class="panel">
+            <data-table
+                    sort-by="order"
+                    :sort-desc="false"
+                    :fields="[
+                    {key: 'question', label: 'Name', sortable: false},
+                    {key: 'actions', label: 'Optionen', sortable: false, class:'options'}
+                ]">
+                <template v-slot:cell(question)="{ row, callAndRefresh }">
+                    {% verbatim %}{{ row.item.question }}{% endverbatim %}
+                    <question-flags :question="row.item" class="ml-2"></question-flags>
+                </template>
+                <template v-slot:cell(actions)="{ row, callAndRefresh }">
+
+                    <b-button size="sm" :href="'/admin/questionnaire/category/questions/ideabox/'+row.item.id"
+                              class="mb-2 text-white"
+                              variant="warning">
+                        Ideenbox
+                    </b-button>
+                    <b-button size="sm" :href="'/admin/questionnaire/category/questions/edit/'+row.item.id"
+                              class="mb-2">
+                        Bearbeiten
+                    </b-button>
+                    <b-button v-if="!row.item.first" @click="callAndRefresh({action:'up', question_id:row.item.id})"
+                              size="sm"
+                              variant="info" class="mb-2"><i
+                                class="fas fa-arrow-up"></i></b-button>
+                    <b-button v-if="!row.item.last" @click="callAndRefresh({action:'down', question_id:row.item.id})"
+                              size="sm"
+                              variant="info" class="mb-2"><i
+                                class="fas fa-arrow-down"></i>
+                    </b-button>
+                    <b-button v-b-modal="'modal-'+row.item.id" size="sm" variant="danger" class="mb-2"><i
+                                class="far fa-trash-alt"></i>
+                    </b-button>
+                    <!-- Modal Component -->
+                    <b-modal :id="'modal-'+row.item.id"
+                             @ok="callAndRefresh({action:'delete_question', question_id:row.item.id})"
+                             title="Frage löschen" ok-variant="danger" ok-title="Löschen" cancel-title="Abbrechen">
+                        <p class="my-4">Möchten Sie die Frage '{{ '{{' }}row.item.question{{ '}}' }}' wirklich
+                            löschen?</p>
+                    </b-modal>
+                </template>
+            </data-table>
+        </div>
+        {% if category.parent is null %}
+            <div class="mt-3">
+                <a class="btn btn-secondary float-right"
+                   href="{{ path('admin_category_new', {id:category.questionnaire.id,parent:category.id}) }}">Unterkategorie
+                    hinzufügen</a>
+                <h1>Unterkategorien</h1>
+            </div>
+            <div class="panel">
+                <data-table
+                        api-url="{{ path('admin_category_list', {id:category.id}) }}"
+                        sort-by="order"
+                        :sort-desc="false"
+                        :fields="[
+                    {key: 'name', label: 'Name', sortable: false},
+                    {key: 'questions', label: 'Fragen', sortable: false, formatter(value, key, item) {
+                        return value + (item.sustainableQuestions > 0 ? ' (' + item.sustainableQuestions + ' zur Nachhaltigkeit)':'');
+                    }},
+                    {key: 'actions', label: 'Optionen', sortable: false, class:'options'}
+                ]">
+                    <template v-slot:cell(actions)="{ row, callAndRefresh }">
+                        <b-button size="sm" :href="'/admin/questionnaire/category/questions/'+row.item.id" class="mb-2">
+                            Öffnen
+                        </b-button>
+                        <b-button size="sm" :href="'/admin/category/edit/'+row.item.id" class="mb-2">
+                            Bearbeiten
+                        </b-button>
+                        <b-button v-if="!row.item.first" @click="callAndRefresh({action:'up', category_id:row.item.id})"
+                                  size="sm"
+                                  variant="info" class="mb-2"><i
+                                    class="fas fa-arrow-up"></i></b-button>
+                        <b-button v-if="!row.item.last"
+                                  @click="callAndRefresh({action:'down', category_id:row.item.id})"
+                                  size="sm"
+                                  variant="info" class="mb-2"><i
+                                    class="fas fa-arrow-down"></i>
+                        </b-button>
+                        <b-button v-b-modal="'modal-'+row.item.id" size="sm" variant="danger" class="mb-2"
+                                  v-if="row.item.state == {{ constant('App\\Entity\\QualityCheck\\Questionnaire::STATE_NEW') }}">
+                            <i class="far fa-trash-alt"></i>
+                        </b-button>
+                        <!-- Modal Component -->
+                        <b-modal :id="'modal-'+row.item.id"
+                                 @ok="callAndRefresh({action:'delete_category', category_id:row.item.id})"
+                                 title="Kategorie löschen" ok-variant="danger" ok-title="Löschen"
+                                 cancel-title="Abbrechen">
+                            <p class="my-4">Möchten Sie die Kategorie '{{ '{{' }}row.item.name{{ '}}' }}' wirklich
+                                löschen?</p>
+                        </b-modal>
+                    </template>
+                </data-table>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        // Flag-Definitionen für Vue.js verfügbar machen
+        window.flagDefinitions = {{ flag_definitions|json_encode|raw }};
+    </script>
+{% endblock %}

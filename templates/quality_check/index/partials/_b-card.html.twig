@@ -1,0 +1,24 @@
+{% import '/quality_check/index/partials/_status_circles.html.twig' as status_circles %}
+{% set categoryName = category.name %}
+{% if category.parent != null %}
+    {% set categoryName = category.parent ~ ': ' ~ category %}
+{% endif %}
+
+<b-card no-body class="mb-1">
+    <b-card-header class="b-card-header" role="tab" v-b-toggle.accordion-{{ category.id }}>
+        {{ categoryName }}
+        <i class="fas collapse_arrow mt-1"></i>
+        <div class="float-right mr-3 gaugeScoreDisplay result d-flex align-items-center">
+
+            {{ status_circles.category_circles(result, category) }}
+
+        </div>
+    </b-card-header>
+    <b-collapse id="accordion-{{ category.id }}" class="result" visible accordion="my-accordion" role="tabpanel">
+        <b-card-body class="p-2">
+
+            {{ status_circles.question_cicles(result, category, active_flags, flag_definitions) }}
+
+        </b-card-body>
+    </b-collapse>
+</b-card> 

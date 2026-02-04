@@ -1,0 +1,46 @@
+{% extends 'clear.html.twig' %}
+
+{% block body %}
+    <style>
+        @page {
+            size: A4;
+            margin: 0;
+        }
+
+        @media print {
+            html, body {
+                width: 210mm;
+                height: 297mm;
+            }
+
+            #printDiv {
+                position: absolute;
+                width: 300px;
+                height: 300px;
+                z-index: 15;
+                top: 50%;
+                left: 50%;
+                margin: -150px 0 0 -150px;
+            }
+
+            button {
+                display: none !important;
+            }
+        }
+    </style>
+    <div id="printDiv">
+
+        <button class="btn btn-primary no-print float-right" onclick="window.print();">
+            <i class="fas fa-print mr-1"></i>Drucken
+        </button>
+        <h1 class="text-center">{{ survey.name }}</h1>
+        <h3 class="text-center">Umfrage {{ survey.school.name }} vom {{ "now"|date("d.m.Y") }}</h3>
+
+        <br>
+        <h3 class="text-center">{{ absolute_url('/Umfrage/' ~ survey.uuid) }}</h3>
+        <br>
+
+        <img style="height: 80vh; max-width: 90vw; display: block; margin: 0 auto;"
+             src="{{ qr_code_data_uri(absolute_url('/Umfrage/' ~ survey.uuid)) }}"/>
+    </div>
+{% endblock %}

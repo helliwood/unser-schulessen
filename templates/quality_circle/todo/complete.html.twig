@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <h1>To Do abschließen</h1>
+        <div class="panel">
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    {{ form_widget(form) }}
+                    <div class="form-group row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 d-flex">
+                            <div class="ml-auto">
+                                <button type="submit" id="cancel" name="cancel"
+                                        class="btn-warning btn btn-sm text-white">Abbrechen
+                                </button>
+                                <button type="submit" id="save" name="save" class="btn-secondary btn btn-sm">Speichern
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+

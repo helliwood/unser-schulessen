@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+    <h1>Blanko Fragebogen vom aktiven Qualitäts-Check</h1>
+
+    <div class="panel">
+        <div class="ml-auto out-of-panel no-print">
+            <button class="btn btn-primary mt-1 flex-end" id="btnPrintGauge" onclick="window.print();">
+                <i class="fas fa-print mr-1"></i>Drucken
+            </button>
+        </div>
+        <div class="row">
+            <div class="col result">
+
+                {% set categories = questionnaire.getCategories %}
+
+                {% for category in categories %}
+
+                    {% include '/quality_check/index/partials/_b-card_blanco.html.twig' %}
+
+                    {% if category.getChildren %}
+
+                        {% for children in category.getChildren %}
+
+                            {% include '/quality_check/index/partials/_b-card_blanco.html.twig' with {'category':children, 'parentCategoryName':category.name} %}
+
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

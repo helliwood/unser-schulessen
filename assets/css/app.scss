@@ -1,0 +1,78 @@
+// customize some Bootstrap variables
+$primary: #16411C;
+$primary2: #16411C; // Dunkelgrün für Icons in Boxen
+$secondary: #FFC500;
+$danger: #990000;
+$success: #28a745; // Dunkleres Grün für besseren Kontrast
+$info: #3d6ba0; // Dunkles Blau für WCAG AA Kontrast (mindestens 4.5:1)
+$primary-dark: #e9e5dd; // Sandfarbe für Navigation
+$primary-light: lighten(#16411C, 30%);
+
+$headings-color: $primary;
+
+$theme-colors: ("primary-dark":$primary-dark, "primary-light":$primary-light, "primary2":$primary2);
+
+$font-size-base: 0.8rem;
+$font-family-sans-serif: "Segoe WPC", "Segoe UI", Helvetica, Arial, "Arial Unicode MS", Sans-Serif !default;
+
+$breadcrumb-bg: transparent;
+$breadcrumb-margin-bottom: 0px;
+$breadcrumb-padding-x: 3rem;
+
+$pagination-active-bg: $secondary;
+
+// the ~ allows you to reference things in node_modules
+@import "~bootstrap/scss/bootstrap";
+@import '~bootstrap-vue/src/index.scss';
+@import '~@fortawesome/fontawesome-pro/scss/fontawesome';
+@import '~@fortawesome/fontawesome-pro/scss/solid';
+@import '~@fortawesome/fontawesome-pro/scss/regular';
+@import '~@fortawesome/fontawesome-pro/scss/duotone';
+
+$panel-bg: #fff;
+$panel-padding: 2rem;
+$panel-headings-color: $body-color;
+
+@import "general";
+@import "form";
+@import "custom_charts";
+
+
+.btn-primary {
+  color: #fff;
+}
+
+.btn-success {
+  background-color: #198754; // Dunkleres Grün für besseren Kontrast (WCAG AA)
+  border-color: #198754;
+  color: #fff;
+}
+
+.btn-info {
+  background-color: #3d6ba0; // Dunkles Blau für WCAG AA Kontrast (mindestens 4.5:1)
+  border-color: #3d6ba0;
+  color: #fff;
+}
+
+.copyright {
+  color: #495057 !important; // Deutlich dunkleres Grau für besseren Kontrast (WCAG AA)
+  
+  a {
+    color: #495057 !important;
+  }
+}
+
+// Pagination Buttons - schwarze Schrift für besseren Kontrast auf gelbem Hintergrund
+.page-item.active .page-link {
+  color: #000 !important; // Schwarze Schrift für besseren Kontrast
+  background-color: $secondary;
+  border-color: $secondary;
+}
+
+.page-link {
+  color: $primary;
+  
+  &:hover {
+    color: #000;
+  }
+}

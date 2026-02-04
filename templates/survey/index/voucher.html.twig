@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <h1>Voucher</h1>
+        <div class="row d-flex">
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h3><i class="fas fa-qrcode mr-1"></i>Voucher erstellen</h3>
+                    <div>
+                        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                        {{ form_row(form.numberOfVoucher) }}
+                        <button type="submit" id="save" name="save" class="btn-primary btn">Voucher erstellen</button>
+                        {{ form_end(form) }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h3><i class="far fa-life-ring text-primary mr-1"></i>Hilfe</h3>
+                    <div></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 mb-4">
+                <div class="panel h-100">
+                    <h3 class="mb-3">Voucher <a href="{{ path('survey_voucher_download', {id:survey.id}) }}"
+                                                class="btn btn-secondary float-right"><i
+                                    class="fas fa-download mr-1"></i>Herunterladen</a></h3>
+                    <data-table
+                            sort-by="createdAt"
+                            :sort-desc="true"
+                            :per-page="10"
+                            :fields="[
+                                    {key: 'voucher', label: 'Voucher', sortable: true},
+                                    {key: 'createdAt', label: 'Erstellt', sortable: true,
+                                        formatter: (value, key, item) => {
+                                             return moment(value.date).format('DD.MM.YYYY HH:mm');
+                                        }
+                                    },
+                                    {key: 'inUse', label: 'Benutzt', sortable: true,
+                                        formatter: (value, key, item) => {
+                                             return value ? 'Ja' : 'Nein';
+                                        }
+                                    }
+                                ]">
+                    </data-table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

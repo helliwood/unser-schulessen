@@ -1,0 +1,198 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <h1>Qualitätsprozess</h1>
+        <div class="row d-flex">
+            <div class="col-md-12 mb-4">
+                <div class="panel h-100 d-flex flex-column py-3">
+                    Im Qualitätsprozess erstellen Sie eine To Do-Liste.
+                    Sie legen dafür in einem ersten Schritt maximal 3 Aufgaben zur Bearbeitung fest.
+                    Wählen Sie dazu aus den 9 Qualitätsfeldern Ergebnisse, die mit gelb oder rot bewertet wurden.
+                    Gehen Sie dann auf To Do-Liste bearbeiten und legen Sie für die Aufgaben einen Aktionsplan an.
+                    Weitere To Do's können der Liste hinzugefügt werden.
+                </div>
+            </div>
+        </div>
+        <div class="row d-flex">
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100">
+                    <h2><i class="fas fa-clipboard-check text-primary2 mr-1"></i>To Do</h2>
+                    <p>Erstellen Sie jetzt ein neues To Do. Sie können To Do’s auswählen, die sich auf rote oder
+                        gelbe Kriterien aus Ihrem aktuellen Qualitäts-Check-Ergebnis beziehen. Oder Sie erstellen ein
+                        selbstformuliertes To Do.</p>
+                    {% if is_granted('ROLE_MENSA_AG') or is_granted('ROLE_FOOD_COMMISSIONER') %}
+                        <a class="btn btn-secondary" href="{{ path('quality_circle_todo_new') }}"><i
+                                    class="fas fa-plus mr-1"></i>To Do auswählen</a>
+                        <a class="btn btn-secondary ml-1" href="{{ path('quality_circle_todo_new_open') }}"><i
+                                    class="fas fa-plus mr-1"></i>To Do erstellen</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100">
+                    <h2><i class="far fa-life-ring text-primary2 mr-1"></i>Hilfe</h2>
+                    <p>Wie führe ich den Qualitätsprozess durch?</p>
+                    <p>Die Online-Hilfe gibt Ihnen nützliche Tipps.</p>
+                    <button v-b-modal.modal-help class="btn btn-secondary" href="#"><i class="fas fa-link mr-1"></i>Hilfe
+                        aufrufen
+                    </button>
+
+                    <a class="btn btn-primary" target="_blank"
+                       href="https://www.unser-schulessen.de/qualitaet/qualitaet-gestalten/tutorials-funktionsbereich-der-qualitaets-prozess">
+                        <i class="fas fa-file-video mr-1"></i>Video Tutorial
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {% include('quality_circle/index/partials/_todos.html.twig') %}
+
+        {% include('quality_circle/index/partials/_todo_closed.html.twig') %}
+
+
+        <!-- Modal Component -->
+        <b-modal id="modal-help" title="Hilfe zur Nutzung des Qualitätsprozess" size="xl" ok-only>
+            <p>Die verschiedenen Funktionen im Modul „Qualitätsprozess“ zeigen dem Verpflegungsausschuss die
+                Schritte für eine gemeinschaftliche prozessorientierte Qualitätsentwicklung auf.</p>
+            <img src="{{ asset('img/help_circle.png') }}" alt="Qualitätsentwicklung" class="img-fluid d-block"/>
+            <em>Abb.: Die Arbeitsschritte für eine prozessorientierte Qualitätsentwicklung in Anlehnung an das
+                PDCA-Modell</em>
+            <p>Der Qualitätsprozess dient dazu, die mit dem Qualitäts-Check analysierte Qualität des
+                Verpflegungsangebotes zu verbessern.
+                Dazu werden zu optimierende Kriterien identifiziert und als „<strong>To Dos</strong>“ aufgestellt.
+                Für die Planung von Maßnahmen können <strong>„Aktionspläne“</strong> aufgestellt werden.
+                Nachdem die einzelnen Kriterien bearbeitet wurden, können sie abgeschlossen werden.
+                Mit Hilfe einer Zufriedenheitsumfrage kann der Erfolg der umgesetzten Maßnahmen ermittelt
+                werden und anschließend eine Neubewertung im Qualitätscheck erfolgen.
+                Im Qualitätsprozess können zudem alle Aktivitäten (bearbeitete To Dos und die dazugehörigen
+                Aktionspläne)
+                gespeichert werden. Diese Option ermöglicht sowohl eine Dokumentation als auch eine Archivierung.
+                Über einen längeren Zeitraum gesehen kann so aus Aktivitäten der Vergangenheit gelernt und die Arbeit
+                optimiert werden.
+            </p>
+
+            <h5>Zu verbessernde Kriterien identifizieren - To Dos auswählen</h5>
+            <p>Mit dem Anwählen des Buttons <strong>„+ ToDo auswählen“</strong> öffnet sich die Übersicht des aktuellen
+                Qualitäts-Checks mit seinen 9 Qualitätsfeldern in einer „Ziehharmonika-Ansicht“.
+                Durch Anklicken des rechten Häkchens werden die Bewertungen im jeweiligen Qualitätsfeld sichtbar.
+                Dann können in diesem Schritt über das Feld „<strong>Frage hinzufügen</strong>“ möglichst 1-3 Kriterien
+                ausgewählt
+                werden, die verbessert oder stabilisiert werden sollen. Die Auswahl wird am Anfang oder am Ende der
+                Liste
+                mit dem Button „x/y ToDos erstellen“ abgeschlossen. Das oder die ausgewählten To Dos erscheinen dann
+                in der aktuellen To Do-Liste auf der Startseite des Qualitätsprozesses.</p>
+            <p>Alternativ können auch Kriterien und Themen bearbeitet werden,
+                die nicht Teil des Qualitäts-Checks sind und die Verpflegungsqualität verbessern sollen.
+                Über den Button „<strong>+ ToDo erstellen</strong>“ öffnet sich eine Eingabemaske.
+                Hier kann in den Feldern „Name“ und „Beschreibung“ ein Themenbereich und ein Ziel formuliert werden.
+                Mit <strong>„Speichern“</strong> öffnet sich automatisch der nächste Schritt. Ein oder mehrere
+                Aktionspläne, in denen Maßnahmen festgehalten werden, können angelegt werden.</p>
+
+            <h5>Maßnahmen planen - To Dos bearbeiten und Aktionspläne aufstellen</h5>
+            <p>Auf der Übersichtsseite in der Listenansicht beim gewünschten ToDo auf den Button „Bearbeiten“ gehen,
+                dann öffnet sich die Ansicht für das Erstellen von Aktionsplänen.</p>
+
+            <h5>Aktionsplan anlegen</h5>
+            <p>Auf der Übersichtsseite in der Listenansicht beim gewünschten To Do auf den Button
+                „<strong>Bearbeiten</strong>“ gehen, dann öffnet sich die Ansicht für das Erstellen von Aktionsplänen.
+                Mit dem Button „<strong>+ Aktionsplan anlegen</strong>“ öffnet sich die Eingabemaske für den
+                Aktionsplan. </p>
+            <blockquote class="pl-3">
+                <h5>Inspiration durch den Ideen-Pool:</h5>
+                <p>Unter dem Button <strong>„Ideen-Pool öffnen“</strong> findet sich für das ausgewählte ToDo eine Liste
+                    von
+                    Maßnahme-Vorschlägen, die Qualitätsverbesserungen voranbringen können. Die Icons im Ideen-Pool
+                    verdeutlichen, in welchem Bereich die Maßnahmen angesiedelt sind. Mit
+                    dem <strong>Button „Aktionsplan anlegen“</strong> wird die ausgewählte Idee in einen Aktionsplan
+                    überführt. Die Idee kann dort angepasst, der Aktionsplan vervollständigt und abgespeichert werden.
+                </p>
+
+                <h5>Ansicht für das Erstellen von Aktionsplänen</h5>
+                <p>Mit dem Button <strong>„+ Aktionsplan anlegen“</strong> öffnet sich die Eingabemaske für den
+                    Aktionsplan.</p>
+                <p>Aktionsplan füllen</p>
+                <ul>
+                    <li>Im <strong>Eingabefeld „Was“</strong> soll der Aktion ein Name gegeben werden. Das erleichtert
+                        die Kommunikation der Aktion. Eine aussagekräftige Beschreibung/Schlagworte helfen bei der
+                        Nutzung des Archives der Aktionspläne. So gibt es leichter einen Überblick über frühere
+                        Aktionen.
+                    </li>
+                    <li>Im <strong>Eingabefeld „Wie“</strong> werden die notwendigen Aufgaben/ Maßnahmen aufgelistet. In
+                        diesem Feld erscheinen ggf. auch die ausgewählten Ideen aus dem Ideen-Pool. Empfehlenswert ist
+                        es, die zum Teil allgemein und komplex formulierten Ideen an die Situation der Schule anzupassen
+                        und in einzelne Aufgaben zu splitten.
+                    </li>
+                    <li>Im <strong>Eingabefeld „Wer“</strong> werden verantwortliche Personen für die im „Wie“
+                        festgelegten Aufgaben zugewiesen. Hier müssen nicht allen beteiligten Personen aufgeführt
+                        werden, wichtig wäre eine Person, die über den Erfüllungsgrad der Aufgabe berichten kann.
+                    </li>
+                    <li>Im <strong>Eingabefeld „Wann“</strong> sollte das Datum angeben werden, bis zu dem die Aktion
+                        beendet oder auch nur ein Teil der Aktion überprüft werden soll.
+                    </li>
+                    <li>Mit „<strong>Speichern</strong>“ endet das Anlegen des Aktionsplanes.</li>
+                </ul>
+            </blockquote>
+            <p>Auch hier kann der <strong>Ideen-Pool</strong> mit dem Button <strong>„Ideenpool öffnen“</strong>
+                angewählt werden, um
+                einzelne oder mehrere Ideen in den Aktionsplan zu übernehmen.
+            </p>
+
+            <h5>Aktionsplan bearbeiten</h5>
+            <p>Die erstellten Aktionspläne können regelmäßig überarbeitet und angepasst werden. Dies kann der Fall sein,
+                wenn Termine nicht eingehalten werden können, andere Personen beteiligt werden oder die enthaltenden
+                Aufgaben beispielsweise in Teilaufgaben untergliedert werden müssen. Dafür das jeweilige <strong>To Do
+                    „Bearbeiten“</strong> und in der sich öffnenden Aktionsplanübersicht den jeweiligen Aktionsplan
+                „<strong>Bearbeiten</strong>“.</p>
+
+            <h5>Aktionsplan löschen</h5>
+            <p>Ein Aktionsplan kann jederzeit gelöscht werden. So diese Option ausgewählt wird, muss diese noch einmal
+                bestätigt werden. Der Aktionsplan wird in dem Fall nicht gespeichert und somit auch nicht
+                archiviert.</p>
+
+            <h5>Aktionsplan beenden</h5>
+            <p>Sind alle beschriebenen Maßnahmen eines Aktionsplanes erledigt und keine neuen Maßnahmen geplant, kann
+                der Aktionsplan über „<strong>Beenden</strong>“ abgeschlossen werden. Im sich öffnenden Eingabefenster
+                muss ein Häkchen
+                bei der Frage „<strong>Erledigt?</strong>“ gesetzt werden. Unter „<strong>Notiz</strong>“ kann
+                stichwortartig das Ergebnis festgehalten
+                werden. Mit „<strong>Speichern</strong>“ landet der Aktionsplan dann im Archiv. </p>
+            <blockquote class="pl-3">
+                <h5>Aktionsplan unerledigt beenden </h5>
+                <p>Es kann aber auch sein, dass ein Aktionsplan unerledigt beendet werden muss. Dies kann notwendig
+                    werden, wenn Maßnahmen nicht umgesetzt werden können, eine Verschiebung auf zunächst ungewisse Zeit
+                    erfolgen muss oder sich keine Person findet, die sich für die Aufgaben verantwortlich zeigt. Dann
+                    <span style="text-decoration: underline;">muss</span> unter „<strong>Notiz</strong>“ eine Begründung
+                    für die nicht erfolgreiche Beendigung eingetragen werden. Diese
+                    Notiz wird ebenfalls als Teil des beendeten Aktionsplanes gespeichert und kann im Vorfeld einer
+                    erneuten Bearbeitung des Kriteriums oder dieser Aktion eingesehen werden, was die zukünftige
+                    Arbeitsplanung erleichtert.</p>
+            </blockquote>
+            <h5>To Do beenden</h5>
+            <p>Ebenso wie einzelne Aktionspläne beendet werden, ist es auch möglich ein To Do zu beenden. Dafür muss
+                zunächst für das jeweilige To Do über „<strong>Bearbeiten</strong>“ die Übersicht der Aktionspläne
+                aufgerufen werden. <u>Bevor ein ToDo beendet werden kann und damit aus der aktiven Arbeitsliste
+                    verschwindet, müssen alle Aktionspläne beendet oder gelöscht werden.</u>
+                Bevor ein To Do beendet werden kann und damit aus der aktiven Arbeitsliste verschwindet, müssen
+                <span style="text-decoration: underline;">alle Aktionspläne beendet oder gelöscht werden</span>.
+                Dann kann über den Button „<strong>To Do Beenden</strong>“ das Kriterium in der Bearbeitung beendet
+                werden. Auch hier wird über ein Dialogfeld analog zu den Aktionsplänen abgefragt, ob das To Do
+                erfolgreich erledigt wurde. Wenn kein erfolgreicher Abschluss vorliegt, muss unter
+                „<strong>Notiz</strong>“ eine kurze Begründung erfolgen. Diese Notiz ist bei den archivierten To Dos
+                einsehbar und erleichtert langfristig die Arbeit.
+            </p>
+            <h5>To Do löschen</h5>
+            <p>Das Löschen eines To Dos ist dann möglich, wenn es angelegt wurde und kein dazugehöriger Aktionsplan
+                erstellt wurde. Das Löschen erfolgt auf der Übersichtsseite des Qualitätsprozesses in der jeweiligen
+                Spalte über das „<strong>Papierkorb-Symbol</strong>“.
+            </p>
+        </b-modal>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        // Flag-Definitionen aus Backend laden (SRP-konform)
+        window.flagDefinitions = {{ flag_definitions|json_encode|raw }};
+    </script>
+{% endblock %}

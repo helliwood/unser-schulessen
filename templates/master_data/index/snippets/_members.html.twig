@@ -1,0 +1,104 @@
+<div class="row">
+    <div class="col-xl-12">
+        <div class="panel">
+            <div class="d-flex mb-2">
+                <h2><i class="fas fa-user-friends text-primary2 mr-1"></i>Mitglieder</h2>
+                <div class="ml-auto no-print">
+                    <button class="btn btn-primary flex-end" onclick="window.print();">
+                        <i class="fas fa-print mr-1"></i>Drucken
+                    </button>
+                    {% if is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+                        <a href="{{ path('master_data_members_inactive') }}" class="btn btn-primary"><i
+                                    class="fas fa-users mr-1"></i>Inaktive Mitglieder</a>
+                        <a href="{{ path('master_data_members_new') }}" class="btn btn-secondary"><i
+                                    class="fas fa-plus mr-1"></i>Mitglied einladen</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="mb-2">Verzeichnis der Personen mit Zugang zum Tool, beschrieben mit ihrer Funktion (Rolle) und
+                Rechten.
+            </div>
+
+            <data-table
+                    api-url="{{ path('master_data_members_list') }}"
+                    sort-by="state"
+                    :sort-desc="false"
+                    :per-page="10"
+                    :fields="[
+                                {key: 'name', label: 'Name', sortable: true},
+                                {key: 'personType', label: 'Typ', sortable: true},
+                                {key: 'state', label: 'Status', sortable: true},
+                                {key: 'options', label: 'Optionen', sortable: false, class:'options'}
+                            ]">
+                <template v-slot:cell(personType)="row">
+                    {{ '{{' }}row.item.personType{{ '}}' }}<br/>
+                    <span class="text-muted small">Rolle: {{ '{{' }}row.item.roleText{{ '}}' }}</span>
+                </template>
+                <template v-slot:cell(state)="row">
+                    {{ '{{' }}row.item.stateText{{ '}}' }}
+                </template>
+                <template v-slot:cell(name)="row">
+                    {{ '{{' }}row.item.user.displayName{{ '}}' }}
+                    <b-badge v-if="row.item.user.id=='{{ app.user.id }}'" variant="warning" class="no-print">ich
+                    </b-badge>
+                    <div v-if="row.item.user.displayName != row.item.user.email" class="text-muted">
+                        {{ '{{' }}row.item.user.email{{ '}}' }}
+                    </div>
+                </template>
+                <template v-slot:cell(options)="{row, callAndRefresh}">
+                    {% if is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+                        <b-button size="sm" :href="'/master_data/members/edit/'+row.item.user.id" class="mr-2 no-print">
+                            <i class="fas fa-edit mr-1"></i>Bearbeiten
+                        </b-button>
+
+                        <span v-if="row.item.role != 'ROLE_HEADMASTER' && row.item.state != {{ constant('App\\Entity\\User::STATE_NOT_ACTIVATED') }}">
+                                <b-button
+                                        v-if="row.item.state === {{ constant('App\\Entity\\UserHasSchool::STATE_BLOCKED') }}"
+                                        v-b-modal="'modalUnblock-'+row.item.user.id" class="no-print"
+                                        size="sm" variant="primary"><i class="fas fa-check mr-1"></i>Entsperren
+                                </b-button>
+                            <!-- Modal Component -->
+                                <b-modal :id="'modalUnblock-'+row.item.user.id"
+                                         @ok="callAndRefresh({action:'block_user', user_id:row.item.user.id}, '{{ path('master_data_members_list') }}')"
+                                         title="Entsperren" ok-variant="primary"
+                                         ok-title="Entsperren"
+                                         cancel-title="Abbrechen">
+                                    <p class="my-4">Möchten Sie '{{ '{{' }}
+                                        row.item.user.displayName{{ '}}' }}' wirklich Entsperren?
+                                    </p>
+                                </b-modal>
+                                <b-button
+                                        v-if="row.item.state == {{ constant('App\\Entity\\UserHasSchool::STATE_ACCEPTED') }}"
+                                        v-b-modal="'modalBlock-'+row.item.user.id"
+                                        size="sm" variant="secondary" class="no-print">
+                                    <i class="fas fa-times mr-1"></i>Sperren
+                                </b-button>
+                            <!-- Modal Component -->
+                                <b-modal :id="'modalBlock-'+row.item.user.id"
+                                         @ok="callAndRefresh({action:'block_user', user_id:row.item.user.id}, '{{ path('master_data_members_list') }}')"
+                                         title="Sperren" ok-variant="danger"
+                                         ok-title="Sperren"
+                                         cancel-title="Abbrechen">
+                                <p class="my-4">Möchten Sie '{{ '{{' }}
+                                    row.item.user.displayName{{ '}}' }}' wirklich Sperren?
+                                </p>
+                            </b-modal>
+                        </span>
+
+                        <b-button v-if="row.item.state == 0" v-b-modal="'modal-'+row.item.user.id" size="sm"
+                                  variant="danger" class="no-print" aria-label="Einladung löschen"><i class="far fa-trash-alt mr-1"></i>Löschen
+                        </b-button>
+                        <!-- Modal Component -->
+                        <b-modal :id="'modal-'+row.item.user.id"
+                                 @ok="callAndRefresh({action:'delete_invitation', user_id:row.item.user.id}, '{{ path('master_data_members_list') }}')"
+                                 title="Einladung löschen" ok-variant="danger" ok-title="Löschen"
+                                 cancel-title="Abbrechen">
+                            <p class="my-4">Möchten Sie die Einladung an '{{ '{{' }}
+                                row.item.user.displayName{{ '}}' }}' wirklich löschen?</p>
+                        </b-modal>
+                    {% endif %}
+                </template>
+            </data-table>
+        </div>
+    </div>
+</div>

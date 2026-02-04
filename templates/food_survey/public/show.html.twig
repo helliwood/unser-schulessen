@@ -1,0 +1,16 @@
+{% extends 'food_survey.html.twig' %}
+
+{% block copyright %}{% endblock %}
+
+{% block body %}
+    <div class="w-100 h-100"
+         style="background-image: url('{{ path('food_survey_public_image', {id:foodSurvey.id}) }}'); background-size: cover;">
+        <div class="w-100 h-100" style="backdrop-filter: blur(20px); background-color: rgba(0,0,0,0.75);">
+            <food-survey-public :food-survey="{{ foodSurvey | json_encode }}"
+                                img-uri="{{ path('food_survey_public_image', {id:foodSurvey.id}) }}"
+                                save-uri="{{ path('food_survey_public_save_result', {uuid:foodSurvey.uuid}) }}">
+            </food-survey-public>
+        </div>
+    </div>
+    {# <img src="{{ path('food_survey_public_image', {id:foodSurvey.id}) }}" class="img-fluid" /> #}
+{% endblock %}

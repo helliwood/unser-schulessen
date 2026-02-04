@@ -1,0 +1,131 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="example-wrapper">
+        <h1>Administration</h1>
+        <div class="ml-auto out-of-panel pb-2">
+            <div class="mb-1">
+                {% for i in firstSchoolYear.year..schoolYear %}
+                    <a class="btn btn-{{ selectedYear == i ? 'primary' : 'secondary' }} mt-3"
+                       href="{{ path('admin_home', {'selectedYear': i}) }}">
+                        {{ i }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2>Wie viele Schulen haben ihre Stammdaten aktualisiert?</h2>
+                    <apexchart height="230" type="bar" :options="{
+                            chart: {
+                            id: 'vuechart-example'
+                            },
+                            colors: ['#3bab4a'],
+                            xaxis: {
+                            categories: [{% for k, m in masterDataStats %}'{{ k }}'{% if not loop.last %},{% endif %}{% endfor %}]
+                            },
+                            yaxis: {
+                            tickAmount:3,
+                            labels: {
+                            formatter: function(v){return v.toFixed(0);}
+                            }
+                            }
+                            }" :series="[{
+                            name: 'Schulen haben aktualisiert',
+                            data: [{% for m in masterDataStats %}{{ m }}{% if not loop.last %},{% endif %}{% endfor %}]
+                            }]"></apexchart>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2>Umfragen</h2>
+                    <apexchart type="line" height="250"
+                               :options="{
+                                       labels: [{% for k, s in surveyStats %}'{{ k }}'{% if not loop.last %},{% endif %}{% endfor %}],
+                                       chart: {
+                                       height: 200,
+                                       toolbar: {
+                                       show:true,
+                                       tools: {
+                                       download: true,
+                                       selection: false,
+                                       zoom: false,
+                                       zoomin: false,
+                                       zoomout: false,
+                                       pan: false,
+                                       reset: false
+                                       }
+                                       }
+                                       },
+                                       colors: ['#3bab4a', '#de543d'],
+                                       yaxis: [{
+                                        labels: {
+                                            formatter: function(val) {
+                                                return val.toFixed(0);
+                                            }
+                                        },
+                                        title: {
+                                            text: 'Qualitäts-Checks',
+                                        },
+                                       },{
+                                           opposite: true,
+                                       labels: {
+                                       formatter: function(val) {
+                                       return val.toFixed(0);
+                                       }
+                                       },
+                                           title: {
+                                            text: 'Zufriedenheitsumfragen'
+                                           },
+                                       },]
+                                       }"
+                               :series="[
+                                       {
+                                       name: 'Abgeschlossene Qualitäts-Checks',
+                                       data:[{% for s in resultStats %}{{ s }}{% if not loop.last %},{% endif %}{% endfor %}]
+                                       },
+                                       {
+                                       name: 'Abgeschlossene Zufriedenheitsumfragen',
+                                       data:[{% for s in surveyStats %}{{ s }}{% if not loop.last %},{% endif %}{% endfor %}]
+                                       },
+                                       ]"
+                    ></apexchart>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="panel">
+                    <h2>Schulen</h2>
+                    {{ 'xSchule'|trans({'%count%':schoolCount}) }} (davon {{ schoolMiniCheckCount }} MiniCheck-Schulen)<br/>
+                    <a class="btn btn-secondary mt-3" href="{{ path('admin_school_home') }}">Öffnen</a>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel">
+                    <h2>Fragebögen</h2>
+                    <p>Kriterien des Qualitäts-Check und Ideenbox-Inhalte</p>
+                    {{ 'xFragebogen'|trans({'%count%':questionnaireCount}) }}<br/>
+                    <a class="btn btn-secondary mt-3" href="{{ path('admin_questionnaire_home') }}">Öffnen</a>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel">
+                    <h2>{{ 'survey'|trans }}{% if state_country == 'rp' %} - {{ 'questions'|trans }}{% endif %}</h2>
+                    {{ 'xKategorien'|trans({'%count%':surveyCategoryCount}) }}<br/>
+                    <a class="btn btn-secondary mt-3" href="{{ path('admin_survey_home') }}">Öffnen</a>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel">
+                    <h2>Mitarbeiter</h2>
+                    {{ 'xMitarbeiter'|trans({'%count%':userHasSchoolCount}) }}<br/>
+                    {#                    {{ 'xBerater'|trans({'%count%':consultantCount}) }}<br/> #}
+                    <a class="btn btn-secondary mt-3" href="{{ path('admin_employee_home') }}">Öffnen</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

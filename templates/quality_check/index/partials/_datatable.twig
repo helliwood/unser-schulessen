@@ -1,0 +1,39 @@
+<div class="mb-2">Hier finden Sie den aktuellen Qualitäts-Check für die Bearbeitung und archivierte Q.-Checks.
+    <data-table
+            sort-by="createdAt"
+            :sort-desc="true"
+            :per-page="10"
+            :fields="[
+                    {key: 'createdAt', label: 'Erstellt', sortable: true, formatter: (value, key, item) => {
+                        if(value) {
+                            return moment(value.date).format('DD.MM.YYYY') + ' (' + item.createdBy + ')';
+                        } else {
+                            return '---';
+                        }
+                    }},
+                    {key: 'finalisedAt', label: 'Finalisiert', sortable: true, formatter: (value, key, item) => {
+                        if(value) {
+                            return moment(value.date).format('DD.MM.YYYY') + ' (' + item.finalisedBy + ')';
+                        } else {
+                            return '---';
+                        }
+                    }},
+                    {key: 'actions', label: 'Optionen', sortable: false, class:'options'}
+    ]">
+        <template v-slot:cell(actions)="row">
+            {% if is_granted('ROLE_FOOD_COMMISSIONER') %}
+                <b-button v-if="!row.item.finalised" size="sm" href="/quality_check/edit" class="mr-2">
+                    <i class="fas fa-edit mr-1"></i>Fortfahren
+                </b-button>
+            {% endif %}
+            <b-button v-if="row.item.finalised" size="sm" variant="primary"
+                      :href="'/quality_check/result/'+row.item.id" class="mr-2">
+                <i class="fas fa-eye mr-1"></i>Anzeigen
+            </b-button>
+            <b-button v-if="row.item.finalised" size="sm" variant="primary"
+                      :href="'/quality_check/export/'+row.item.id" class="mr-2">
+                <i class="fas fa-file-pdf mr-1"></i>PDF-Download
+            </b-button>
+        </template>
+    </data-table>
+</div>

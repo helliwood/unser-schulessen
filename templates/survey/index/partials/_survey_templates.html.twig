@@ -1,0 +1,99 @@
+<div class="col-12 mb-4">
+    <div class="panel h-100">
+        <h2><i class="fas fa-copy text-primary2 mr-1"></i>Vorlagen</h2>
+        <div class="mb-2">Hier finden Sie die vorgefertigten Umfragen der Vernetzungsstelle.</div>
+        <data-table
+                api-url="{{ path('survey_list_survey_templates') }}"
+                sort-by="createdAt"
+                :sort-desc="true"
+                :per-page="5"
+                :fields="[
+                        {key: 'name', label: 'Name', sortable: true},
+                        {key: 'type', label: 'Typ', sortable: true,
+                        formatter: (value, key, item) => {
+                        return item.typeLabel;
+                        }
+                        },
+                        {key: 'options', label: 'Optionen', sortable: false, class:'options text-right'}
+                        ]">
+            <template v-slot:cell(options)="{ row, callAndRefresh }">
+                {% if is_granted('ROLE_ADMIN') %}
+                    <b-button variant="info" size="sm" :href="'/survey/new/'+ row.item.uuid" >
+                        <i class="fas fa-copy mr-1" title=""></i>Vorlage verwenden
+                    </b-button>
+                    <b-button-group size="sm">
+                        <b-button size="sm" variant="secondary" :href="'/survey/edit/'+row.item.id">
+                            <i class="fas fa-edit mr-1"></i>Bearbeiten
+                        </b-button>
+                        <b-dropdown size="sm" right text="..." v-b-tooltip.hover.right.v-danger
+                                    title="Ermöglicht weitere Optionen der Bearbeitung der Umfrage." aria-label="Weitere Optionen">
+                            <b-dropdown-item
+                                    variant="primary"
+                                    :href="'/survey/questions/'+row.item.id" title=""><i
+                                        class="fas fa-list-ol text-primary mr-1"></i>Fragen
+                            </b-dropdown-item>
+                            <b-dropdown-item
+                                    v-if="row.item.state=={{ stateActive }}"
+                                    variant="primary"
+                                    :href="'/survey/result/'+row.item.id" title=""><i
+                                        class="fas fa-chart-bar text-primary mr-1"></i>Auswertung
+                            </b-dropdown-item>
+                            <b-dropdown-item
+                                    v-if="row.item.state=={{ stateNotActivated }}"
+                                    variant="primary" target="_blank"
+                                    :href="'/Umfrage/'+row.item.uuid" title=""><i
+                                        class="fas fa-external-link-alt mr-1"></i>Vorschau
+                            </b-dropdown-item>
+                            <b-dropdown-item
+                                    variant="primary" target="_blank"
+                                    :href="'/Umfrage/Qr/'+row.item.uuid" title=""><i
+                                        class="fas fa-external-link-alt mr-1"></i>QR-Code anzeigen
+                            </b-dropdown-item>
+                            <b-dropdown-item
+                                    v-if="row.item.state=={{ stateActive }}"
+                                    variant="primary" target="_blank"
+                                    :href="'/Umfrage/'+row.item.uuid" title=""><i
+                                        class="fas fa-external-link-alt mr-1"></i>Öffnen
+                            </b-dropdown-item>
+
+                            <b-dropdown-item variant="secondary"
+                                             v-if="row.item.type=='{{ constant('App\\Entity\\Survey\\Survey::TYPE_VOUCHER') }}'"
+                                             :href="'/survey/voucher/'+row.item.id"><i
+                                        class="fas fa-qrcode mr-1" title=""></i> Voucher
+                            </b-dropdown-item>
+                            <b-dropdown-item variant="danger"
+                                             v-if="row.item.state=={{ stateActive }}"
+                                             :href="'/survey/state/{{ stateClosed }}/'+row.item.id">
+                                <i class="fas fa-sign-out-alt mr-1" title=""></i>Beenden
+                            </b-dropdown-item>
+                            {% if is_granted('ROLE_FOOD_COMMISSIONER') %}
+                                <b-dropdown-item variant="danger"
+                                                 v-if="row.item.state=={{ stateNotActivated }}"
+                                                 v-b-modal="'modal-'+row.item.id"
+                                                 variant="primary" target="_blank" title=""><i
+                                            class="far fa-trash-alt"></i> Löschen
+                                </b-dropdown-item>
+                                <!-- Modal Component -->
+                                <b-modal :id="'modal-'+row.item.id"
+                                         @ok="callAndRefresh({action:'delete_survey', survey_id:row.item.id}, '{{ path('survey_list') }}')"
+                                         title="Umfrage löschen" ok-variant="danger" ok-title="Löschen"
+                                         cancel-title="Abbrechen">
+                                    <p class="my-4">Möchten Sie die Umfrage an '{{ '{{' }}
+                                        row.item.name{{ '}}' }}' wirklich löschen?</p>
+                                </b-modal>
+                            {% endif %}
+                        </b-dropdown>
+                    </b-button-group>
+                {% else %}
+                    <b-button size="sm" variant="secondary" target="_blank"
+                            :href="'/Umfrage/'+row.item.uuid" title="">
+                        <i class="fas fa-external-link-alt mr-1"></i>Vorschau
+                    </b-button>
+                    <b-button variant="info" size="sm" :href="'/survey/new/'+ row.item.uuid" >
+                        <i class="fas fa-copy mr-1" title=""></i>Vorlage verwenden
+                    </b-button>
+                {% endif %}
+            </template>
+        </data-table>
+    </div>
+</div>

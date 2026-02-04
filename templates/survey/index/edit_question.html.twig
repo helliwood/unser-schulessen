@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+{% set survey = question.getSurvey %}
+{% set stateNotActivated = constant('App\\Entity\\Survey\\Survey::STATE_NOT_ACTIVATED') %}
+{% block body %}
+    <div>
+        <h1>Frage bearbeiten</h1>
+        <div class="panel">
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    {{ form_start(form, {'attr': {'novalidate':'novalidate', 'surveyState':survey.getState}} ) }}
+                    {{ form_row(form.question, {'attr': {'surveyState':survey.getState}}) }}
+                    {% if form.choices is defined %}
+                        <fieldset>
+                            <legend>Antwortmöglichkeiten</legend>
+                            <form-survey-question-choices :survey-state="{{ survey.getState }}" class="mb-2">
+                                {{ form_widget(form.choices,{'attr':{'surveyState':survey.getState}} ) }}
+                            </form-survey-question-choices>
+                            {{ form_errors(form) }}
+                        </fieldset>
+                    {% endif %}
+                    <div class="form-group row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 d-flex">
+                            {% if survey.getState == stateNotActivated %}
+                                <button type="submit" id="save" name="save" class="btn-primary btn">Speichern</button>
+                            {% else %}
+                                <a href="{{ path('survey_questions', {id:survey.getId}) }}" class="btn-primary btn">Zurück</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

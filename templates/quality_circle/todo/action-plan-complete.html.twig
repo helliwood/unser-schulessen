@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <h1>Aktionsplan beenden</h1>
+        <div class="panel mb-4">
+            <div class="row result">
+                <div class="col-12">
+                    <h2>{{ actionPlan.todo.name }}</h2>
+                </div>
+                {% if actionPlan.todo.answer %}
+                    <div class="col-9">
+                        <p class="mb-1">{{ actionPlan.todo.answer.question.category.name }}</p>
+                        <h4>{{ actionPlan.todo.answer.question.question }}</h4>
+                    </div>
+                    <div class="col-3 text-right">
+                        <div class="{% if actionPlan.todo.answer.calculateAnswer %}{{ actionPlan.todo.answer.calculateAnswer }}{% else %}not_answered{% endif %}">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[actionPlan.todo.answer.calculateAnswer] }}</div>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <p>{{ actionPlan.todo.description }}</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="panel">
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    <h1>{{ actionPlan.what }}</h1>
+                    <p>{{ actionPlan.how | nl2br }}</p>
+                    <hr />
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    {{ form_widget(form) }}
+                    <div class="form-group row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 d-flex">
+                            <div class="ml-auto no-print">
+                                <button type="submit" id="cancel" name="cancel"
+                                        class="btn-warning btn btn-sm text-white">Abbrechen
+                                </button>
+                                <button type="submit" id="save" name="save" class="btn-secondary btn btn-sm">Speichern
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+

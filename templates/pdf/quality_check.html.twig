@@ -1,0 +1,194 @@
+{% extends 'pdf/layout.html.twig' %}
+{% set labels = constant('App\\Entity\\QualityCheck\\Result::ANSWER_LABELS') %}
+
+
+{% block body %}
+    {% include 'macros/flag_icons.twig' %}
+
+    <style>
+
+        .legend {
+            position: absolute;
+            top: 1cm;
+            right: 0.61cm;
+            list-style: none;
+            width: 25%;
+            text-align: left;
+        }
+
+        .true, .partial, .false, .not_answered {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 7px;
+            border: 1px solid #999;
+        }
+
+        .true {
+            background-color: #04B100;
+        }
+
+        .partial {
+            background-color: #FFA700;
+        }
+
+        .false {
+            background-color: #D30000;
+        }
+
+        .not_answered {
+            background-color: #999999;
+        }
+
+    </style>
+
+
+    {% if result is not null %}
+        {% set countQuestions = result.questions()|length %}
+
+        {% set AnswerEntity = 'App\\Entity\\QualityCheck\\Answer::' %}
+        {% set countTrue = result.countAnswers(constant(AnswerEntity ~ 'ANSWER_TRUE')) %}
+        {% set countPartial = result.countAnswers(constant(AnswerEntity ~ 'ANSWER_PARTIAL')) %}
+        {% set countFalse = result.countAnswers(constant(AnswerEntity ~ 'ANSWER_FALSE')) %}
+
+        {% set countAnswers = countTrue + countPartial + countFalse %}
+        {% set countNotAnswered = countQuestions - (countTrue + countPartial + countFalse) %}
+    {% endif %}
+
+    <h1>Qualitäts-Check vom {{ result.finalisedAt | date('d.m.Y') }}</h1>
+    <h1>Gesamtauswertung</h1><br>
+
+    <div style="page-break-inside: avoid; position: relative; ">
+        <img src="data:image/png;base64, {{ img }}" width="400"/>
+        <table class="legend ">
+            <tr><td><b>{{ countTrue }}</b> Erfüllt</td><td><div class="true"></div></td></tr>
+            <tr><td><b>{{ countPartial }}</b> Teilweise erfüllt</td><td><div class="partial"></div></td></tr>
+            <tr><td><b>{{ countFalse }}</b> Nicht erfüllt</td><td><div class="false"></div></tr>
+            <tr><td><b>{{ countNotAnswered }}</b> Nicht beantwortet</td><td><div class="not_answered"></div></td></tr>
+        </table>
+        
+        {# Flag-Icon Legende hinzufügen #}
+        {% set hasFlags = false %}
+        {% for category in result.answeredCategories %}
+            {% for question in category.questions %}
+                {% if question.getFlags %}
+                    {% for flagName, flagValue in question.getFlags %}
+                        {% if flagValue == true %}
+                            {% set hasFlags = true %}
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {% for category in result.answeredCategories %}
+        {% if category.questions | length > 0 %}
+            <div style="page-break-inside: avoid;">
+                <h2>{{ category.name }}</h2>
+                <table class="result" width="100%">
+                    {% for labelKey, label in labels %}
+                        {% set answers = result.getAnswersByResultValue(labelKey, category) %}
+                        {% for answer in answers %}
+                            <tr>
+                                <td style="width:63%; vertical-align: center;">{{ answer.getQuestion }}
+                                    {% set question = answer.question %}
+                                    {% if question.flags %}
+                                        {% for flagName, flagDef in qualityCheckService.flagDefinitions %}
+                                            {% if question.hasFlag(flagName) %}
+                                                {{ pdf_icon(flagDef.icon, flagDef.color) }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </td>
+                                <td style="width:20%; padding-top: 1px; text-align:right; vertical-align: middle;">
+                                    {{ labels[answer.calculateAnswer] }}
+
+                                    {% if answer is not null
+                                        and answer.answer is not null
+                                        and answer.answer matches '/^\\d+(\\.\\d+)?$/' %}
+                                        ({{ answer.answer }})
+                                    {% endif %}
+                                </td>
+                                {% set class = answer.calculateAnswer %}
+                                {% if class is empty %}
+                                    {% set class = 'not_answered' %}
+                                {% endif %}
+                                <td style="width:5%; padding-top:1px;">
+                                    <div class="{{ class }}"></div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </table>
+            </div>
+        {% endif %}
+
+        {% if category.children | length > 0 %}
+            {% for subcategory in result.getAnsweredCategories(category.children.toArray()) %}
+                <h2>{{ category.name }}: {{ subcategory.name }}</h2>
+                <table class="result" style="width:100%;">
+                    {% for labelKey, label in labels %}
+                        {% set answers = result.getAnswersByResultValue(labelKey, subcategory) %}
+                        {% for answer in answers %}
+                            <tr>
+                                <td style="width:63%; vertical-align: center;">{{ answer.getQuestion }}
+                                    {% set question = answer.question %}
+                                    {% if question.flags %}
+                                        {% for flagName, flagDef in qualityCheckService.flagDefinitions %}
+                                            {% if question.hasFlag(flagName) %}
+                                                {{ pdf_icon(flagDef.icon, flagDef.color) }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </td>
+                                <td style="width:20%; padding-top: 1px; text-align:right; vertical-align: middle;">
+                                    {{ labels[answer.calculateAnswer] }}
+
+                                    {% if answer is not null
+                                        and answer.answer is not null
+                                        and answer.answer matches '/^\\d+(\\.\\d+)?$/' %}
+                                        ({{ answer.answer }})
+                                    {% endif %}
+                                </td>
+                                {% set class = answer.calculateAnswer %}
+                                {% if class is empty %}
+                                    {% set class = 'not_answered' %}
+                                {% endif %}
+                                <td style="width:5%; padding-top:1px;">
+                                    <div class="{{ class }}"></div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </table>
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+
+{#    {% if result.getSustainableStats | length > 0 %}#}
+{#        {% if sustainableStats is not null %}#}
+{#            {% set countTrue = sustainableStats[constant('App\\Entity\\QualityCheck\\Answer::ANSWER_TRUE')] %}#}
+{#            {% set countPartial = sustainableStats[constant('App\\Entity\\QualityCheck\\Answer::ANSWER_PARTIAL')] %}#}
+{#            {% set countFalse = sustainableStats[constant('App\\Entity\\QualityCheck\\Answer::ANSWER_FALSE')] %}#}
+{#            {% set notAnswered = sustainableStats['not_answered'] %}#}
+{#            {% set answered = countTrue + countPartial + countFalse %}#}
+{#            {% set total = answered + notAnswered %}#}
+{#            {% set numberOfQuestions = sustainableResult.result.questionnaire.NumberOfQuestions %}#}
+{#        {% endif %}#}
+
+{#        <div style="page-break-before: always;">#}
+{#            <h1><img style="width: 24px; height: 22px;" src="./img/sustained.png"/> Nachhaltigkeit </h1><br>#}
+
+{#            <div style="page-break-inside: avoid; position: relative">#}
+{#                <img src="data:image/png;base64, {{ img_sustainable }}" width="400"/>#}
+{#                <table class="legend ">#}
+{#                    <tr><td><b>{{ countTrue }}</b> Erfüllt</td><td><div class="true"></div></td></tr>#}
+{#                    <tr><td><b>{{ countPartial }}</b> Teilweise erfüllt</td><td><div class="partial"></div></td></tr>#}
+{#                    <tr><td><b>{{ countFalse }}</b> Nicht erfüllt</td><td><div class="false"></div></tr>#}
+{#                    <tr><td><b>{{ notAnswered }}</b> Nicht beantwortet</td><td><div class="not_answered"></div></td></tr>#}
+{#                </table>#}
+{#            </div>#}
+{#        </div>#}
+{#    {% endif %}#}
+{% endblock %}

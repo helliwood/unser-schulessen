@@ -1,0 +1,111 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="panel">
+                <div class="d-flex mb-2">
+                    <h3>
+                        <i class="fas fa-user-friends text-primary2"></i> Mitarbeiter
+                    </h3>
+                    <div class="ml-auto">
+                        <a href="/admin/employee/new" class="btn btn-secondary">
+                            <i class="fas fa-plus"></i>
+                            Mitarbeiter einladen
+                        </a>
+                    </div>
+                </div>
+                <data-table
+                        sort-by="displayName"
+                        :sort-desc="false"
+                        :per-page="10"
+                        :fields="[
+                                {key: 'displayName', label: 'Name', sortable: true},
+                                {key: 'options', label: 'Optionen', sortable: false, class:'options'}
+                            ]">
+                    <template v-slot:cell(displayName)="row">
+                        {{ '{{' }}row.item.displayName{{ '}}' }}
+                        <b-badge v-if="row.item.id=='{{ app.user.id }}'" variant="warning">ich</b-badge>
+                        <div v-if="row.item.displayName != row.item.email" class="text-muted">
+                            {{ '{{' }}row.item.email{{ '}}' }}
+                        </div>
+                    </template>
+                    <template v-slot:cell(options)="{row, callAndRefresh}">
+                        <b-button size="sm"
+                                  :href="'/admin/employee/'+row.item.id+'/schools'"
+                                  class="mr-2 " variant="primary">
+                            <i class="fas fa-university"></i> Schulen anzeigen
+                        </b-button>
+
+                        <b-button-group size="sm" class="mr-2"
+                                        v-if="row.item.state=={{ constant('App\\Entity\\User::STATE_ACTIVE') }} && row.item.id != {{ app.user.id }}">
+                            <b-button size="sm" :href="'/admin/employee/'+row.item.id+'/edit'">
+                                <i class="fas fa-edit"></i> Bearbeiten
+                            </b-button>
+                            <b-dropdown size="sm" right text="">
+                                <b-dropdown-item :href="'/admin/employee/'+row.item.id+'/change-email'"
+                                                 variant="primary">
+                                    <i class="fas fa-envelope"></i> E-Mail ändern
+                                </b-dropdown-item>
+                                <b-dropdown-item :href="'/admin/employee/'+row.item.id+'/change-password'"
+                                                 variant="primary">
+                                    <i class="fas fa-key"></i> Passwort ändern
+                                </b-dropdown-item>
+                            </b-dropdown>
+                        </b-button-group>
+                        <b-button v-else size="sm"
+                                  :href="'/admin/employee/'+row.item.id+'/edit'"
+                                  class="mr-2">
+                            <i class="fas fa-edit"></i> Bearbeiten
+                        </b-button>
+
+                        {#<span v-if="row.item.role != 'ROLE_ADMINISTRATIVE_MEMBER' && row.item.role != 'ROLE_CONSULTANT' && row.item.state != {{ constant('App\\Entity\\User::STATE_NOT_ACTIVATED') }}">
+                            <b-button
+                                    v-if="row.item.state === {{ constant('App\\Entity\\UserHasSchool::STATE_BLOCKED') }}"
+                                    v-b-modal="'modalUnblock-'+row.item.user.id"
+                                    size="sm" variant="primary"><i class="fas fa-check"></i> Entsperren
+                            </b-button>
+                            <!-- Modal Component -->
+                            <b-modal :id="'modalUnblock-'+row.item.user.id"
+                                     @ok="callAndRefresh({action:'block_user', user_id:row.item.user.id, school_id:row.item.school.id}, '{{ path('master_data_members_list') }}')"
+                                     title="Entsperren" ok-variant="primary"
+                                     ok-title="Entsperren"
+                                     cancel-title="Abbrechen">
+                                <p class="my-4">Möchten Sie '{{ '{{' }} row.item.user.displayName{{ '}}' }}' wirklich Entsperren?
+                                </p>
+                            </b-modal>
+                            <b-button
+                                    v-if="row.item.state == {{ constant('App\\Entity\\UserHasSchool::STATE_ACCEPTED') }}"
+                                    v-b-modal="'modalBlock-'+row.item.user.id"
+                                    size="sm" variant="secondary">
+                                <i class="fas fa-times"></i> Sperren
+                            </b-button>
+                            <!-- Modal Component -->
+                            <b-modal :id="'modalBlock-'+row.item.user.id"
+                                     @ok="callAndRefresh({action:'block_user', user_id:row.item.user.id, school_id:row.item.school.id}, '{{ path('master_data_members_list') }}')"
+                                     title="Sperren" ok-variant="danger"
+                                     ok-title="Sperren"
+                                     cancel-title="Abbrechen">
+                                <p class="my-4">Möchten Sie '{{ '{{' }} row.item.user.displayName{{ '}}' }}' wirklich Sperren?
+                                </p>
+                            </b-modal>
+                        </span>
+
+                        <b-button v-if="row.item.state == 0" v-b-modal="'modal-'+row.item.user.id" size="sm"
+                                  variant="danger"><i class="far fa-trash-alt"></i>
+                        </b-button>
+                        <!-- Modal Component -->
+                        <b-modal :id="'modal-'+row.item.user.id"
+                                 @ok="callAndRefresh({action:'delete_invitation', user_id:row.item.user.id, school_id:row.item.school.id}, '{{ path('master_data_members_list') }}')"
+                                 title="Einladung löschen" ok-variant="danger" ok-title="Löschen"
+                                 cancel-title="Abbrechen">
+                            <p class="my-4">Möchten Sie die Einladung an '{{ '{{' }} row.item.user.displayName{{ '}}' }}' wirklich löschen?</p>
+                        </b-modal>#}
+                    </template>
+                </data-table>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

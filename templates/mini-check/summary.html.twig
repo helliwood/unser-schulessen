@@ -1,0 +1,193 @@
+{% set bgColor = '#f0f0f6' %}
+
+{% extends 'clear.html.twig' %}
+
+{% block body %}
+
+    {% if complete %}
+        <div class="row pb-3 ">
+            <div class="col">
+                <div class="panel h-100 d-flex flex-column py-3 pb-4">
+                    <h3>{{ 'Vielen Dank!'|trans }}</h3>
+                    <p>Sie erhalten in Kürze eine E-Mail mit dem Auswertungs-PDF.</p>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="row">
+            <div class="col">
+                <div class="panel h-100 d-flex flex-column py-3 pb-4">
+                    <h3>{{ 'Zusammenfassung Mini-Check'|trans }}</h3>
+                    <p>Vielen Dank! Der Mini-Check kann der erste Schritt sein, um mit dem QM-Tool Unser Schulessen Ihre
+                        Verpflegung zu verbessern. Damit dieser Qualitäts-Check Ihrer Einrichtung zugeordnet werden
+                        kann, haben wir ihn gespeichert.</p>
+                    <dl class="row">
+                        <dt class="col-4 col-md-3">Schule</dt>
+                        <dd class="col-8 col-md-9">{{ result.school.name }}</dd>
+
+                        <dt class="col-4 col-md-3">Stadt/Gemeinde</dt>
+                        <dd class="col-8 col-md-9">{{ result.school.address.city }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col">
+                <div class="panel h-100 d-flex flex-column py-3 pb-4">
+                    <h3>Auswertung</h3>
+                    <p>Unten sehen Sie eine kurze Zusammenfassung Ihrer Ergebnisse – aber es gibt noch viel
+                        mehr zu entdecken.</p>
+                    <div class="row evaluation-container">
+                        <div class="col-md-6 gauge-column">
+                            <div class="gauge-container">
+                                {{ gauge|raw }}
+                            </div>
+                        </div>
+                        <div class="col-md-6 answers-column">
+                            <h3>Ihre Antworten</h3>
+
+                            <div class="gauge-legend">
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background-color: #4CAF50;"></span>
+                                    <span class="legend-label">Erfüllt: {{ stats['true']|default(0) }}</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background-color: #FF9800;"></span>
+                                    <span class="legend-label">Teilweise erfüllt: {{ stats['partial']|default(0) }}</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background-color: #F44336;"></span>
+                                    <span class="legend-label">Nicht erfüllt: {{ stats['false']|default(0) }}</span>
+                                </div>
+                                <div class="legend-item">
+                                    <span class="legend-color" style="background-color: #9E9E9E;"></span>
+                                    <span class="legend-label">Nicht beantwortet: {{ stats['not_answered']|default(0) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if  stats.percentage >= 100 %}
+                        <h5>Vorbildlich</h5>
+                        <p>Alle Kriterien des Mini-Checks sind vollständig erfüllt. Sehr gut! Verpflegungsqualität wird
+                            in Ihrer Einrichtung umgesetzt. Mit dem QM-Tool Unser Schulessen können Sie die erreichten
+                            Standards sichern und Ihre Prozesse professionell managen.</p>
+                    {% elseif stats.percentage >= 80 %}
+                        <h5>Beeindruckende Leistung</h5>
+                        <p>Wesentliche Qualitätsaspekte für ein gutes Schulessen werden umgesetzt. Mit wenigen Schritten
+                            kann die Verpflegungsqualität weiter verbessert werden. Unsere detaillierte Auswertung gibt
+                            Ihnen erste Tipps.</p>
+                    {% elseif stats.percentage >= 60 %}
+                        <h5>Solides Fundament </h5>
+                        <p>Die Qualitätskriterien des Mini-Checks werden mehr als zur Hälfte erfüllt. Das ist eine gute
+                            Ausgangsbasis. Mit genauem Blick kann das Niveau weiter gesteigert werden. Unsere
+                            detaillierte Auswertung hilft dabei, gezielt Optimierungspotenziale zu erkennen und
+                            umzusetzen. </p>
+                    {% elseif stats.percentage >= 40 %}
+                        <h5>Auf dem richtigen Weg</h5>
+                        <p>Einige Qualitätsaspekte des Mini-Check für gutes Schulessen werden schon erfüllt. Das ist
+                            eine gute Basis, um die Bereiche mit Handlungsbedarf erfolgreich anzugehen. Mit gezielten
+                            Schritten lässt sich die Schulverpflegung weiter verbessern. Unsere detaillierte Auswertung
+                            unterstützt dabei, dies systematisch anzugehen.</p>
+                    {% else %}
+                        <h5>Erste Schritte auf dem Weg zu besserer Schulverpflegung</h5>
+                        <p>Die Auswertung des Mini-Check zeigt es – es gibt Handlungsbedarf. Dennoch - ein Anfang wurde
+                            gemacht, und das ist bedeutsam. Jeder Schritt zählt, und mit kontinuierlichem Engagement
+                            können Fortschritte für mehr Qualität beim Schulessen erzielt werden. Unsere detaillierte
+                            Auswertung bietet konkrete Anhaltspunkte, um gezielt die nächsten Schritte zu planen und
+                            umzusetzen.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+        <div class="row mt-3">
+            <div class="col mb-3">
+                <div class="panel h-100 d-flex flex-column py-3">
+                    <h3>Gemeinsam Schulverpflegung besser machen </h3>
+                    <p>Möchten sie zu Ihrem Mini-Check eine detaillierte Auswertung mit hilfreichen Tipps zur
+                        Optimierung erhalten? Im praktischen PDF-Format können Sie die gewonnenen Erkenntnisse schnell
+                        und einfach teilen. Geben Sie hierfür Ihren Namen und E-Mail- Adresse an. </p>
+                    {{ form_widget(form) }}</div>
+            </div>
+        </div>
+
+        <div class="row pb-3">
+            <div class="col">
+                <div class="panel h-100 d-flex flex-column py-3">
+                    <div class="row">
+                        <div class="col-4 col-md-3"></div>
+                        <div class="col-8 col-md-9 d-flex">
+                            <a href="{{ path('minicheck_step2') }}" class="btn btn-secondary mr-2">Zurück</a>
+                            <button type="submit" id="save" name="save" class="btn-primary btn">Absenden</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{ form_end(form) }}
+    {% endif %}
+{% endblock %}
+{% block javascripts %}
+    {% include ("mini-check/partial/resize.html.twig") %}
+{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .evaluation-container {
+            margin: 2rem 0;
+        }
+
+        .gauge-container {
+            margin: 0 auto;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .gauge-container svg {
+            width: 100%;
+            height: auto;
+        }
+
+        .gauge-legend {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .legend-label {
+            font-size: 1rem;
+        }
+
+        .answers-column {
+            padding: 1rem;
+        }
+
+        @media (max-width: 767.98px) {
+            .gauge-column {
+                margin-bottom: 2rem;
+            }
+
+            .answers-column {
+                padding-top: 0;
+            }
+        }
+    </style>
+{% endblock %}

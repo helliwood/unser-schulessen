@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <div class="print">
+            <h1>{{ school }}: Umfrage-Ergebnis vom {{ survey.getClosesAt|date("d.m.Y") }}</h1>
+        </div>
+
+        <div class="panel">
+            <div class="position-absolute" style="right: 50px; top: 105px;">
+                <a href="{{ path('survey_export', {'survey':survey.id}) }}" class="btn btn-primary no-print">
+                    <i class='fas fa-file-spreadsheet mr-1'></i>Export
+                </a>
+                <button class="btn btn-primary no-print" onclick="window.print();">
+                    <i class="fas fa-print mr-1"></i>Drucken
+                </button>
+            </div>
+            <div class="row d-flex">
+                <table style="width: 100%;" border="0">
+                    {% set i = 1 %}
+                    {% for question in survey.questions %}
+                        {% if i % 2 == 1 %}
+                            <tr>
+                        {% endif %}
+                        <td style="width: 45%;">
+                            <h3>{{ question.question }}
+                                {% if question.sustainable %}
+                                    <i class="fa fa-leaf ml-1" style="color: #006600;"
+                                       title="Nachhaltigkeitskriterium" style="color: #006600;"></i>
+                                {% endif %}
+                            </h3>
+                            <p>{{ constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_LABELS')[question.type] }} <br>
+                                {{ question.answered }} von {{ survey.numberOfParticipants }} Teilnehmern haben diese
+                                Frage beantwortet</p>
+
+                            <div class="mt-auto ">
+                                <apexchart type=pie
+                                           height=200
+                                           :options="{
+                                           {% if question.type == constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_HAPPY_UNHAPPY') %}
+                                                   colors: ['#a9a9a9', '#28a745', '#de543d'],
+                                           {% else %}
+                                                   colors: ['#a9a9a9', '#800080', '#8B4513', '#4F6D7A', '#993955', '#000000', '#C0D6DF', '#AE76A6', '#ff8000', '#C0DFA1'],
+                                           {% endif %}
+                                                   labels: ['Nicht beantwortet', '{{ question.answerLabels | join("', '") }}'],
+                                                   legend: {
+                                                       formatter: function (seriesName, opts) {
+                                                           const maxLength = 30;
+                                                           return seriesName.length > maxLength
+                                                            ? seriesName.substring(0, maxLength) + '…'
+                                                            : seriesName;
+                                                        },
+                                                   },
+                                                   responsive: [{
+                                                   breakpoint: 480,
+                                                   options: {
+                                                   chart: {
+                                                   width: 200
+                                                   },
+                                                   legend: {
+                                                   position: 'bottom'
+                                                   },
+                                                   }
+                                                   }],
+                                                   }"
+                                           :series="[{{ question.notAnswered() }}, {{ question.answerValues | join(", ") }}]"></apexchart>
+
+                            </div>
+                        </td>
+                        {% if i % 2 == 0 %}
+                            <td style="width: 10%;"></td>
+                            </tr>
+                        {% endif %}
+                        {% set i = i + 1 %}
+                    {% endfor %}
+                </table>
+            </div>
+            <div class="d-flex flex-row justify-content-end no-print mt-auto ">
+                <div class="d-flex flex-row">
+                    <a href="{{ path('survey_home') }}" class="btn btn-warning mt-1 ml-2 no-print">Zurück</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

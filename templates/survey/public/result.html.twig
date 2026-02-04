@@ -1,0 +1,18 @@
+{% extends 'clear.html.twig' %}
+
+{% block body %}
+    <h1 class="text-center">{{ survey.name }}</h1>
+    <h3 class="text-center">Umfrage {{ survey.school.name }}</h3>
+    <div class="panel text-center">
+        <h4 class="mb-3">{{ survey.introduction }}</h4>
+        <h5>
+            <strong>Danke fürs Mitmachen! 🙌</strong><br><br>
+                Deine Antworten sind gespeichert – richtig stark, dass du dir die Zeit genommen hast! 💪<br>
+                Du hilfst damit, das Schulessen für alle besser zu machen. 🍽️<br>
+        </h5><br>
+        <a href="{{ path('survey_public_show', {'survey': survey.id, 'uuid': survey.uuid}) }}"
+           class="btn btn-primary mt-3">
+            Möchtest du den Fragebogen noch mal ausfüllen?
+        </a>
+    </div>
+{% endblock %}

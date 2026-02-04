@@ -1,0 +1,7 @@
+{% block body %}
+    Hallo {{ user.displayName }}.<br /><br />
+
+    {{ text }}
+
+    {% include '/emails/signature.html.twig' %}
+{% endblock %}

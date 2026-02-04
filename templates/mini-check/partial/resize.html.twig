@@ -1,0 +1,20 @@
+<script>
+    const app = document.getElementById("inner-app");
+
+    function sendHeight() {
+        setTimeout(() => {
+            const height = app.offsetHeight + 16;
+            window.parent.postMessage({type: "resize", height}, "*");
+            {% if doNotScroll is not defined or doNotScroll == false %}
+            window.parent.postMessage({type: "scroll2iframe"}, "*");
+            {% endif %}
+        }, 100); // ggf. höher bei langsamen Layouts
+    }
+
+    // Beim Laden senden
+    window.addEventListener("load", sendHeight);
+
+    // Bei Resize oder DOM-Änderung senden
+    const resizeObserver = new ResizeObserver(sendHeight);
+    resizeObserver.observe(document.body);
+</script>

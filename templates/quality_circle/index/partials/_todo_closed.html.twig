@@ -1,0 +1,57 @@
+<div class="row">
+    <div class="col">
+        <div class="panel">
+            <h2 class="mb-3"><i class="fas fa-clipboard-check text-primary2 mr-1"></i>Archivierte To Do's</h2>
+            <div class="mb-2">Hier finden Sie alle archivierten To Do´s und die dazugehörigen Aktionspläne (Erledigt/Erstellt).</div>
+            <data-table
+                    api-url="{{ path('quality_circle_todo_list_closed') }}"
+                    sort-by="category"
+                    :sort-desc="false"
+                    :per-page="10"
+                    :fields="[
+                                {key: 'category', label: 'Qualitätsfeld', sortable: true},
+                                {key: 'question', label: 'Kriterium', sortable: true},
+                                {key: 'action_plans', label: 'Aktionspläne', sortable: true,
+                                    formatter: (value, key, item) => {
+                                    return item.action_plans_completed + '/' + value;
+                                }},
+                                {key: 'createdAt', label: 'Beginn', sortable: true,
+                                    formatter: (value, key, item) => {
+                                    return moment(value.date).format('DD.MM.YYYY');
+                                }},
+                                {key: 'closedAt', label: 'Ende', sortable: true,
+                                    formatter: (value, key, item) => {
+                                    return moment(value.date).format('DD.MM.YYYY');
+                                }},
+                                {key: 'closedBy', label: 'Beendet von', sortable: true,
+                                    formatter: (value, key, item) => {
+                                    return value;
+                                }},
+                                {key: 'actions', label: 'Optionen', sortable: false, class:'options'}
+                            ]">
+                <template v-slot:cell(category)="row">
+                    {% verbatim %}
+                    <div v-if="row.item.question">{{row.item.question.parent_category_name ? row.item.question.parent_category_name+': ': ''}}{{row.item.question.category_name}}</div>
+                    <div v-else>--- Offenes To Do ---</div>
+                    {% endverbatim %}
+                </template>
+                <template v-slot:cell(question)="row">
+                    {% verbatim %}
+                    <div v-if="row.item.question">{{row.item.question.question}}</div>
+                    <div v-else>{{row.item.name}}</div>
+                    {% endverbatim %}
+                </template>
+                <template v-slot:cell(actions)="row">
+                    <b-button size="sm" variant="primary"
+                              :href="'/quality_circle/todo/show/'+row.item.id" class="mr-2">
+                        <i class="fas fa-eye mr-1"></i>Anzeigen
+                    </b-button>
+                    <b-button size="sm" variant="primary"
+                              :href="'/quality_circle/todo/export/'+row.item.id" class="mr-2">
+                        <i class="fas fa-file-pdf mr-1"></i>PDF-Download
+                    </b-button>
+                </template>
+            </data-table>
+        </div>
+    </div>
+</div>

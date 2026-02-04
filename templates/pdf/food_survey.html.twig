@@ -1,0 +1,15 @@
+{% extends 'pdf/layout.html.twig' %}
+
+{% block body %}
+    <div>
+        <img src="data:image/jpeg;base64, {{ img }}" width="500"/>
+    </div><br/><br/>
+    {% for spot in foodSurvey.spots %}
+        <div>
+            <h2>{{ spot.order }}. {{ spot.name }}</h2>
+            {% for name, val in spot.stats %}
+            <strong>{{ name }}:</strong> {{ val }}<br/>
+            {% endfor %}<br/>
+        </div>
+    {% endfor %}
+{% endblock %}

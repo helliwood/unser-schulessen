@@ -1,0 +1,125 @@
+{% extends 'base.html.twig' %}
+{% import 'macros/ui.twig' as ui %}
+
+{% set parentId = null %}
+{% if parent %}
+    {% set parentId = parent.id %}
+{% endif %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <h1>Dokumentenspeicher</h1>
+
+        <div class="row d-flex">
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="fas fa-file text-primary2"></i> Dokumente</h2>
+                    <div>Hier können Sie Dokumente hochladen und herunterladen.</div>
+                    <div>
+                        {% if is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+
+                            {{ ui.a(path('master_data_media_directory_new', {'id':parentId}), 'Neues Verzeichnis', 'secondary', false, 'folder') }}
+
+                            {{ ui.a(path('master_data_media_file_new', {'id':parentId}), 'Neues Dokument', 'secondary', false, 'plus') }}
+
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="fas fa-file text-primary2"></i> Angebote</h2>
+                    <div>
+                        {% include ('master_data/media/partials/_offers.html.twig') %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row d-flex">
+            <div class="col-xl-12">
+                <div class="panel">
+                    <div class="d-flex mb-2">
+                        <h2><i class="fas fa-file text-primary2 mr-1"></i>Dokumente</h2>
+                    </div>
+                    <div class="mb-1">Speichern und nutzen Sie zusätzliche Dokumente, die für das Qualitätsmanagement
+                        des Schulessens wichtig sind.
+                    </div>
+                    <a href="{{ path('master_data_media_home') }}">Home</a>
+                    {% if parent %}
+                        {% set sub = parent %}
+                        {% set bread = [sub] %}
+                        {% for i in 0..100 if sub != null %}
+                            {% if sub.parent %}
+                                {% set sub = sub.parent %}
+                                {% set bread = bread|merge([sub]) %}
+                            {% else %}
+                                {% set sub = null %}
+                            {% endif %}
+                        {% endfor %}
+                        {% if bread|length > 0 %}
+                            {% for i, item in bread|reverse %}
+                                {% if bread|length > 0 %} / {% endif %}
+                                <a href="{{ path('master_data_media_home', {'id':item.id}) }}">{{ item.fileName }} </a>
+                            {% endfor %}
+                        {% endif %}
+                    {% endif %}
+
+                    <data-table
+                            sort-by="fileName"
+                            :sort-desc="false"
+                            :per-page="10"
+                            caption="Liste der Dokumente und Verzeichnisse"
+                            :fields="[
+                            {key: 'fileName', label: 'Verzeichnis / Dateiname', sortable: true},
+                            {key: 'createdAt', label: 'Erstellt', sortable: true,
+                            formatter: (value, key, item) => {
+                                if(value) {
+                                    return moment(value.date).format('DD.MM.YYYY') + ' (' + item.createdBy + ')';
+                                } else {
+                                    return '---';
+                                }
+                            }},
+                            {key: 'actions', label: 'Optionen', sortable: false, class:'options'}
+                        ]">
+                        <template v-slot:cell(fileName)="{row, callAndRefresh}">
+                            <i class="fa fa-folder mr-1" aria-hidden="true" v-if="row.item.directory"></i>{{ '{{' }}
+                            row.item.fileName{{ '}}' }}
+                            <pre class="text-muted mb-0"
+                                 v-if="row.item.description">{{ '{{' }}row.item.description{{ '}}' }}</pre>
+                        </template>
+                        <template v-slot:cell(actions)="{row, callAndRefresh}">
+                            <b-button size="sm" variant="primary" v-if="! row.item.directory"
+                                      :href="'/master_data/media/download/'+row.item.id" class="mr-2">
+                                <i class="fas fa-file-pdf mr-1"></i>Download
+                            </b-button>
+                            <b-button size="sm" variant="primary" v-if="row.item.directory"
+                                      :href="'/master_data/media/'+row.item.id" class="mr-2">
+                                <i class="fas fa-folder mr-1"></i>Öffnen
+                            </b-button>
+                            {% if is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+                                <b-button v-b-modal="'modal-'+row.item.id" size="sm" variant="danger">
+                                    <i class="far fa-trash-alt"></i>
+                                </b-button>
+                                <!-- Modal Component -->
+                                <b-modal :id="'modal-'+row.item.id"
+                                         @ok="callAndRefresh({action:'delete', id:row.item.id})"
+                                         title="Dokument löschen" ok-variant="danger" ok-title="Löschen"
+                                         cancel-title="Abbrechen">
+                                    <p class="my-4" v-if="row.item.directory">
+                                        <b>ACHTUNG!!!</b><br>
+                                        Beim Löschen von Verzeichnissen werden auch alle enthaltenen Dokumente gelöscht!
+                                        Möchten Sie das Verzeichnis '{{ '{{' }}row.item.fileName{{ '}}' }}' und alle
+                                        enthaltenen Dokumente wirklich löschen?
+                                    </p>
+                                    <p class="my-4" v-if="!row.item.directory">
+                                        Möchten Sie die Datei '{{ '{{' }}row.item.fileName{{ '}}' }}' wirklich löschen?
+                                    </p>
+                                </b-modal>
+                            {% endif %}
+                        </template>
+                    </data-table>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

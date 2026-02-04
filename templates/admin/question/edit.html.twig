@@ -1,0 +1,95 @@
+{% extends 'base.html.twig' %}
+{% import 'macros/flag_icons.twig' as flag_icons %}
+
+{% form_theme form _self %}
+
+{%- block checkbox_row -%}
+    {# Flag-Definitionen via JavaScript (SRP-konform) #}
+    {# Wird unten über window.flagDefinitions geladen #}
+    
+    <div class="form-group row">
+        <div class="col-sm-3"></div>
+        <div class="col-sm-9">
+            <div class="form-check">
+                {%- set attr = attr|merge({class: (attr.class|default('') ~ ' form-check-input')|trim}) -%}
+                <input type="checkbox" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
+                <label class="form-check-label" for="{{ id }}">
+                    {{ label|trans({}, translation_domain) }}
+                    {# Flag-Icon Placeholder für JavaScript - Dynamisch für alle Flags #}
+                    <span class="flag-icon-placeholder" data-flag="{{ form.vars.name }}" style="display: none;"></span>
+                </label>
+                {{- form_help(form) -}}
+                {{- form_errors(form) -}}
+            </div>
+        </div>
+    </div>
+{%- endblock checkbox_row -%}
+
+{% block body %}
+    <div class="example-wrapper">
+        <h1>{{ question.question }}
+            {% if flag_definitions is defined %}
+                {{ flag_icons.render_flag_icons(question, flag_definitions) }}
+            {% endif %}
+        </h1>
+        <div class="panel">
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    <h3>{{ 'Question'|trans }}</h3>
+                    <form-manipulator
+                            :manipulations="[
+                            {
+                                watch: 'input[name=question\\[type\\]]',
+                                if: {
+                                    'needed': {elem: '#question_formula', style: {display: 'block'}},
+                                    'not_needed': {elem: '#question_formula', style: {display: 'none'}}
+                                }
+                            }]">
+                        {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                        {{ form_widget(form) }}
+                        <div class="form-group row">
+                            <div class="col-sm-3"></div>
+                            <div class="col-sm-9 d-flex">
+                                <button type="submit" id="save" name="save" class="btn-primary btn">Speichern</button>
+                            </div>
+                        </div>
+                        {{ form_end(form) }}
+                    </form-manipulator>
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        // Flag-Definitionen laden (SRP-konform)
+        window.flagDefinitions = {{ flag_definitions|json_encode|raw }};
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // SRP: Flag-Icons dynamisch aus Service-Definitionen
+            const placeholders = document.querySelectorAll('.flag-icon-placeholder');
+            placeholders.forEach(function(placeholder) {
+                const fieldName = placeholder.getAttribute('data-flag');
+                
+                // SRP: Gehe durch alle flagDefinitions aus dem Service
+                for (const [flagName, definition] of Object.entries(window.flagDefinitions)) {
+                    if (fieldName === flagName) {
+                        const iconElement = document.createElement('i');
+                        iconElement.className = definition.icon + ' flag-icon';
+                        iconElement.style.marginLeft = '5px';
+                        if (definition.color) {
+                            iconElement.style.color = definition.color;
+                        }
+                        iconElement.title = definition.description || flagName;
+                        placeholder.appendChild(iconElement);
+                        placeholder.style.display = 'inline';
+                        break; // Flag gefunden, stoppe die Schleife
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %} 

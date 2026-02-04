@@ -1,0 +1,19 @@
+{% import 'macros/ui.twig' as ui %}
+
+<div class="row d-flex">
+    <div class="col-md-12 mb-4">
+        <div class="panel h-100 d-flex flex-column py-3">
+            <h2>Mitmachen und auszeichnen lassen!</h2>
+            Schulen, die Unser Schulessen nutzen, können jetzt in Brandenburg am Programm zum Qualitätsprozess Unser
+            Schulessen*** teilnehmen.
+            <div class="mt-2">
+                {{ ui.ae('/documents/Teilnahmebedingungen_Qualitaetsprogramm_UnserSchulessen.pdf', 'Teilnahmebedingungen') }}
+
+                {{ ui.ae('https://vernetzungsstelle-brandenburg.de/schulverpflegung/qualitaetsprozess-unser-schulessen/', 'Infos zum Programm') }}
+
+                {{ ui.ae('https://vernetzungsstelle-brandenburg.de/wp-content/uploads/Terminuebersicht_Qualitaetsprogramm_UnserSchulessen.pdf', 'Aktuelle Termine') }}
+
+            </div>
+        </div>
+    </div>
+</div>

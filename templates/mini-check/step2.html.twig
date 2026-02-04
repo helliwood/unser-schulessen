@@ -1,0 +1,116 @@
+{% set bgColor = '#f0f0f6' %}
+
+{% extends 'clear.html.twig' %}
+
+
+{% form_theme form _self %}
+
+
+{% block form_label_class -%}
+{%- endblock form_label_class %}
+
+{% block form_group_class -%}
+    col-12 px-0
+{%- endblock form_group_class %}
+
+{%- block choice_widget_expanded -%}
+    <div class="row">
+        {%- for child in form %}
+            {{ form_widget(child) }}
+        {%- endfor -%}
+    </div>
+{%- endblock -%}
+
+{%- block radio_widget -%}
+    <div class="col-12 mt-2">
+        <input type="radio"
+               class="qc_radio value{{ value }}" {{ block('widget_attributes') }}{% if value is defined %} value="{{ value }}"{% endif %}{% if checked %} checked="checked"{% endif %} />
+        <label for="{{ id }}" class="ml-1"> {{ label }}</label>
+    </div>
+{%- endblock radio_widget -%}
+
+{%- block form_row -%}
+    {%- if compound is defined and compound -%}
+        {{ block('fieldset_form_row') }}
+    {%- else -%}
+        {%- set widget_attr = {} -%}
+        {%- if help is not empty -%}
+            {%- set widget_attr = {attr: {'aria-describedby': id ~"_help"}} -%}
+        {%- endif -%}
+        <div class="form-group row{% if (not compound or force_error|default(false)) and not valid %} is-invalid{% endif %}">
+            {{- form_label(form) -}}
+            <div class="{{ block('form_group_class') }}">
+                <div class="mt-2 text-muted">{{- help|raw -}}</div>
+                <qc-input :question_id="{{ name }}">{{- form_widget(form, widget_attr) -}}</qc-input>
+                {{- form_errors(form) -}}
+            </div>
+            {# #}</div>
+    {%- endif -%}
+{%- endblock form_row -%}
+
+{% block choice_row -%}
+    {%- set widget_attr = {} -%}
+    {%- if help is not empty -%}
+        {%- set widget_attr = {attr: {'aria-describedby': id ~"_help"}} -%}
+    {%- endif -%}
+    <div class="form-group row{% if (not compound or force_error|default(false)) and not valid %} is-invalid{% endif %}">
+        {{- block('form_simple_label') -}}
+        <div class="{{ block('form_group_class') }}">
+            <div class="mt-2 text-muted">{{- help|raw -}}</div>
+            {{- form_widget(form, widget_attr) -}}
+            {{- form_errors(form) -}}
+        </div>
+        {# #}
+    </div>
+{%- endblock choice_row %}
+
+{% block body %}
+    <div class="row">
+        <div class="col">
+            <div class="panel h-100 d-flex flex-column py-3 pb-4">
+                <h2 class="mb-2 pt-3">Jetzt checken!</h2>
+                <p>So funktioniert der Mini-Check: Anhand ausgewählter Fragen aus dem umfangreichen Qualitäts-Check
+                    erhalten Sie einen ersten Überblick zum Stand der Verpflegung und kommen einem ausgewogenen Angebot
+                    in Ihrer Einrichtung näher.</p>
+            </div>
+        </div>
+    </div>
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+    <div class="row mt-3">
+        <div class="col">
+            <div class="panel h-100 d-flex flex-column py-3 pb-4">
+                {% set current_category = null %}
+                {% for child in form %}
+                    {% if child.vars.block_prefixes[1] != 'hidden' %}
+                        {% set question = child.vars.attr['data-question']|default(null) %}
+                        {% if question and question.category != current_category %}
+                            {% set current_category = question.category %}
+                            <h3 class="mt-4 mb-3">{{ current_category.name }}</h3>
+                            {% if current_category.miniCheckInfo %}
+                                <div class="text-muted mb-3">{{ current_category.miniCheckInfo|nl2br }}</div>
+                            {% endif %}
+                        {% endif %}
+                        {{ form_row(child) }}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3 pb-3">
+        <div class="col">
+            <div class="panel h-100 d-flex flex-column py-3">
+                <div class="row">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-9 d-flex">
+                        <a href="{{ path('minicheck_home') }}" class="btn btn-secondary mr-2">Zurück</a>
+                        <button type="submit" id="save" name="save" class="btn-primary btn">Weiter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ form_end(form) }}
+{% endblock %}
+{% block javascripts %}
+    {% include ("mini-check/partial/resize.html.twig") %}
+{% endblock %}

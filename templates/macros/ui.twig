@@ -1,0 +1,12 @@
+{% macro a(href, label, type = 'secondary', _blank = true, icon = 'link') %}
+    <a href="{{ href }}" class="btn btn-{{ type }} mt-2 mr-2" {% if _blank == true %}target="_blank"{% endif %}>
+        <i class="fas fa-{{ icon }}"></i> {{ label }}
+    </a>
+{% endmacro %}
+
+{% macro ae(href, label, icon = 'external-link-alt', type = 'primary', _blank = true ) %}
+    <a href="{{ href }}" class="btn btn-{{ type }} mt-2" {% if _blank == true %}target="_blank"{% endif %}>
+        <i class="fas fa-{{ icon }}"></i> {{ label }}
+    </a>
+{% endmacro %}
+

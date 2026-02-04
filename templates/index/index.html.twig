@@ -1,0 +1,128 @@
+{% extends 'base.html.twig' %}
+{% import 'macros/ui.twig' as ui %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <h1>Überblick</h1>
+        <div class="row d-flex">
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column py-3 pb-4">
+                    <h2 class="mb-2 pt-3">Herzlich Willkommen</h2>
+                    {% if app_state_country == 'he' %}
+                        Beginnen Sie unter Menüpunkt Unsere Schule mit der Eingabe der Stammdaten zu Ihrer Schule.
+                        Tragen Sie die Mitglieder des Mensakreises ein um diese zum Tool einzuladen. Ergänzen Sie unter
+                        Kontakte wichtige Firmen und Institutionen. Eine Schritt für Schritt Anleitung finden Sie in
+                        unseren Tutorials. Danach können Sie mit dem ersten Qualitätscheck starten.
+                    {% else %}
+                        Beginnen Sie unter Menüpunkt Unsere Schule mit der Eingabe der Stammdaten zu Ihrer Schule, bevor
+                        Sie den ersten Qualitätscheck starten. Tragen Sie die Mitglieder des Verpflegungsausschusses ein und laden Sie
+                        diese ein. Ergänzen Sie unter Kontakte wichtige Firmen und Institutionen.<br>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column py-3">
+                    <div class="pt-2">
+                        <div class="pt-3 ">
+                            <h2 class="mb-2 ">
+                                <i class="fas fa-external-link-alt text-primary2 mr-1"></i>
+                                Unser Schulessen Portal
+                            </h2>
+                            Weitere Informationen und Materialien zum Thema Schulverpflegung finden Sie auf unserem
+                            öffentlichen Portal.<br/><br/>
+
+                            Online-Sprechstunde, immer mittwochs 12.30 - 13.30 Uhr.<br/><br/>
+<div class="d-flex">
+                            {{ ui.a('https://www.unser-schulessen.de','www.unser-schulessen.de') }}<br/><br/>
+
+                            {{ ui.a('https://www.unser-schulessen.de/online-sprechstunde','Zur Online-Sprechstunde') }}
+</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if app_state_country == 'by' %}
+
+                {% include ('index/partials/_consulting.html.twig') %}
+
+                {% include ('index/partials/_competences.html.twig') %}
+
+            {% elseif app_state_country == 'he' %}
+
+                {% include ('index/partials/_consulting_he.html.twig') %}
+
+            {% endif %}
+
+        </div>
+
+
+
+        {% if app_state_country == 'bb' %}
+
+            {% include ('index/partials/_quality_program.html.twig') %}
+
+        {% elseif app_state_country == 'sn' %}
+
+            {% include ('index/partials/_quality_program_sn.html.twig') %}
+
+        {% endif %}
+
+        {% if app.user.currentSchool is not null and app_state_country == 'rp' and app.user.currentSchool.auditEnd < date() %}
+
+            {% include ('index/partials/_audit_end.html.twig') %}
+
+        {% endif %}
+        {% if app.user.currentSchool is null %}
+
+            <div class="row d-flex">
+                <div class="col-md-12 mb-4">
+                    <div class="panel h-100 d-flex flex-column py-3 text-danger">
+                        <strong>Sie haben keine Schule oder wurden blockiert!</strong><br/>
+                        Setzen Sie sich mit Ihrer Schule in Verbindung.
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="row d-flex">
+                {% if is_granted('ROLE_SCHOOL_AUTHORITIES') %}
+
+                    {% include ('index/partials/_masterdata.html.twig') %}
+
+                {% endif %}
+
+                {% include('index/partials/_quality_check.html.twig') %}
+
+                {% if is_granted('ROLE_KITCHEN') %}
+
+                    {% include('index/partials/_quality_circle.html.twig') %}
+
+                {% endif %}
+
+                {% include('index/partials/_survey.html.twig') %}
+
+            </div>
+        {% endif %}
+
+        {% if app.user.userHasSchool | length > 0 %}
+            <div class="row">
+                <div class="col-12">
+                    <div class="panel">
+                        {% include ('index/partials/_schools.html.twig') %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        {% if not hasUpdatedMasterData and (is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')) %}
+            <b-modal id="modal-question-pool"
+                     title="Sind die Stammdaten noch aktuell?"
+                     ok-only v-if="{{ hasUpdatedMasterData }}" visible
+                     ok-title="schließen">
+                <span>Bitte prüfen Sie jährlich Ihre <b>Stammdaten auf Aktualität</b>. Alle Pflichtfelder müssen auf den neusten Stand gebracht werden.<br><br>
+                    Geben Sie die aktuellen Daten ein und speichern diese im Schritt 8 mit <b>„finalisieren“</b>.<br><br>
+                    Alle Pflichtfelder müssen jährlich auf den neuesten Stand gebracht werden.</span>
+            </b-modal>
+        {% endif %}
+    </div>
+{% endblock %}

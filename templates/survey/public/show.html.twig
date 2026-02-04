@@ -1,0 +1,45 @@
+{% extends 'clear.html.twig' %}
+
+{% form_theme form _self %}
+
+{% block form_label_class -%}
+    col-sm-6 col-form-label
+{%- endblock -%}
+
+{% block form_group_class -%}
+    col-sm-6
+{%- endblock form_group_class %}
+
+{% block body %}
+    <h1 class="text-center">{{ survey.name }}</h1>
+    <h3 class="text-center">Umfrage {{ survey.school.name }}</h3>
+    {% if not closed %}
+        <div class="panel">
+            <h4 class="text-center mb-3">{{ survey.introduction }}</h4>
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    {{ form_widget(form) }}
+                    <div class="form-group row">
+                        <div class="col text-center">
+                            <button type="submit" id="save" name="save" class="btn-primary btn">Speichern</button>
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    {% else %}
+        <div class="panel">
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10 text-center">
+                    <strong>Die Befragung ist geschlossen!</strong>
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

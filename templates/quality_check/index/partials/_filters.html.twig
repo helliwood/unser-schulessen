@@ -1,0 +1,301 @@
+{% block body %}
+    {% if flag_definitions is defined %}
+        <div class="col-6 no-print">
+            <div class="">
+                <div class="panel">
+                    <h4><i class="fas fa-filter mr-2"></i>Filter nach Kategorien:</h4>
+                    <div class="row row-cols-2">
+                        {% for flag, definition in flag_definitions %}
+                            {% if definition.icon is defined %}
+                                <div class="col mb-2">
+                                    <div class="filter-option">
+                                    <input type="checkbox"
+                                           id="filter_{{ flag }}"
+                                           data-flag="{{ flag }}"
+                                           class="flag-filter"
+                                           {% if active_flags is defined and flag in active_flags|keys %}checked{% endif %}>
+                                        <label for="filter_{{ flag }}" class="d-flex align-items-center">
+                                            <i class="{{ definition.icon }} mr-2"
+                                               {% if definition.color is defined %}style="color: {{ definition.color }};"{% endif %}></i>
+                                            <span>{{ definition.description }}</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <i class="fas fa-lightbulb-on" style="color: orange;"></i>
+                    <small>Alle ausgewählten Kriterien müssen erfüllt sein, damit die Frage angezeigt wird!</small>
+
+                    <div class="row mt-2">
+                        <div class="col-12">
+                            <a href="{{ path('quality_check_result', {id:result.id}) }}"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-times mr-1"></i>Alle Filter löschen
+                            </a>
+
+                            <button class="btn btn-sm btn-outline-primary" onclick="applyFilters()">
+                                <i class="fas fa-check mr-1"></i>Filter anwenden
+                            </button>
+                            <div id="activeFiltersDisplay" class="mt-2" style="display: none;">
+                                <small class="text-muted">
+                                    <i class="fas fa-filter mr-1"></i>
+                                    <span id="activeFiltersText"></span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}
+
+
+{% block javascripts %}
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const queryString = window.location.search;
+            const urlParams = new URLSearchParams(queryString);
+
+            // Debug: Überprüfe data-flags Attribute
+            console.log('=== DATA-FLAGS DEBUG ===');
+            const questionElements = document.querySelectorAll('[data-flags]');
+            console.log('Found', questionElements.length, 'elements with data-flags');
+
+            questionElements.forEach((element, index) => {
+                console.log(`Element ${index + 1}:`, element.dataset.flags);
+                try {
+                    const flags = JSON.parse(element.dataset.flags || '{}');
+                    console.log(`Element ${index + 1} parsed flags:`, flags);
+                } catch (e) {
+                    console.error(`Element ${index + 1} has invalid JSON:`, element.dataset.flags);
+                }
+            });
+            console.log('=== DATA-FLAGS DEBUG END ===');
+
+            // Neue Flag-Filter-Funktionalität
+            const flags = urlParams.getAll('flags');
+            console.log('Checking for flag parameters:', flags);
+
+            // Prüfe ob Flag-Parameter vorhanden sind
+            let hasFlagParams = false;
+            for (const [key, value] of urlParams.entries()) {
+                if (key.startsWith('flags[') && key.endsWith(']')) {
+                    hasFlagParams = true;
+                    break;
+                }
+            }
+
+            // Alternative: Prüfe auf URL-encoded Parameter
+            if (!hasFlagParams) {
+                for (const [key, value] of urlParams.entries()) {
+                    if (key.includes('flags%5B') && key.includes('%5D')) {
+                        hasFlagParams = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasFlagParams) {
+                console.log('Flag parameters found - server-side filtering applied');
+
+                // Checkboxen basierend auf URL-Parametern setzen
+                for (const [key, value] of urlParams.entries()) {
+                    let flagName = null;
+
+                    // Normale Parameter: flags[flagName]
+                    if (key.startsWith('flags[') && key.endsWith(']')) {
+                        flagName = key.slice(6, -1); // Entferne 'flags[' und ']'
+                    }
+                    // URL-encoded Parameter: flags%5BflagName%5D
+                    else if (key.includes('flags%5B') && key.includes('%5D')) {
+                        const match = key.match(/flags%5B([^%]+)%5D/);
+                        if (match) {
+                            flagName = match[1];
+                        }
+                    }
+
+                    if (flagName) {
+                        const checkbox = document.getElementById(`filter_${flagName}`);
+                        if (checkbox) {
+                            checkbox.checked = value === 'true';
+                        }
+                    }
+                }
+            } else {
+                console.log('No flag parameters found');
+            }
+
+            // Event-Listener für Checkboxen
+            document.querySelectorAll('.flag-filter').forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    // Optional: Automatisches Anwenden bei Änderung
+                    // applyFilters();
+                });
+            });
+        });
+
+        function prepareToPrintResult() {
+            const gauge = document.getElementById('gauge');
+
+            const canvas = gauge.getElementsByTagName("canvas");
+            var link = document.getElementById('link');
+            link.setAttribute('download', 'MintyPaper.png');
+            // working
+            // link.setAttribute('href', canvas[0].toDataURL("image/png").replace("image/png", "image/octet-stream"));
+
+            canvasData = canvas[0].toDataURL("image/png");
+            var ajax = new XMLHttpRequest();
+            ajax.open("POST", "{{ path('quality_check_home') }}", false);
+            ajax.setRequestHeader('Content-Type', 'application/upload');
+            ajax.send(canvasData);
+        }
+
+        // Neue Flag-Filtering-Funktionen
+        function applyFilters() {
+            const activeFilters = {};
+            document.querySelectorAll('.flag-filter:checked').forEach(checkbox => {
+                activeFilters[checkbox.dataset.flag] = true;
+            });
+
+            console.log('=== FILTER DEBUG START ===');
+            console.log('Selected filters:', activeFilters);
+
+            // URL aktualisieren
+            const urlParams = new URLSearchParams(window.location.search);
+            urlParams.delete('sustainable'); // Alte Parameter entfernen
+
+            // Alle bestehenden Flag-Parameter entfernen
+            for (const [key, value] of urlParams.entries()) {
+                if (key.startsWith('flags[') && key.endsWith(']')) {
+                    urlParams.delete(key);
+                }
+            }
+
+            // Neue Flag-Parameter setzen (nur die aktiven)
+            Object.keys(activeFilters).forEach(flag => {
+                urlParams.set(`flags[${flag}]`, 'true');
+            });
+
+            console.log('New URL params:', urlParams.toString());
+
+            // Aktive Filter anzeigen
+            updateActiveFiltersDisplay(activeFilters);
+
+            // Seite neu laden mit neuen Parametern
+            const newUrl = window.location.pathname +
+                (urlParams.toString() ? '?' + urlParams.toString() : '');
+
+            console.log('Redirecting to:', newUrl);
+            console.log('=== FILTER DEBUG END ===');
+
+            // Kurze Verzögerung für Debug-Ausgaben
+            setTimeout(() => {
+                window.location.href = newUrl;
+            }, 1000);
+        }
+
+        function updateActiveFiltersDisplay(activeFilters) {
+            const displayElement = document.getElementById('activeFiltersDisplay');
+            const textElement = document.getElementById('activeFiltersText');
+
+            if (Object.keys(activeFilters).length === 0) {
+                displayElement.style.display = 'none';
+                return;
+            }
+
+            const filterNames = Object.keys(activeFilters).map(flag => {
+                const checkbox = document.getElementById(`filter_${flag}`);
+                return checkbox ? checkbox.nextElementSibling.querySelector('span').textContent : flag;
+            });
+
+            textElement.textContent = `Aktive Filter: ${filterNames.join(', ')}`;
+            displayElement.style.display = 'block';
+        }
+
+        // Event-Listener für Checkboxen
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            // Debug-Ausgaben für data-flags
+            console.log('=== DATA-FLAGS DEBUG ===');
+            const elementsWithFlags = document.querySelectorAll('[data-flags]');
+            console.log('Found', elementsWithFlags.length, 'elements with data-flags');
+            elementsWithFlags.forEach((element, index) => {
+                console.log(`Element ${index + 1}:`, element.dataset.flags);
+                try {
+                    const flags = JSON.parse(element.dataset.flags || '{}');
+                    console.log(`Element ${index + 1} parsed flags:`, flags);
+                } catch (e) {
+                    console.error(`Element ${index + 1} has invalid JSON:`, element.dataset.flags);
+                }
+            });
+            console.log('=== DATA-FLAGS DEBUG END ===');
+
+
+            // Neue Flag-Filter-Funktionalität
+            const flags = urlParams.getAll('flags');
+            console.log('Checking for flag parameters:', flags);
+
+            // Prüfe ob Flag-Parameter vorhanden sind
+            let hasFlagParams = false;
+            for (const [key, value] of urlParams.entries()) {
+                if (key.startsWith('flags[') && key.endsWith(']')) {
+                    hasFlagParams = true;
+                    break;
+                }
+            }
+
+            // Alternative: Prüfe auf URL-encoded Parameter
+            if (!hasFlagParams) {
+                for (const [key, value] of urlParams.entries()) {
+                    if (key.includes('flags%5B') && key.includes('%5D')) {
+                        hasFlagParams = true;
+                        break;
+                    }
+                }
+            }
+
+            if (hasFlagParams) {
+                console.log('Flag parameters found - server-side filtering applied');
+
+                // Checkboxen basierend auf URL-Parametern setzen
+                for (const [key, value] of urlParams.entries()) {
+                    let flagName = null;
+
+                    // Normale Parameter: flags[flagName]
+                    if (key.startsWith('flags[') && key.endsWith(']')) {
+                        flagName = key.slice(6, -1); // Entferne 'flags[' und ']'
+                    }
+                    // URL-encoded Parameter: flags%5BflagName%5D
+                    else if (key.includes('flags%5B') && key.includes('%5D')) {
+                        const match = key.match(/flags%5B([^%]+)%5D/);
+                        if (match) {
+                            flagName = match[1];
+                        }
+                    }
+
+                    if (flagName) {
+                        const checkbox = document.getElementById(`filter_${flagName}`);
+                        if (checkbox) {
+                            checkbox.checked = value === 'true';
+                        }
+                    }
+                }
+            } else {
+                console.log('No flag parameters found');
+            }
+
+
+            // Event-Listener für Checkboxen
+            // document.querySelectorAll('.flag-filter').forEach(checkbox => {
+            //     checkbox.addEventListener('change', () => {
+            //         // Optional: Automatisches Anwenden bei Änderung
+            //         // applyFilters();
+            //     });
+            // });
+        });
+    </script>
+{% endblock %}

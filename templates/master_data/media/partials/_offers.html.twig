@@ -1,0 +1,73 @@
+{% import 'macros/ui.twig' as ui %}
+
+{{ ui.ae("/documents/DGE_Qualitaetsstandard_Schule.pdf", 'Der DGE-Qualitätsstandard', 'download') }}
+
+{% if app_state_country == 'th' %}
+
+    {{ ui.ae('https://www.schulverpflegung-thueringen.de/qualitaetssicherung-45798', 'Checks und Instrumente') }}
+
+    {{ ui.ae("https://www.schulverpflegung-thueringen.de/mittagsverpflegung-23155", 'Wissenshäppchen') }}
+
+    {{ ui.ae("https://www.schulverpflegung-thueringen.de/informationen-fuer-schulen-und-schultraeger-23812", "Trägerwissen") }}
+
+    {{ ui.ae("https://www.schulverpflegung-thueringen.de/veranstaltungen", "Veranstaltungen") }}
+
+    {{ ui.ae("https://www.schulverpflegung-thueringen.de/projekt-schulverpflegung-thueringen/fuer-gutes-leckeres-schulessen-das-koennen-wir-fuer-sie-tun-23420",
+        "Workshops & Vorträge") }}
+
+{% endif %}
+
+{% if app_state_country == 'rp' %}
+
+    {{ ui.ae("/documents/RP/Qualifizierungsprozess_UnserSchulessen_Ablauf.pdf", "Qualifizierungsprozess Ablauf", "file-pdf") }}
+
+    {{ ui.ae("/documents/RP/Qualifizierungsprozess_UnserSchulessen_Checkliste.pdf", "Qualifizierungsprozess Checkliste", "link") }}
+
+    <br><br>
+    {{ ui.ae('/documents/RP/1_Stern_Checkliste_für_die_Einrichtung.pdf','Checkliste 1. Stern', 'file-pdf') }}
+    {{ ui.ae('/documents/RP/2_Stern_Checkliste_für_die_Einrichtung.pdf','Checkliste 2. Stern', 'file-pdf') }}
+    {{ ui.ae('/documents/RP/3_Stern_Checkliste_für_die_Einrichtung.pdf','Checkliste 3. Stern', 'file-pdf') }}
+{% endif %}
+
+{% if app_state_country == 'bb' %}
+
+    <br><br><br>
+    <h3><i class="fas fa-file-pdf text-primary2 mr-1"></i>Qualitätsprogramm</h3>
+    {{ ui.ae("/documents/BB/Teilnahmebedingungen_Qualitaetsprogramm_UnserSchulessen.pdf", "Teilnahmebedingungen","file-pdf") }}
+    <br><br><br>
+
+    <h3><i class="fas fa-file-pdf text-primary2 mr-1"></i>Qualitätsprogramm</h3>
+    {{ ui.ae("https://vernetzungsstelle-brandenburg.de/wp-content/uploads/Terminuebersicht_Qualitaetsprogramm_UnserSchulessen.pdf", "Aktuelle Termine", "link") }}
+
+    {{ ui.ae("/documents/BB/Infoflyer-Checkkarte-Stufe1_Qualitaetsprogramm_UnserSchulessen.pdf", "Quali Stufe 1", "file-pdf") }}
+
+    {{ ui.ae("/documents/BB/Infoflyer-Checkkarte-Stufe2_Qualitaetsprogramm_UnserSchulessen.pdf", "Quali Stufe 2", "file-pdf") }}
+
+    {{ ui.ae("/documents/BB/Infoflyer-Checkkarte-Stufe3_Qualitaetsprogramm_UnserSchulessen.pdf", "Quali Stufe 3", "file-pdf") }}
+
+{% endif %}
+
+
+{% if app_state_country == 'by' %}
+    {{ ui.ae("/documents/BY/Bayerische_Leitlinien_Schulverpflegung.pdf", "Bayerische Leitlinien Schulverpflegung", "file-pdf") }}
+    <br/><br/>
+
+    <h3>Materialien</h3>
+    {{ ui.ae("https://kita-schulverpflegung.bayern.de/arbeitshilfen/250934/index.php", "Praxistipps für die Schulverpflegung", "file-pdf") }}
+
+    {{ ui.ae("https://kita-schulverpflegung.bayern.de/arbeitshilfen/203148/index.php", "Praxisheft: Mahlzeit!", "file-pdf") }}
+
+    {{ ui.ae("https://kita-schulverpflegung.bayern.de/arbeitshilfen/228074/index.php", "Rezeptkartensammlung", "file-pdf") }}
+
+{% endif %}
+
+{% if app_state_country == 'he' %}
+    <br><br><br>
+    <h3>Materialien</h3>
+    {{ ui.ae("https://lehrkraefteakademie.hessen.de/sites/lehrkraefteakademie.hessen.de/files/2022-12/praxisleitfaden_in_form_vns_hessen_0.pdf", "Praxisleitsfaden", "file-pdf") }}
+
+    {{ ui.ae("https://lehrkraefteakademie.hessen.de/sites/lehrkraefteakademie.hessen.de/files/2022-05/uebersicht_materialien_und_vorlagen.pdf ", "Arbeitshilfen", "file-pdf") }}
+
+    {{ ui.ae("https://lehrkraefteakademie.hessen.de/sites/lehrkraefteakademie.hessen.de/files/2022-12/leporello_ek.pdf", "Ernährung und Konsum", "file-pdf") }}
+
+{% endif %}

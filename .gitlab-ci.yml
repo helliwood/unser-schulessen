@@ -1,0 +1,416 @@
+stages:
+  - build
+  - test
+  - deploy
+
+before_script:
+  - docker info
+
+after_script:
+  - docker container prune -f
+  - docker image prune -f
+
+build_image:
+  stage: build
+  script:
+    - docker build --rm -t unser-schulessen:deployment_build -f ./Dockerfile_deploy .
+    - docker ps -q -a --filter name="unser_schulessen_deployment" | xargs -r docker rm -f
+    - docker run -d -p 127.0.0.1:8888:80 -v /home/gitlab-runner/composer_cache/:/root/.composer/cache/ -v /home/gitlab-runner/yarn-cache/:/tmp/yarn/ --name unser_schulessen_deployment unser-schulessen:deployment_build
+    - docker exec -i unser_schulessen_deployment mv .env.dist .env
+    - docker exec -i unser_schulessen_deployment sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$DEPLOY_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_deployment sed -i -e 's!^MAILER_DSN=[^\n]*!MAILER_DSN='"$MAILER_DSN"'!g' .env
+  resource_group: pipeline_unser_schulessen
+
+install_dependencies:
+  stage: build
+  script:
+    - docker exec -i unser_schulessen_deployment composer install
+    - docker exec -i unser_schulessen_deployment composer dump-autoload
+    - docker exec -i unser_schulessen_deployment yarn install --cache-folder /tmp/yarn
+    - docker exec -i unser_schulessen_deployment yarn encore production
+  resource_group: pipeline_unser_schulessen
+
+test_code:
+  stage: test
+  script:
+    - docker exec -i unser_schulessen_deployment composer cs-check -- -n
+  needs:
+    - install_dependencies
+
+test_schema:
+  stage: test
+  script:
+    - mysql -uunser-schulessen -p$MYSQL_PASSWORD -e "DROP DATABASE unser_schulessen_deploy;"
+    - mysql -uunser-schulessen -p$MYSQL_PASSWORD -e "CREATE DATABASE unser_schulessen_deploy CHARACTER SET = 'utf8mb4' COLLATE = 'utf8mb4_general_ci';"
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen | mysql -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_deploy
+    - docker exec -i unser_schulessen_deployment php bin/console doctrine:migrations:migrate --no-interaction
+    - docker exec -i unser_schulessen_deployment php bin/console doctrine:schema:update --dump-sql
+    - docker exec -i unser_schulessen_deployment php bin/console doctrine:schema:validate
+  resource_group: pipeline_unser_schulessen
+
+test_phpunit:
+  stage: test
+  except:
+    - stage
+    - production
+  script:
+    - docker build --rm -t unser-schulessen:test_build -f ./Dockerfile_test .
+    - docker ps -q -a --filter name="unser_schulessen_testing" | xargs -r docker rm -f
+    - docker run -d -p 127.0.0.1:8899:80 -v /home/gitlab-runner/composer_cache/:/root/.composer/cache/ -v /home/gitlab-runner/yarn-cache/:/tmp/yarn/ --name unser_schulessen_testing unser-schulessen:test_build
+    - docker exec -i unser_schulessen_testing cp .env.dist .env  2>/dev/null
+    - docker exec -i unser_schulessen_testing sed -i -e 's!APP_ENV=dev!APP_ENV=test!g' .env
+    - docker exec -i unser_schulessen_testing sed -i -e 's!^TEST_DATABASE_URL=[^\n]*!TEST_DATABASE_URL='"$TEST_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_testing composer install
+    - docker exec -i unser_schulessen_testing composer dump-autoload
+    - docker exec -i unser_schulessen_testing yarn install --cache-folder /tmp/yarn
+    - docker exec -i unser_schulessen_testing yarn encore production
+    - docker exec -i unser_schulessen_testing php bin/console cache:clear
+    - docker exec -i unser_schulessen_testing php bin/console about
+    - docker exec -i unser_schulessen_testing composer run rebuild-testdb
+    - docker exec -i unser_schulessen_testing bin/phpunit --stop-on-failure --coverage-text --colors=never
+    - docker exec -i unser_schulessen_testing zip -r coverage-unser-schulessen.zip build/coverage
+    - docker cp unser_schulessen_testing:/var/www/coverage-unser-schulessen.zip .
+  artifacts:
+    paths:
+    - coverage-unser-schulessen.zip
+    expire_in: 3 days
+  resource_group: pipeline_unser_schulessen
+
+deploy_stage_image:
+  stage: deploy
+  environment:
+    name: stage
+    url: https://bb-stage.unser-schulessen.de
+  only:
+    - stage
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_stage" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-stage
+    - docker run -d -p 127.0.0.1:8880:80 -v /datastore/stage/:/var/www/var/data/ --restart always --name unser_schulessen_stage unser-schulessen:new-stage
+    - docker exec -i unser_schulessen_stage sed -i -e 's!APP_ENV=dev!APP_ENV=dev!g' .env
+    - docker exec -i unser_schulessen_stage sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$STAGE_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_stage sed -i -e 's!^APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=rp!g' .env
+    - docker exec -i unser_schulessen_stage php bin/console cache:clear
+    - docker exec -i unser_schulessen_stage chmod -R 777 /var/www/var
+    - docker exec -i unser_schulessen_stage php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_production_image:
+  stage: deploy
+  environment:
+    name: production
+    url: https://bb.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_production" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-production
+    - docker run -d -p 127.0.0.1:8080:80 -v /datastore/production/:/var/www/var/data/ --restart always --name unser_schulessen_production unser-schulessen:new-production
+    - docker exec -i unser_schulessen_production sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_production sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=bb!g' .env
+    - docker exec -i unser_schulessen_production sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$PRODUCTION_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_production php bin/console cache:clear
+    - docker exec -i unser_schulessen_production chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen > /home/gitlab-runner/unser_schulessen-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_production php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_thueringen_image:
+  stage: deploy
+  environment:
+    name: thueringen
+    url: https://th.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_thueringen" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-thueringen
+    - docker run -d -p 127.0.0.1:6000:80 -v /datastore/thueringen/:/var/www/var/data/ --restart always --name unser_schulessen_thueringen unser-schulessen:new-thueringen
+    - docker exec -i unser_schulessen_thueringen sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_thueringen sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=th!g' .env
+    - docker exec -i unser_schulessen_thueringen sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$THUERINGEN_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_thueringen php bin/console cache:clear
+    - docker exec -i unser_schulessen_thueringen chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_th > /home/gitlab-runner/unser_schulessen-th-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_thueringen php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_sachsen_image:
+  stage: deploy
+  environment:
+    name: sachsen
+    url: https://sn.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_sachsen" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-sachsen
+    - docker run -d -p 127.0.0.1:6001:80 -v /datastore/sachsen/:/var/www/var/data/ --restart always --name unser_schulessen_sachsen unser-schulessen:new-sachsen
+    - docker exec -i unser_schulessen_sachsen sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_sachsen sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=sn!g' .env
+    - docker exec -i unser_schulessen_sachsen sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$SACHSEN_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_sachsen php bin/console cache:clear
+    - docker exec -i unser_schulessen_sachsen chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_sn > /home/gitlab-runner/unser_schulessen-sn-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_sachsen php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_niedersachsen_image:
+  stage: deploy
+  environment:
+    name: niedersachsen
+    url: https://ni.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_niedersachsen" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-niedersachsen
+    - docker run -d -p 127.0.0.1:6002:80 -v /datastore/niedersachsen/:/var/www/var/data/ --restart always --name unser_schulessen_niedersachsen unser-schulessen:new-niedersachsen
+    - docker exec -i unser_schulessen_niedersachsen sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_niedersachsen sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=ni!g' .env
+    - docker exec -i unser_schulessen_niedersachsen sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$NIEDERSACHSEN_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_niedersachsen php bin/console cache:clear
+    - docker exec -i unser_schulessen_niedersachsen chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_ni > /home/gitlab-runner/unser_schulessen-ni-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_niedersachsen php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_hamburg_image:
+  stage: deploy
+  environment:
+    name: hamburg
+    url: https://hh.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_hamburg" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-hamburg
+    - docker run -d -p 127.0.0.1:6003:80 -v /datastore/hamburg/:/var/www/var/data/ --restart always --name unser_schulessen_hamburg unser-schulessen:new-hamburg
+    - docker exec -i unser_schulessen_hamburg sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_hamburg sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=hh!g' .env
+    - docker exec -i unser_schulessen_hamburg sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$HAMBURG_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_hamburg php bin/console cache:clear
+    - docker exec -i unser_schulessen_hamburg chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_hh > /home/gitlab-runner/unser_schulessen-hh-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_hamburg php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_rheinlandpfalz_image:
+  stage: deploy
+  environment:
+    name: rheinlandpfalz
+    url: https://rp.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_rheinlandpfalz" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-rheinlandpfalz
+    - docker run -d -p 127.0.0.1:6004:80 -v /datastore/rp_production/:/var/www/var/data/ --restart always --name unser_schulessen_rheinlandpfalz unser-schulessen:new-rheinlandpfalz
+    - docker exec -i unser_schulessen_rheinlandpfalz sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_rheinlandpfalz sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=rp!g' .env
+    - docker exec -i unser_schulessen_rheinlandpfalz sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$RHEINLANDPFALZ_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_rheinlandpfalz php bin/console cache:clear
+    - docker exec -i unser_schulessen_rheinlandpfalz chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_rp > /home/gitlab-runner/unser_schulessen-rp-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_rheinlandpfalz php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_berlin_image:
+  stage: deploy
+  environment:
+    name: berlin
+    url: https://be.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_berlin" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-berlin
+    - docker run -d -p 127.0.0.1:6005:80 -v /datastore/be_production/:/var/www/var/data/ --restart always --name unser_schulessen_berlin unser-schulessen:new-berlin
+    - docker exec -i unser_schulessen_berlin sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_berlin sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=be!g' .env
+    - docker exec -i unser_schulessen_berlin sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$BERLIN_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_berlin php bin/console cache:clear
+    - docker exec -i unser_schulessen_berlin chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_be > /home/gitlab-runner/unser_schulessen-be-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_berlin php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_sachsen_anhalt_image:
+  stage: deploy
+  environment:
+    name: sachsen_anhalt
+    url: https://st.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_sachsen_anhalt" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-sachsen_anhalt
+    - docker run -d -p 127.0.0.1:6006:80 -v /datastore/st_production/:/var/www/var/data/ --restart always --name unser_schulessen_sachsen_anhalt unser-schulessen:new-sachsen_anhalt
+    - docker exec -i unser_schulessen_sachsen_anhalt sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_sachsen_anhalt sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=st!g' .env
+    - docker exec -i unser_schulessen_sachsen_anhalt sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$SACHSEN_ANHALT_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_sachsen_anhalt php bin/console cache:clear
+    - docker exec -i unser_schulessen_sachsen_anhalt chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_st > /home/gitlab-runner/unser_schulessen-st-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_sachsen_anhalt php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_baden_wuerttemberg_image:
+  stage: deploy
+  environment:
+    name: baden_wuerttemberg
+    url: https://bw.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_baden_wuerttemberg" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-baden_wuerttemberg
+    - docker run -d -p 127.0.0.1:6007:80 -v /datastore/bw_production/:/var/www/var/data/ --restart always --name unser_schulessen_baden_wuerttemberg unser-schulessen:new-baden_wuerttemberg
+    - docker exec -i unser_schulessen_baden_wuerttemberg sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_baden_wuerttemberg sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=bw!g' .env
+    - docker exec -i unser_schulessen_baden_wuerttemberg sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$BADEN_WUERTTEMBERG_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_baden_wuerttemberg php bin/console cache:clear
+    - docker exec -i unser_schulessen_baden_wuerttemberg chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_bw > /home/gitlab-runner/unser_schulessen-bw-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_baden_wuerttemberg php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_saarland_image:
+  stage: deploy
+  environment:
+    name: saarland
+    url: https://sl.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_saarland" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-saarland
+    - docker run -d -p 127.0.0.1:6008:80 -v /datastore/sl_production/:/var/www/var/data/ --restart always --name unser_schulessen_saarland unser-schulessen:new-saarland
+    - docker exec -i unser_schulessen_saarland sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_saarland sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=sl!g' .env
+    - docker exec -i unser_schulessen_saarland sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$SAARLAND_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_saarland php bin/console cache:clear
+    - docker exec -i unser_schulessen_saarland chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_sl > /home/gitlab-runner/unser_schulessen-sl-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_saarland php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_bayern_image:
+  stage: deploy
+  environment:
+    name: bayern
+    url: https://by.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_bayern" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-bayern
+    - docker run -d -p 127.0.0.1:6009:80 -v /datastore/by_production/:/var/www/var/data/ --restart always --name unser_schulessen_bayern unser-schulessen:new-bayern
+    - docker exec -i unser_schulessen_bayern sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_bayern sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=by!g' .env
+    - docker exec -i unser_schulessen_bayern sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$BY_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_bayern php bin/console cache:clear
+    - docker exec -i unser_schulessen_bayern chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_by > /home/gitlab-runner/unser_schulessen-by-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_bayern php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_bremen_image:
+  stage: deploy
+  environment:
+    name: bremen
+    url: https://hb.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_bremen" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-bremen
+    - docker run -d -p 127.0.0.1:6010:80 -v /datastore/hb_production/:/var/www/var/data/ --restart always --name unser_schulessen_bremen unser-schulessen:new-bremen
+    - docker exec -i unser_schulessen_bremen sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_bremen sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=hb!g' .env
+    - docker exec -i unser_schulessen_bremen sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$HB_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_bremen php bin/console cache:clear
+    - docker exec -i unser_schulessen_bremen chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_hb > /home/gitlab-runner/unser_schulessen-hb-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_bremen php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_hessen_image:
+  stage: deploy
+  environment:
+    name: hessen
+    url: https://he.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_hessen" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-hessen
+    - docker run -d -p 127.0.0.1:6011:80 -v /datastore/he_production/:/var/www/var/data/ --restart always --name unser_schulessen_hessen unser-schulessen:new-hessen
+    - docker exec -i unser_schulessen_hessen sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_hessen sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=he!g' .env
+    - docker exec -i unser_schulessen_hessen sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$HE_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_hessen php bin/console cache:clear
+    - docker exec -i unser_schulessen_hessen chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_he > /home/gitlab-runner/unser_schulessen-he-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_hessen php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_mecklenburg_vorpommern_image:
+  stage: deploy
+  environment:
+    name: mecklenburg_vorpommern
+    url: https://mv.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_mecklenburg_vorpommern" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-mecklenburg_vorpommern
+    - docker run -d -p 127.0.0.1:6012:80 -v /datastore/mv_production/:/var/www/var/data/ --restart always --name unser_schulessen_mecklenburg_vorpommern unser-schulessen:new-mecklenburg_vorpommern
+    - docker exec -i unser_schulessen_mecklenburg_vorpommern sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_mecklenburg_vorpommern sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=mv!g' .env
+    - docker exec -i unser_schulessen_mecklenburg_vorpommern sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$MV_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_mecklenburg_vorpommern php bin/console cache:clear
+    - docker exec -i unser_schulessen_mecklenburg_vorpommern chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_mv > /home/gitlab-runner/unser_schulessen-mv-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_mecklenburg_vorpommern php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_nordrhein_westfalen_image:
+  stage: deploy
+  environment:
+    name: nordrhein_westfalen
+    url: https://nw.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_nordrhein_westfalen" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-nordrhein_westfalen
+    - docker run -d -p 127.0.0.1:6013:80 -v /datastore/nw_production/:/var/www/var/data/ --restart always --name unser_schulessen_nordrhein_westfalen unser-schulessen:new-nordrhein_westfalen
+    - docker exec -i unser_schulessen_nordrhein_westfalen sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_nordrhein_westfalen sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=nw!g' .env
+    - docker exec -i unser_schulessen_nordrhein_westfalen sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$NW_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_nordrhein_westfalen php bin/console cache:clear
+    - docker exec -i unser_schulessen_nordrhein_westfalen chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_nw > /home/gitlab-runner/unser_schulessen-nw-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_nordrhein_westfalen php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen
+
+deploy_schleswig_holstein_image:
+  stage: deploy
+  environment:
+    name: schleswig_holstein
+    url: https://sh.unser-schulessen.de
+  only:
+    - production
+  script:
+    - docker ps -q -a --filter name="unser_schulessen_schleswig_holstein" | xargs -r docker rm -f
+    - docker commit unser_schulessen_deployment unser-schulessen:new-schleswig_holstein
+    - docker run -d -p 127.0.0.1:6014:80 -v /datastore/sh_production/:/var/www/var/data/ --restart always --name unser_schulessen_schleswig_holstein unser-schulessen:new-schleswig_holstein
+    - docker exec -i unser_schulessen_schleswig_holstein sed -i -e 's!APP_ENV=dev!APP_ENV=prod!g' .env
+    - docker exec -i unser_schulessen_schleswig_holstein sed -i -e 's!APP_STATE_COUNTRY=[^\n]*!APP_STATE_COUNTRY=sh!g' .env
+    - docker exec -i unser_schulessen_schleswig_holstein sed -i -e 's!^DATABASE_URL=[^\n]*!DATABASE_URL='"$SH_DB_URL"'!g' .env
+    - docker exec -i unser_schulessen_schleswig_holstein php bin/console cache:clear
+    - docker exec -i unser_schulessen_schleswig_holstein chmod -R 777 /var/www/var
+    - mysqldump -uunser-schulessen -p$MYSQL_PASSWORD unser_schulessen_sh > /home/gitlab-runner/unser_schulessen-sh-$(date +%Y-%m-%d-%H-%M-%S).sql
+    - docker exec -i unser_schulessen_schleswig_holstein php bin/console doctrine:migrations:migrate --no-interaction
+  resource_group: pipeline_unser_schulessen

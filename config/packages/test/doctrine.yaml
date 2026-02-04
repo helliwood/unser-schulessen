@@ -1,0 +1,10 @@
+parameters:
+  # Adds a fallback DATABASE_URL if the env var is not set.
+  # This allows you to run cache:warmup even if your
+  # environment variables are not available yet.
+  # You should not need to change this value.
+  env(TEST_DATABASE_URL): 'mysql://unser-schulessen:US!2019@172.17.0.1:3306/unser_schulessen_test'
+
+doctrine:
+  dbal:
+    url: '%env(resolve:TEST_DATABASE_URL)%'

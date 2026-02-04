@@ -1,0 +1,83 @@
+{% if active_flags is not defined %}
+    {% set active_flags = [] %}
+{% endif %}
+{% set AnswerEntity = 'App\\Entity\\QualityCheck\\Answer::' %}
+{% set countTrue = 0 %}
+{% set countPartial = 0 %}
+{% set countFalse = 0 %}
+<div class="col-md-6 mb-4">
+    <div class="panel h-100 flip-card">
+        <div class="flip-card-inner">
+            <div class="flip-card-front">
+                <div class="row">
+                    <div class="col-md-8 text-left">
+                        <h2 class="position-absolute">Gesamtauswertung</h2>
+                    </div>
+                </div>
+                {% if result is null %}
+                    <div class="row">
+                            <span class="mt-5 text-left">Sie können jetzt mit einem Qualitäts-Check beginnen, indem Sie auf <b>Starten</b> klicken. <br>
+                            Wenn Sie den Qualitäts-Check beendet haben, können Sie mit dem Qualitätsprozess fortfahren.</span>
+                    </div>
+                {% else %}
+                    <div class="row">
+                        {% set countQuestions = result.questions(active_flags)|length %}
+                        {% set countTrue = result.countAnswers(constant(AnswerEntity ~ 'ANSWER_TRUE')) %}
+                        {% set countPartial = result.countAnswers( constant(AnswerEntity ~ 'ANSWER_PARTIAL')) %}
+                        {% set countFalse = result.countAnswers( constant(AnswerEntity ~ 'ANSWER_FALSE')) %}
+
+                        {% set countAnswers = countTrue + countPartial + countFalse %}
+
+                        {% set countNotAnswered = countQuestions - countAnswers %}
+
+                        <div class="col-12">
+                            <div class="gauge">
+                                {% if app_state_country == 'rp' and countQuestions != 0 %}
+                                    {% set ratio = countTrue / countQuestions %}
+                                    {% if ratio > 0.6 %}
+                                        <div>
+                                            <span class="badge badge-success">
+                                                Über {{ ratio > 0.8 ? '80%' : '60%' }} erreicht!
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+
+                                <img srcset="{{ path('quality_check_chart', {result: result.id, active_flags:active_flags|json_encode}) }}"
+                                     class="img-fluid" alt="Qualitätscheck Ergebnis" id="gaugeChart"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-1">
+                        <div class="col-12 text-center">
+                            {{ countAnswers }} Kriterien von {{ countQuestions }} Gesamtkriterien,
+                            {{ result.countAnsweredMainCategories() }}
+                            aus 9 Qualitätsfelder bewertet.<br>
+                            {% if countQuestions > 0 %}
+                                Davon <strong>{{ countTrue }}</strong> erfüllt
+                                ({{ (countTrue / countQuestions * 100) | number_format(2, ',', '') }}%),
+                                <strong>{{ countPartial }}</strong> teilweise erfüllt
+                                ({{ (countPartial / countQuestions * 100) | number_format(2, ',', '') }}%),
+                                <strong>{{ countFalse }}</strong> nicht erfüllt
+                                ({{ (countFalse / countQuestions * 100) | number_format(2, ',', '') }}%),
+                                <strong>{{ countNotAnswered }}</strong> nicht beantwortet
+                                ({{ (countNotAnswered / countQuestions * 100) | number_format(2, ',', '') }}%).
+                            {% endif %}
+
+
+                            {% set route = app.request.attributes.get('_route') %}
+                            {% if route == 'quality_check_home' %}
+                                <div class="col-12">
+                                    <a class="btn btn-outline-dark float-right"
+                                       href="{{ path('quality_check_result') }}" id="resultLink">
+                                        <i class="fas fa-eye mr-1"></i>Ergebnis ansehen</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

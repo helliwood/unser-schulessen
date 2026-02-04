@@ -1,0 +1,82 @@
+{% macro category_circles(result, category) %}
+    {% set statusOrder = ['true', 'partial', 'false', 'not_answered'] %}
+    {% set labels = constant('App\\Entity\\QualityCheck\\Result::ANSWER_LABELS') %}
+    {% for key, label in labels %}
+        {% set count = category.countAnswers(result, key) %}
+        {% if key is not empty %}
+            {% set displayKey = key %}
+        {% else %}
+            {% set count = category.countAnswers(result) %}
+            {% set displayKey = 'not_answered' %}
+        {% endif %}
+        {% if count > 0 %}
+
+            {{  _self.render_circles(displayKey, count) }}
+
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
+{% macro question_cicles(result, category, active_flags, flag_definitions) %}
+    {% import 'macros/flag_icons.twig' as flag_icons %}
+
+    {% set labels = constant('App\\Entity\\QualityCheck\\Result::ANSWER_LABELS') %}
+
+    {% for labelKey, label in labels %}
+        {% set answers = result.getAnswersByResultValue(labelKey, category, active_flags) %}
+        {% for answer in answers %}
+            {% set isLast = loop.last and loop.parent.loop.last %}
+            <div class="py-3 {% if not isLast %}border-bottom{% endif %} d-flex align-items-center justify-content-between"
+                 data-flags="{{ answer.question.flags|json_encode|e('html_attr') }}">
+                <div class="d-flex align-items-center">
+                    <span>{{ answer.getQuestion }}</span>
+                    {# Flag-Icons #}
+                    {% if flag_definitions is defined %}
+                        {{ flag_icons.render_flag_icons(answer.question, flag_definitions) }}
+                    {% endif %}
+                </div>
+                {% set class = answer.calculateAnswer() %}
+                {% if class is empty %}
+                    {% set class = 'not_answered' %}
+                {% endif %}
+
+                {# Status Circles without counter #}
+                {{ _self.render_circles(class, 0, label, answer) }}
+
+            </div>
+        {% endfor %}
+    {% endfor %}
+{% endmacro %}
+
+{% macro render_circles(displayKey, count, label, answer = null) %}
+    <div class="d-flex align-items-center {{ displayKey }} no-print mr-2">
+        {{ label }}
+
+        {% if answer is not null
+            and answer.answer is not null
+            and answer.answer matches '/^\\d+(\\.\\d+)?$/' %}
+            ({{ answer.answer }})
+        {% endif %}
+        
+        <div class="status-circle status-circle-{{ displayKey }} mr-1"></div>
+        {% if count > 0 %}
+            <span>{{ count }}</span>
+        {% endif %}
+
+    </div>
+
+    <div class="printOnly">
+        {{ label }}
+
+        {% if answer is not null
+            and answer.answer is not null
+            and answer.answer matches '/^\\d+(\\.\\d+)?$/' %}
+            ({{ answer.answer }})
+        {% endif %}
+
+        {% if count > 0 %}
+            {{ count }}
+        {% endif %}
+        <img src="/img/{{ displayKey }}.png" class="printOnly imageHack4print">
+    </div>
+{% endmacro %} 

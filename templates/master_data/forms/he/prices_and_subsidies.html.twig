@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% form_theme form _self %}
+
+{%- block _break_times_general_opening_hours_row -%}
+    <div class="form-group row">{#--#}
+        <label for="{{ id }}" class="col-sm-3 col-form-label required">{{- label -}}</label>
+        <div class="{{ block('form_group_class') }}">
+            {{- form_widget(form) -}}
+        </div>
+    </div>
+{%- endblock _break_times_general_opening_hours_row -%}
+
+{% block body %}
+    <div class="example-wrapper">
+        <h1 class="d-inline-block">Stammdaten: Preise und Zuschüsse</h1> <span class="text-muted">mit <span class="text-danger">*</span> gekennzeichnete Felder sind Pflichtfelder</span>
+        <div class="panel">
+            {{ include('master_data/forms/step_bar.html.twig') }}
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    {{ form_row(form.uniform_selling_price) }}
+
+                    <div class="form-group row">
+                        <label for="prices_and_subsidies_price_from"
+                               class="col-sm-3 col-form-label">Für ein Mittagessen gibt es eine
+                            Preisspanne</label>
+                        <div class="col-sm-9 d-flex align-items-center">{{- form_widget(form.price_from) -}}
+                            <div class="d-flex mx-2"> bis</div>{{- form_widget(form.price_to) -}}
+                        </div>
+                        <div class="col-sm-9 offset-sm-3">
+                            {{- form_errors(form.price_from) -}}
+                            {{- form_errors(form.price_to) -}}
+                        </div>
+                    </div>
+                    {{ form_row(form.school_subsidies) }}
+                    {{ form_row(form.school_subsidies_amount) }}
+                    {{ form_row(form.school_indirect_subsidies) }}
+                    {{ form_row(form.bund_subsidies) }}
+                    {{ form_row(form.other_subsidies) }}
+
+                    <div class="form-group row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 d-flex">
+                            {% if step > 1 %}
+                                <button type="submit" id="back" name="back" class="btn-primary btn">Zurück</button>
+                            {% endif %}
+                            {% if step < max_steps %}
+                                <button type="submit" id="next" name="next" class="btn-primary btn ml-2">Weiter</button>
+                            {% else %}
+                                <button type="submit" id="finalise" name="finalise" class="btn-warning btn ml-2">
+                                    Finalisieren
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

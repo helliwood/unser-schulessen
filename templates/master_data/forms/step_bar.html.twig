@@ -1,0 +1,18 @@
+{% block content %}
+    <section class="step_bar">
+        {% for c in categories %}
+            {% if not loop.first %}
+                <div class="indicator-line {% if loop.index <= step %}active{% endif %}"></div>
+            {% endif %}
+            {% if readonly == 0 %}
+                {% set path = 'master_data_edit' %}
+            {% else %}
+                {% set path = 'master_data_show' %}
+            {% endif %}
+            <div class="step step1 {% if loop.index <= step %}active{% endif %}{% if loop.index < step and c.valid == false %} invalid{% endif %}">
+                <a href="{{ path(path, {step:loop.index}) }}" class="step-icon">{{ loop.index }}</a>
+                <p>Schritt {{ loop.index }}</p>
+            </div>
+        {% endfor %}
+    </section>
+{% endblock %}

@@ -1,0 +1,107 @@
+
+<!DOCTYPE html>
+<html class="h-100" lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, maximum-scale=1.0, user-scalable=no"/>
+    <title>
+        {% block title %}
+            {% for breadcrumb in knp_menu_get_breadcrumbs_array(knp_menu_get_current_item('main')) | reverse %}
+                {% if breadcrumb.item.level > 0 %}
+                    {{ breadcrumb.label }} -
+                {% endif %}
+            {% endfor %}
+            Unser Schulessen
+        {% endblock %}
+    </title>
+    {% block stylesheets %}
+        {{ encore_entry_link_tags('app') }}
+    {% endblock %}
+</head>
+<body class="h-100">
+<div id="app">
+    <header class="fixed-top container-fluid d-print-none">
+        <div class="row h-100">
+            <div class="menu-width bg-primary h-100 d-flex align-items-center position-absolute">
+                <img src="/img/logo.svg" alt="Unser Schulessen Logo" height="56"/>
+                <span class="w-100 ml-1 mr-2 text-uppercase text-light brand">{{ app_state_country|trans }}</span>
+            </div>
+            <div class="menu-span w-100 p-0 h-100">
+                <nav class="navbar navbar-expand-md navbar-light bg-white align-items-center h-100">
+                    {% if app.user.currentSchool %}
+                        <i class="fas fa-university mr-2 text-primary mr-1"></i>{{ app.user.currentSchool.name }}
+                    {% endif %}
+                    {# <div class="badge badge-primary-light ml-2">BETA Version</div> #}
+                    <div class="ml-auto d-flex align-items-center">
+
+                        <b-dropdown variant="primary">
+                            <template slot="button-content">
+                                {% if is_granted('ROLE_PREVIOUS_ADMIN') %}
+                                    <i style="color: #990000;font-size: 1.1rem;"
+                                       class=" align-middle fas fa-user-secret mr-1"></i>
+                                {% endif %}
+                                <i style="font-size: 1.2rem;"
+                                   class="far fa-user-circle align-middle mr-1 text-white"></i>{% if app.user.person.displayName is defined %}{{ app.user.person.displayName }}{% endif %}
+                            </template>
+                            {% if is_granted('ROLE_PREVIOUS_ADMIN') %}
+                                <b-dropdown-item
+                                        href="{{ path('admin_school_show', {'id': app.user.currentSchool.id, '_switch_user': '_exit'}) }}">
+                                    Impersonierung
+                                    beenden
+                                </b-dropdown-item>
+                                <div class="dropdown-divider"></div>
+                            {% endif %}
+
+                            {% if app.user.currentSchool is not empty %}
+                                <b-dropdown-item href="/profile">Profil</b-dropdown-item>
+                            {% endif %}
+                            <b-dropdown-item href="/change-password">Passwort ändern</b-dropdown-item>
+                            <b-dropdown-item href="/logout">Abmelden</b-dropdown-item>
+                        </b-dropdown>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container-fluid h-100">
+        <div class="row h-100">
+            <nav class="left menu-width bg-primary-dark position-fixed d-block p-0 h-100 no-print">
+                {{ knp_menu_render('main', {'currentClass':'active', 'ancestorClass':'active', 'depth': 1}) }}
+            </nav>
+            <div class="menu-span w-100 p-0">
+                <div class="breadcrumb no-print">
+                    {% for breadcrumb in knp_menu_get_breadcrumbs_array(knp_menu_get_current_item('main')) %}
+                        <a class="breadcrumb-item" href="{{ breadcrumb.uri }}">{{ breadcrumb.label }}</a>
+                    {% endfor %}
+                </div>
+                <main class="px-5 pb-3">
+                    {% for label, messages in app.flashes %}
+                        {% for message in messages %}
+                            <b-alert :show="5" fade dismissible variant="{{ label }}">
+                                {{ message }}
+                            </b-alert>
+                        {% endfor %}
+                    {% endfor %}
+                    <noscript>
+                        <div class="row">
+                            <div class="col-12 mb-2">
+                                <div class="alert alert-danger" role="alert">
+                                    <strong>ACHTUNG!</strong>
+                                    JavaScript ist deaktiviert, um alle Funktionen nutzen zu könnnen, müssen Sie
+                                    JavaScript aktivieren!
+                                </div>
+                            </div>
+                        </div>
+                    </noscript>
+                    {% block body %}{% endblock %}
+                </main>
+                <div class="px-5 pb-3 text-muted copyright">&copy; 2018 - {{ "now"|date("Y") }}. Unser Schulessen. // <a href="https://www.unser-schulessen.de/7_Impressum.htm">Impressum</a> // <a href="https://www.unser-schulessen.de/9_Datenschutz.htm">Datenschutz</a> </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{ encore_entry_script_tags('app') }}
+{% block javascripts %}{% endblock %}
+</body>
+</html>

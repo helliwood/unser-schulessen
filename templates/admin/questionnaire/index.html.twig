@@ -1,0 +1,65 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <a class="btn btn-secondary float-right" href="{{ path('admin_questionnaire_new') }}">Fragebogen
+            hinzufügen</a>
+        <h1>Fragebögen</h1>
+        <div class="panel">
+            <data-table
+                    sort-by="date"
+                    :sort-desc="true"
+                    :per-page="10"
+                    :fields="[
+                    {key: 'name', label: 'Name', sortable: true},
+                    {key: 'date', label: 'Datum', sortable: true,
+                    formatter: (value, key, item) => {
+                      return moment(value.date).format('DD.MM.YYYY HH:mm')
+                    }},
+                    {key: 'categories', label: 'Kategorien', sortable: true},
+                    {key: 'show_details', label: 'Optionen', sortable: false, class:'options'}
+                ]">
+                <template v-slot:cell(name)="row">
+                    {{ '{{' }}row.item.name{{ '}}' }}
+                    <b-badge
+                            v-if="row.item.state == {{ constant('App\\Entity\\QualityCheck\\Questionnaire::STATE_ACTIVE') }}">
+                        Aktiv
+                    </b-badge>
+                </template>
+                <template v-slot:cell(show_details)="{row, callAndRefresh}">
+                    <b-button size="sm" :href="'/admin/questionnaire/show/'+row.item.id" class="mr-2">
+                        Anzeigen
+                    </b-button>
+                    <b-button v-b-modal="'modal-'+row.item.id"
+                              v-if="row.item.state == {{ constant('App\\Entity\\QualityCheck\\Questionnaire::STATE_NEW') }}"
+                              size="sm" class="mr-2 btn-danger">
+                        Löschen
+                    </b-button>
+                    <b-button v-b-modal="'modal-activate-'+row.item.id"
+                              v-if="row.item.state == {{ constant('App\\Entity\\QualityCheck\\Questionnaire::STATE_NEW') }}"
+                              size="sm" class="mr-2 btn-success">
+                        Aktivieren
+                    </b-button>
+                    <!-- Modal Component -->
+                    <b-modal
+                            v-if="row.item.state == {{ constant('App\\Entity\\QualityCheck\\Questionnaire::STATE_NEW') }}"
+                            :id="'modal-'+row.item.id"
+                            @ok="callAndRefresh({action:'delete_questionnaire', questionnaire_id:row.item.id})"
+                            title="Fragebogen löschen" ok-variant="danger" ok-title="Löschen" cancel-title="Abbrechen">
+                        <p class="my-4">Möchten Sie den Fragebogen '{{ '{{' }}row.item.name{{ '}}' }}' wirklich
+                            löschen?</p>
+                    </b-modal>
+                    <b-modal
+                            v-if="row.item.state == {{ constant('App\\Entity\\QualityCheck\\Questionnaire::STATE_NEW') }}"
+                            :id="'modal-activate-'+row.item.id"
+                            @ok="callAndRefresh({action:'activate_questionnaire', questionnaire_id:row.item.id})"
+                            title="Fragebogen aktivieren" ok-variant="success" ok-title="Aktivieren"
+                            cancel-title="Abbrechen">
+                        <p class="my-4">Möchten Sie den Fragebogen '{{ '{{' }}row.item.name{{ '}}' }}' wirklich
+                            aktivieren?</p>
+                    </b-modal>
+                </template>
+            </data-table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macros/flag_icons.twig' as flag_icons %}
+{% import 'macros/ui.twig' as ui %}
+
+{% set labels = constant('App\\Entity\\QualityCheck\\Result::ANSWER_LABELS') %}
+{% set gaugeOnly= true %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .filter-option {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .filter-option input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
+
+        .filter-option label {
+            cursor: pointer;
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+
+        .filter-option label:hover {
+            opacity: 0.8;
+        }
+
+        .filter-option i {
+            margin-right: 0.5rem;
+        }
+
+        .panel h4 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .btn-sm {
+            margin-right: 0.5rem;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="example-wrapper">
+    <h1>{{ school }}: Qualitäts-Check vom {{ result.finalisedAt | date('d.m.Y') }}</h1>
+    <div class="ml-auto out-of-panel no-print">
+        <button class="btn btn-primary mt-1 flex-end" id="btnPrintGauge" onclick="window.print();">
+            <i class="fas fa-print mr-1"></i>Drucken
+        </button>
+    </div>
+
+
+    <div class="row">
+        {% if blanco == false %}
+
+            {% include '/quality_check/index/partials/_gauge.html.twig' %}
+
+        {% endif %}
+
+        {# Dynamische Flag-Filter-UI #}
+        {% include '/quality_check/index/partials/_filters.html.twig' %}
+
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="panel">
+
+                <div class="row">
+                    <div class="col result">
+
+                        {% for category in result.answeredCategories() %}
+
+                            {% include '/quality_check/index/partials/_b-card.html.twig' %}
+
+                        {% endfor %}
+                        <div class="row">
+                            <div class="col-12 d-flex">
+                                <div class="d-flex align-items-center flex-wrap">
+
+                                    {% include '/quality_check/index/partials/_legend.html.twig' %}
+
+                                </div>
+                            </div>
+                            <div class="col-12 d-flex">
+                                <div class="mt-auto ml-auto mt-1 d-flex no-print">
+
+                                    {{ ui.a(path('quality_check_home'), 'Zurück', 'warning', false, '') }}
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

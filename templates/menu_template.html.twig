@@ -1,0 +1,6 @@
+{%- extends 'knp_menu.html.twig' -%}
+
+{% block label %}
+    {% if item.attribute('data-icon') %}
+        <i class="{{ item.attribute('data-icon') }} mr-1"></i>
+    {% endif %}<span class="label">{{ parent() }}</span>{% endblock %}

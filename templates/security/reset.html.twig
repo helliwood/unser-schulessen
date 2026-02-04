@@ -1,0 +1,20 @@
+{% extends 'clear.html.twig' %}
+
+{% block body %}
+    <div class="login-box row no-gutters bg-white">
+        <div class="d-none d-md-flex col-6 login-teaser"></div>
+        <div class="col-12 col-md-6 login-form">
+            <img alt="Vernetzungsstelle Schulverpflegung {{ app_state_country|trans }}" src="{{ logo }}" class="vsvb"/>
+
+            <h2 class="text-center text-primary text-uppercase">Portal<br/>Unser Schulessen</h2>
+            <p class="text-muted text-center" id="instruction">Bitte geben Sie Ihre E-Mail-Adresse an.</p>
+                {{ form_start(form) }}
+                {{ form_widget(form.email, {'label_attr': {'class': 'col'} }) }}
+                <div class="text-center">
+                    <button type="submit" id="save" name="save" class="btn-primary btn mt-3">Link senden</button>
+                </div>
+                {{ form_end(form) }}
+            <img src="/img/BMLEH_Fz_2025_WebSVG_de.svg" class="BMELV"/>
+        </div>
+    </div>
+{% endblock %}

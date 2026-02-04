@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <a class="btn btn-secondary float-right"
+           href="{{ path('admin_questionnaire_category_questions_ideabox_new', {id:question.id}) }}">Idee
+            hinzufügen</a>
+        <h1>{{ question.question }} Ideenbox</h1>
+        <div class="panel">
+            <data-table
+                    sort-by="order"
+                    :sort-desc="false"
+                    :fields="[
+                    {key: 'idea', label: 'Idee', sortable: false},
+                    {key: 'ideaboxIcons', label: 'Kategorie', sortable: false},
+                    {key: 'actions', label: 'Optionen', sortable: false, class:'options'}
+                ]">
+                <template v-slot:cell(ideaboxIcons)="row">
+                    <div class="row">
+                        <div v-for="icon in row.item.ideaboxIcons">
+                            <div class="col">
+                                <span><i :class=icon.icon></i></span>
+                                <span class="ml-1">{{ '{{' }}icon.category{{ '}}' }}</span></div>
+                        </div>
+                    </div>
+                </template>
+                <template v-slot:cell(actions)="{ row, callAndRefresh }">
+                    <b-button size="sm" :href="'/admin/questionnaire/category/questions/ideabox/edit/'+row.item.id"
+                              class="mb-2">
+                        Bearbeiten
+                    </b-button>
+
+                    <b-button v-if="!row.item.first" @click="callAndRefresh({action:'up', ideabox_id:row.item.id})"
+                              size="sm"
+                              variant="info" class="mb-2"><i
+                                class="fas fa-arrow-up"></i></b-button>
+                    <b-button v-if="!row.item.last" @click="callAndRefresh({action:'down', ideabox_id:row.item.id})"
+                              size="sm"
+                              variant="info" class="mb-2"><i
+                                class="fas fa-arrow-down"></i>
+                    </b-button>
+
+                    <b-button v-b-modal="'modal-'+row.item.id" size="sm" variant="danger" class="mb-2"><i
+                                class="far fa-trash-alt"></i>
+                    </b-button>
+                    <!-- Modal Component -->
+                    <b-modal :id="'modal-'+row.item.id"
+                             @ok="callAndRefresh({action:'delete_idea', ideabox_id:row.item.id})"
+                             title="Idee löschen" ok-variant="danger" ok-title="Löschen" cancel-title="Abbrechen">
+                        <p class="my-4">Möchten Sie die Idee '{{ '{{' }}row.item.idea{{ '}}' }}' wirklich
+                            löschen?</p>
+                    </b-modal>
+                </template>
+            </data-table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,130 @@
+<div class="col-12 mb-4">
+    <div class="panel h-100">
+        <h2><i class="fas fa-chart-bar text-primary2 mr-1"></i>Aktuelle Umfragen</h2>
+        <div class="mb-2">Hier finden Sie alle aktuell laufenden Umfragen und können Umfragen starten.</div>
+        <data-table
+                api-url="{{ path('survey_list') }}"
+                sort-by="createdAt"
+                :sort-desc="true"
+                :per-page="10"
+                :fields="[
+                        {key: 'name', label: 'Name', sortable: true},
+                        {key: 'type', label: 'Typ', sortable: true,
+                        formatter: (value, key, item) => {
+                        return item.typeLabel;
+                        }
+                        },
+                        {key: 'numberOfParticipants', label: 'Teilnehmer', sortable: true},
+                        {key: 'createdAt', label: 'Zeitraum', sortable: true,
+                        formatter: (value, key, item) => {
+                        if(item.state == {{ constant('App\\Entity\\Survey\\Survey::STATE_ACTIVE') }}) {
+                        return moment(item.activatedAt.date).format('DD.MM.YYYY HH:mm') + ' bis ' +
+                        (item.closesAt ? moment(item.closesAt.date).format('DD.MM.YYYY  HH:mm') : 'offen');
+                        } else {
+                        return 'noch nicht gestartet';
+                        }
+                        }
+                        },
+                        {key: 'options', label: 'Optionen', sortable: false, class:'options text-right'}
+                        ]">
+            <template v-slot:cell(options)="{ row, callAndRefresh }">
+                {% if is_granted('ROLE_MENSA_AG')
+                    or is_granted('ROLE_FOOD_COMMISSIONER')
+                    or is_granted('ROLE_CONSULTANT')
+                    or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')
+                %}
+                    {% if is_granted('ROLE_HEADMASTER')
+                        or is_granted('ROLE_FOOD_COMMISSIONER')
+                        or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')
+                    %}
+                        <a v-if="row.item.state=={{ stateNotActivated }}"
+                           class="btn btn-success btn-sm"
+                           :href="'/survey/state/{{ stateActive }}/'+row.item.id"
+                           v-b-tooltip.hover.right.v-success
+                           title="Die Umfrage wird veröffentlicht. Für die Verbreitung bitte die Adresse kopieren.">
+                            <i class="far fa-check-circle mr-1"></i>Aktivieren</a>
+                    {% endif %}
+
+                    <b-button-group size="sm">
+                        <b-button size="sm" variant="secondary" :href="'/survey/edit/'+row.item.id">
+                            <i class="fas fa-edit mr-1"></i>Bearbeiten
+                        </b-button>
+                        <b-dropdown size="sm" right text="..." v-b-tooltip.hover.right.v-danger
+                                    title="Ermöglicht weitere Optionen der Bearbeitung der Umfrage." aria-label="Weitere Optionen">
+                            <b-dropdown-item
+                                    variant="primary"
+                                    :href="'/survey/questions/'+row.item.id" title=""><i
+                                        class="fas fa-list-ol text-primary mr-1"></i>Fragen
+                            </b-dropdown-item>
+                            <b-dropdown-item
+                                    v-if="row.item.state=={{ stateActive }}"
+                                    variant="primary"
+                                    :href="'/survey/result/'+row.item.id" title=""><i
+                                        class="fas fa-chart-bar text-primary mr-1"></i>Auswertung
+                            </b-dropdown-item>
+                            <b-dropdown-item
+                                    v-if="row.item.state=={{ stateNotActivated }}"
+                                    variant="primary" target="_blank"
+                                    :href="'/Umfrage/'+row.item.uuid" title=""><i
+                                        class="fas fa-external-link-alt mr-1"></i>Vorschau
+                            </b-dropdown-item>
+                            <b-dropdown-item
+                                    variant="primary" target="_blank"
+                                    :href="'/Umfrage/Qr/'+row.item.uuid" title=""><i
+                                        class="fas fa-external-link-alt mr-1"></i>QR-Code anzeigen
+                            </b-dropdown-item>
+                            <b-dropdown-item
+                                    v-if="row.item.state=={{ stateActive }}"
+                                    variant="primary" target="_blank"
+                                    :href="'/Umfrage/'+row.item.uuid" title=""><i
+                                        class="fas fa-external-link-alt mr-1"></i>Öffnen
+                            </b-dropdown-item>
+                            <b-dropdown-item variant="info" :href="'/survey/new/'+ row.item.uuid" >
+                                <i class="fas fa-copy mr-1" title=""></i>Als Vorlage verwenden
+                            </b-dropdown-item>
+                            <b-dropdown-item variant="secondary"
+                                             v-if="row.item.type=='{{ constant('App\\Entity\\Survey\\Survey::TYPE_VOUCHER') }}'"
+                                             :href="'/survey/voucher/'+row.item.id"><i
+                                        class="fas fa-qrcode mr-1" title=""></i> Voucher
+                            </b-dropdown-item>
+                            <b-dropdown-item variant="danger"
+                                             v-if="row.item.state=={{ stateActive }}"
+                                             :href="'/survey/state/{{ stateClosed }}/'+row.item.id">
+                                <i class="fas fa-sign-out-alt mr-1" title=""></i>Beenden
+                            </b-dropdown-item>
+                            {% if is_granted('ROLE_FOOD_COMMISSIONER') %}
+                                <b-dropdown-item variant="danger"
+                                                 v-if="row.item.state=={{ stateNotActivated }}"
+                                                 v-b-modal="'modal-'+row.item.id"
+                                                 variant="primary" target="_blank" title=""><i
+                                            class="far fa-trash-alt"></i> Löschen
+                                </b-dropdown-item>
+                                <!-- Modal Component -->
+                                <b-modal :id="'modal-'+row.item.id"
+                                         @ok="callAndRefresh({action:'delete_survey', survey_id:row.item.id}, '{{ path('survey_list') }}')"
+                                         title="Umfrage löschen" ok-variant="danger" ok-title="Löschen"
+                                         cancel-title="Abbrechen">
+                                    <p class="my-4">Möchten Sie die Umfrage an '{{ '{{' }}
+                                        row.item.name{{ '}}' }}' wirklich löschen?</p>
+                                </b-modal>
+                            {% endif %}
+                        </b-dropdown>
+                    </b-button-group>
+                {% else %}
+                    <b-button
+                            v-if="row.item.state=={{ stateActive }}"
+                            variant="primary" target="_blank" size="sm"
+                            :href="'/Umfrage/'+row.item.uuid"><i
+                                class="fas fa-external-link-alt mr-1"></i>Öffnen
+                    </b-button>
+                    <b-button
+                            v-if="row.item.state=={{ stateActive }}"
+                            variant="secondary" size="sm"
+                            :href="'/survey/result/'+row.item.id"><i
+                                class="fas fa-chart-bar mr-1"></i>Auswertung
+                    </b-button>
+                {% endif %}
+            </template>
+        </data-table>
+    </div>
+</div>

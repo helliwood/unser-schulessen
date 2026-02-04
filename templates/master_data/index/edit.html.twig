@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <h1>Stammdaten bearbeiten</h1>
+        <div class="panel">
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    {{ form_widget(form) }}
+                    <div class="form-group row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 d-flex">
+                            {% if steps > 1 %}
+                                <button type="submit" id="back" name="back" class="btn-primary btn">Zurück</button>
+                            {% endif %}
+                            {% if steps < max_steps %}
+                                <button type="submit" id="next" name="next" class="btn-primary btn ml-2">Weiter</button>
+                            {% else %}
+                                <button type="submit" id="finalise" name="finalise" class="btn-warning btn ml-2">
+                                    Finalisieren
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

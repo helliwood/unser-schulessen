@@ -1,0 +1,37 @@
+{% for res, val in labels %}
+    {% set class = res %}
+    {% if res is empty %}
+        {% set class = 'not_answered' %}
+    {% endif %}
+    <div class="{{ class }} no-print d-flex align-items-center mr-2">
+        <span>{{ labels[res] }}:</span>
+        <div class="status-circle status-circle-{{ class }}"></div>
+    </div>
+    <div class="printOnly float-right">
+        {{ labels[res] }}:
+        <img src="/img/{{ class }}.png" class="printOnly imageHack4print">
+    </div>
+{% endfor %}
+{# Dynamische Flag-Legende #}
+{% if flag_definitions is defined %}
+    {% for flag, definition in flag_definitions %}
+        {% if definition.icon is defined %}
+            <div class="{{ flag }} no-print d-flex align-items-center mr-2">
+                <span>{{ definition.description }}:</span>
+                <i class="{{ definition.icon }} flag-icon flag-icon-{{ flag }} legend-flag-icon"
+                   title="{{ definition.description }}"
+                   {% if definition.color is defined %}style="color: {{ definition.color }};"{% endif %}></i>
+            </div>
+        {% endif %}
+    {% endfor %}
+    <div class="printOnly float-right">
+        {% for flag, definition in flag_definitions %}
+            {% if definition.icon is defined %}
+                <span>{{ definition.description }}:</span><i
+                    class="{{ definition.icon }} flag-icon flag-icon-{{ flag }} legend-flag-icon"
+                    style="color: {{ definition.color }};"></i>
+                {# <img src="{{ asset('img/sustained.png') }}" class="printOnly imageHack4print"> #}
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}

@@ -1,0 +1,39 @@
+{
+  "devDependencies": {
+    "@babel/helper-compilation-targets": "^7.17.10",
+    "@symfony/webpack-encore": "^2.0.0",
+    "axios": "^0.27.2",
+    "bootstrap": "^4.3.1",
+    "bootstrap-vue": "^2.0.1",
+    "jquery": "^3.6.0",
+    "moment": "2.29.3",
+    "node-sass": "^7.0.1",
+    "popper.js": "^1.14.7",
+    "sass-loader": "^12.0",
+    "vue": "^2.6.10",
+    "vue-loader": "^15.9",
+    "vue-template-compiler": "^2.6.10",
+    "webpack-notifier": "^1.15.0"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "scripts": {
+    "dev-server": "encore dev-server",
+    "dev": "encore dev",
+    "watch": "encore dev --watch",
+    "build": "encore production"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-pro": "^6.3.0",
+    "apexcharts": "^3.35.0",
+    "core-js": "3",
+    "emojisplosion": "2.6.1",
+    "konva": "8.3.12",
+    "luxon": "^1.17.2",
+    "resolve-url-loader": "^3.1.0",
+    "vgauge": "^1.2.6",
+    "vue-apexcharts": "^1.4.0",
+    "vue-datetime": "^1.0.0-beta.10",
+    "weekstart": "^1.0.0"
+  }
+}

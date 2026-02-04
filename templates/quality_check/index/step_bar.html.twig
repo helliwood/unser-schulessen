@@ -1,0 +1,22 @@
+{% block content %}
+    <section class="step_bar">
+        {% for s in range(1, steps_total) %}
+            {% if not loop.first %}
+                <div class="indicator-line {% if loop.index <= step %}active{% endif %}"></div>
+            {% endif %}
+            <div class="step step1 {% if loop.index <= step %}active{% endif %}">
+                {% if loop.index in answeredCategories %}
+
+                    <i class="fas fa-check-circle position-relative answered" style="left: 17px; top:7px; z-index: 1000 "></i>
+
+                {% endif %}
+
+                <button type="button" onclick="saveAndMove(this)" class="step-icon" name="next" data-step="{{ loop.index }}">
+                    {{ loop.index }}
+                </button>
+
+                <p>Schritt {{ loop.index }}</p>
+            </div>
+        {% endfor %}
+    </section>
+{% endblock %}

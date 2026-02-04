@@ -1,0 +1,91 @@
+<button v-b-modal.modal-help class="btn btn-secondary ml-auto" href="#">
+    <i class="fas fa-link mr-1"></i>Hilfe Mitgliederverwaltung aufrufen
+</button>
+<!-- Modal Component -->
+<b-modal id="modal-help" title="Hilfe Mitgliederverwaltung" size="xl" ok-only>
+    <h5>Überblick Voreinstellungen Akteursgruppe - Berechtigung</h5>
+    {% if app_state_country == 'sl' %}
+        <img src="{{ asset('img/roles_table_sl.png') }}" alt="Rollenmatrix" class="img-fluid"/>
+        <p style="font-size: 0.7em;">FGTS - Freiwillige Ganztagsschule</p>
+    {% else %}
+        <img src="{{ asset('img/roles_table.png') }}" alt="Rollenmatrix" class="img-fluid"/>
+    {% endif %}
+
+    <p><strong>Hinweis:</strong> Die Rollen-Rechte können schulindividuell zugeordnet werden. Wenn einem Mitglied
+        andere Rechte eingeräumt werden sollen, so ist die entsprechende <strong>Berechtigung</strong> auszuwählen.
+    </p>
+    <p><strong>Was bedeuten die Rollen-Rechte/Berechtigung in den einzelnen Funktionsmodulen?</strong></p>
+
+    <h5>Unsere Schule - Mitglieder und Kontakte</h5>
+    <table width="100%" class="mb-3">
+        <tr>
+            <td width="25%">Schreiben/Verwalten:</td>
+            <td>Mit dieser Berechtigung können neue Mitglieder zur Nutzung des QM-Tools eingeladen und ihre
+                Rollen-Rechte festgelegt werden. Noch nicht bestätigte Mitglieder können gelöscht und Mitglieder
+                gesperrt werden. Darüber hinaus können Kontakte angelegt und bearbeitet werden.
+            </td>
+        </tr>
+    </table>
+
+    <h5>Dokumentenspeicher</h5>
+    <table width="100%" class="mb-3">
+        <tr>
+            <td width="25%">Verwalten:</td>
+            <td>Mit dieser Berechtigung können schulindividuelle Dokumente in die Arbeitsplattform geladen werden.
+            </td>
+        </tr>
+    </table>
+
+    <h5>Unsere Schule - Stammdaten</h5>
+    <table width="100%" class="mb-3">
+        <tr>
+            <td width="25%">Schreiben:</td>
+            <td>Mit dieser Berechtigung können Daten eingegeben und gespeichert werden.</td>
+        </tr>
+    </table>
+
+    <h5>Qualitäts-Check</h5>
+    <table width="100%" class="mb-3">
+        <tr>
+            <td width="25%">Schreiben:</td>
+            <td>Mit dieser Berechtigung kann ein Qualitäts-Check gestartet, Bewertungen in den Qualitätsfeldern
+                vorgenommen und gespeichert werden. Ein Q.-Check kann finalisiert, d.h. abgeschlossen werden.
+            </td>
+        </tr>
+    </table>
+
+    <h5>Qualitätsprozess</h5>
+    <table width="100%" class="mb-3">
+        <tr>
+            <td width="25%">Schreiben:</td>
+            <td>Mit dieser Berechtigung können To-Do-Listen und Aktionspläne erstellt und bearbeitet werden.</td>
+        </tr>
+    </table>
+
+    <h5>Zufriedenheitsumfragen</h5>
+    <table width="100%" class="mb-3">
+        <tr>
+            <td width="25%">Schreiben:</td>
+            <td>Mit dieser Berechtigung können neue Umfragen erstellt und Umfragen bearbeitet werden.</td>
+        </tr>
+        <tr>
+            <td>Umfrage Aktivieren:</td>
+            <td>Mit dieser Berechtigung kann eine erstellte Umfrage aktiviert, d.h. freigeschaltet werden.</td>
+        </tr>
+    </table>
+
+    <h5>Alle Funktionsbereiche</h5>
+    <table width="100%" class="mb-3">
+        <tr>
+            <td width="25%">Lesen:</td>
+            <td>Mit dieser Berechtigung können alle in diesem Bereich hinterlegten Daten angesehen werden. Ein
+                Ausdrucken der sichtbaren Daten ist möglich.
+            </td>
+        </tr>
+        <tr>
+            <td>Ausgeblendet:</td>
+            <td>Mit dieser Berechtigung ist der entsprechende Funktionsbereich ausgeblendet.</td>
+        </tr>
+    </table>
+
+</b-modal>

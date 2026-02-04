@@ -1,0 +1,139 @@
+{% extends 'base.html.twig' %}
+
+{% import 'macros/flag_icons.twig' as flag_icons %}
+
+{% block body %}
+    <div>
+        <h1><span class="printOnly">{{ school.name }} | </span>Aktionsplan <span
+                    class="no-print">{% if actionPlan.id %}bearbeiten{% else %}anlegen{% endif %}</span>
+            <span class="printOnly"> vom {{ "now"|date("d.m.Y") }}</span></h1>
+        <div class="panel mb-4">
+            <div class="row result">
+                <div class="col-12">
+                    <h2>{{ actionPlan.todo.name }}</h2>
+                </div>
+                {% if actionPlan.todo.answer %}
+                    <div class="col-9">
+                        <p class="mb-1">{{ actionPlan.todo.answer.question.category.name }}</p>
+                        <h4>
+                            {{ actionPlan.todo.answer.question.question }}
+                            {% if flag_definitions is defined %}
+                                {{ flag_icons.render_flag_icons(actionPlan.todo.answer.question, flag_definitions) }}
+                            {% endif %}
+                        </h4>
+                    </div>
+                    <div class="col-3 text-right">
+                        <div class="{% if actionPlan.todo.answer.calculateAnswer %}{{ actionPlan.todo.answer.calculateAnswer }}{% else %}not_answered{% endif %}">{{ constant('App\\Entity\\QualityCheck\\Answer::ANSWER_LABELS')[actionPlan.todo.answer.calculateAnswer] }}</div>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <p>{{ actionPlan.todo.description }}</p>
+                    </div>
+                {% endif %}
+                <div class="col">
+                    Hier können Sie die Schritte für das weitere Vorgehen zur Verbesserung notieren.
+                    {% if actionPlan.toDo.answer %}Nutzen Sie den Ideen-Pool für mögliche Anregungen.{% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="row">
+                <div class="d-none d-xl-block col-xl-1"></div>
+                <div class="col-xl-10">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    {{ form_row(form.what) }}
+                    {{ form_row(form.how) }}
+                    <div class="form-group row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 d-flex">
+                            <div class="ml-auto no-print">
+                                {% if actionPlan.toDo.answer %}
+                                    <b-button v-b-modal.modal size="sm">Ideen-Pool öffnen</b-button>
+                                    <b-modal id="modal" size="lg" title="{{ actionPlan.toDo.answer.question.question }}"
+                                             ok-title="Schließen" ok-only>
+                                        {# <h1 class="printOnly">{{ school.name }} | Aktionsplan vom {{ 'now'|date('d.m.Y') }}</h1> #}
+                                        <button class="btn btn-primary mt-1 no-print"
+                                                style="position: absolute; right: 15px; top: -50px;"
+                                                onclick="printModal()">
+                                            <i class="fas fa-print mr-1"></i>Drucken
+                                        </button>
+                                        {% for idea in actionPlan.todo.answer.question.ideaboxes.values %}
+                                            <div class="form-group row">
+                                                <div class="col-sm-2">
+                                                    {% for icon in idea.ideaboxIcons %}
+                                                        <span class="ml-1"><i class="{{ icon.icon }}"></i></span>
+                                                    {% endfor %}
+                                                </div>
+                                                <div class="col-sm-6">{{ idea.idea }}</div>
+                                                <div class="col-sm-4 d-flex">
+                                                    <button onclick="copy('{{ idea|escape('js') }}')" id="b_{{ idea }}"
+                                                            type="button"
+                                                            class="btn-secondary btn-sm ml-auto">Übernehmen
+                                                    </button>
+                                                </div>
+
+                                            </div>
+                                        {% endfor %}
+                                        {% for icon in ideaBoxIcons %}
+                                            <span class="ml-1">
+                                            <i class="{{ icon.icon }}"></i> {{ icon.category }}
+                                        </span>
+                                        {% endfor %}
+                                    </b-modal>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{ form_widget(form) }}
+                    <div class="form-group row">
+                        <div class="col-sm-3"></div>
+                        <div class="col-sm-9 d-flex">
+                            <div class="ml-auto no-print">
+                                <button type="submit" id="cancel" name="cancel"
+                                        class="btn-warning btn btn-sm text-white">Abbrechen
+                                </button>
+                                <button type="submit" id="save" name="save" class="btn-secondary btn btn-sm">Speichern
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {{ form_end(form) }}
+                </div>
+                <div class="d-none d-xl-block col-xl-1"></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+        function copy(idea) {
+            var current = document.getElementById("action_plan_how").value;
+
+            document.getElementById("action_plan_how").value = (current.trim() != "" ? current + '\n' : '') + '- ' + idea + '\n';
+            var b_copy = document.getElementById("b_" + idea);
+            document.getElementById("action_plan_how").dispatchEvent(new Event('input'));
+            b_copy.disabled = true;
+            b_copy.innerText = "Übernommen";
+            b_copy.classList.remove('btn-secondary');
+        }
+
+        function printModal() {
+            let newItem = document.createElement("h1");
+            let textnode = document.createTextNode("{{ school.name }} | Aktionsplan vom {{ 'now'|date('d.m.Y') }}");
+            newItem.id = "printH1";
+            // newItem.style.position = "absolute";
+            newItem.style.margin = "0 0 100px 100px";
+            newItem.classList.add('printOnly')
+            newItem.appendChild(textnode);
+
+            let list = document.getElementById("modal");
+            list.insertBefore(newItem, list.childNodes[0]);
+            window.print();
+            document.getElementById("printH1").remove();
+        }
+    </script>
+{% endblock javascripts %}
+
+

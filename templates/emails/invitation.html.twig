@@ -1,0 +1,24 @@
+{% block body %}
+    {% if user.person %}
+        Hallo {{ user.person.salutation }} {{ user.person.firstName }} {{ user.person.lastName }},<br/><br/>
+    {% else %}
+        Herzlich willkommen,<br/><br/>
+    {% endif %}
+    Sie wurden zu "Unser Schulessen" von {{ school.name }} aus {{ school.address.city }} eingeladen.<br/><br/>
+
+    Klicken Sie auf folgenden Link und folgen den Anweisungen: <a href="{{ link }}">Einladung</a><br/><br/>
+
+    Sollten Sie den Link nicht anklicken können, kopieren Sie den folgenden Link bitte in ihren Browser: {{ link }}
+    <br/><br/><br/>
+
+    <strong>Zustimmung zur Evaluation</strong><br/><br/>
+
+    Das QM-Tool wird regelmäßig evaluiert, um es fortlaufend zu verbessern und an Ihre Nutzungsbedürfnisse anzupassen. Mit Ihrer Registrierung stimmen Sie zu, dass Ihre hinterlegte E-Mail-Adresse für die Einladung zu Nutzerbefragungen im Rahmen dieser Evaluation genutzt werden darf. Die Teilnahme an den Befragungen ist selbstverständlich freiwillig.
+    <br/><br/><br/>
+
+    <strong>Was passiert mit meinen Daten im Rahmen der Evaluation?</strong><br/><br/>
+
+    Ihre E-Mail-Adresse wird zum Zweck der Durchführung von Online-Befragungen zur Evaluation des QM-Tools verwendet. Zu diesem Zweck wird die E-Mail-Adresse an das zuständige Bundeszentrum weitergeleitet, dort gespeichert und für die Einladung zur Befragung genutzt. Die Auswertung der Befragungen erfolgt vollständig anonymisiert. Es ist zu keinem Zeitpunkt möglich, Rückschlüsse auf einzelne Personen aus den Ergebnissen zu ziehen.
+    
+    {% include '/emails/signature.html.twig' %}
+{% endblock %}

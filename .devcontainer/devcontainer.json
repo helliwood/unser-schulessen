@@ -1,0 +1,22 @@
+{
+  "name": "Symfony 5.4 DevContainer",
+  "dockerComposeFile": [
+    "../docker-compose.yml"
+  ],
+  "service": "web",
+  "workspaceFolder": "/var/www",
+  "settings": {
+    "terminal.integrated.shell.linux": "/bin/bash",
+    "php.validate.executablePath": "/usr/local/bin/php"
+  },
+  "extensions": [
+    "felixfbecker.php-debug",
+    "bmewburn.vscode-intelephense-client",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "xdebug.php-pack",
+    "ms-azuretools.vscode-docker"
+  ],
+  "postCreateCommand": "composer install && yarn install",
+  "remoteUser": "root"
+} 

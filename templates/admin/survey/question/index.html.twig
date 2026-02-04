@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <a class="btn btn-secondary float-right" href="{{ path('admin_survey_questions_new', {id:category.id}) }}">Frage
+            hinzufügen</a>
+        <h1>{{ category.name }} Fragen</h1>
+        <div class="panel">
+            <data-table
+                    sort-by="order"
+                    :sort-desc="false"
+                    :fields="[
+                    {key: 'question', label: 'Name', sortable: false},
+                    {key: 'actions', label: 'Optionen', sortable: false, class:'options'}
+                ]">
+                <template v-slot:cell(question)="{ row, callAndRefresh }">
+                    {%  verbatim %}
+                      {{ row.item.question }}
+
+                    {%  endverbatim %}
+                    <i class="fas fa-leaf ml-1" title="Nachhaltigkeitskriterium" style="color: #006600;" v-if="row.item.sustainable"></i>
+                </template>
+                <template v-slot:cell(actions)="{ row, callAndRefresh }">
+
+                    <b-button size="sm" :href="'/admin/survey/questions/edit/'+row.item.id"
+                              class="mb-2">
+                        Bearbeiten
+                    </b-button>
+                    <b-button v-if="!row.item.first" @click="callAndRefresh({action:'up', question_id:row.item.id})"
+                              size="sm"
+                              variant="info" class="mb-2"><i
+                                class="fas fa-arrow-up"></i></b-button>
+                    <b-button v-if="!row.item.last" @click="callAndRefresh({action:'down', question_id:row.item.id})"
+                              size="sm"
+                              variant="info" class="mb-2"><i
+                                class="fas fa-arrow-down"></i>
+                    </b-button>
+                    <b-button v-b-modal="'modal-'+row.item.id" size="sm" variant="danger" class="mb-2"><i
+                                class="far fa-trash-alt"></i>
+                    </b-button>
+                    <!-- Modal Component -->
+                    <b-modal :id="'modal-'+row.item.id"
+                             @ok="callAndRefresh({action:'delete_question', question_id:row.item.id})"
+                             title="Frage löschen" ok-variant="danger" ok-title="Löschen" cancel-title="Abbrechen">
+                        <p class="my-4">Möchten Sie die Frage '{{ '{{' }}row.item.question{{ '}}' }}' wirklich
+                            löschen?</p>
+                    </b-modal>
+                </template>
+            </data-table>
+        </div>
+    </div>
+{% endblock %}

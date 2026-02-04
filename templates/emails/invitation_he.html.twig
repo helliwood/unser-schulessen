@@ -1,0 +1,20 @@
+{% block body %}
+
+    Herzlich willkommen bei „Unser Schulessen“!<br/><br/>
+
+    Sie wurden eingeladen, an der Qualitätsentwicklung der Schulverpflegung der Schule {{ school.name }} in
+    {{ school.address.city }} mitzuwirken.<br/><br/>
+
+    Gemeinsam möchten wir dazu beitragen, das Verpflegungsangebot vor Ort noch ausgewogener, nachhaltiger und
+    schülerorientierter zu gestalten.<br>
+    Um Ihre Teilnahme zu bestätigen, klicken Sie bitte auf folgenden Link und folgen Sie den Anweisungen:
+    <a href="{{ link }}">Einladung</a><br/><br/>
+
+    Sollte der Link nicht funktionieren, können Sie ihn einfach kopieren und in die Adresszeile Ihres Browsers einfügen:
+    {{ link }}
+    <br/><br/><br/>
+
+    Wir wünschen Ihnen viel Erfolg und Freude bei der Umsetzung!<br/>
+
+    {% include '/emails/signature.html.twig' %}
+{% endblock %}

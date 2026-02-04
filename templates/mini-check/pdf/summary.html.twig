@@ -1,0 +1,215 @@
+{% extends 'pdf/layout.html.twig' %}
+
+{% block body %}
+    {% set category = null %}
+    <style>
+        .circle {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 18px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .circle-true {
+            background-color: #04B100;
+        }
+
+        .circle-partial {
+            background-color: #FFA700;
+        }
+
+        .circle-false {
+            background-color: #D30000;
+        }
+
+        .circle-null {
+            background-color: #999999;
+        }
+
+        .ideabox {
+            background-color: rgba(0, 0, 0, 0.1);
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .legend {
+            position: absolute;
+            top: 1cm;
+            right: 0.61cm;
+            list-style: none;
+            width: 25%;
+            text-align: left;
+        }
+
+        .true, .partial, .false, .not_answered {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 7px;
+            border: 1px solid #999;
+        }
+
+        .true {
+            background-color: #04B100;
+        }
+
+        .partial {
+            background-color: #FFA700;
+        }
+
+        .false {
+            background-color: #D30000;
+        }
+
+        .not_answered {
+            background-color: #999999;
+        }
+    </style>
+    <div class="school-info clear">
+        <p>Schön, dass Sie sich am Schnellstart beteiligt haben. Der Mini-Check ermöglicht Ihnen einen punktuellen
+            Einblick in den Qualitäts-Check des Management-Tools und zeigt, wie Sie die aktuelle Verpflegungssituation
+            in der Einrichtung einschätzen.
+            Im vorliegenden Ergebnis sind noch einmal alle Aussagen und Ihre Bewertung zusammengefasst. Zum einen können
+            Sie prüfen, wie Sie die Aussagen in den verschiedenen Qualitätsfeldern beurteilt haben. Haben Sie mit
+            „trifft nicht oder nur teilweise zu“ bewertet, erhalten Sie zusätzlich einen ersten Tipp, wie Sie das Thema
+            behandeln können.
+
+        </p>
+        <h2>Schulinformationen</h2>
+        <table class="table">
+            <tr>
+                <td><strong>Name:</strong></td>
+                <td>{{ result.school.name }}</td>
+            </tr>
+            <tr>
+                <td><strong>PLZ:</strong></td>
+                <td>{{ result.school.address.postalcode }}</td>
+            </tr>
+            <tr>
+                <td><strong>Stadt/Gemeinde:</strong></td>
+                <td>{{ result.school.address.city }}</td>
+            </tr>
+        </table>
+    </div><br/><br/><br/>
+
+    {% if stats is not null %}
+        {% set answeredTrue = stats["true"]|default(0) %}
+        {% set answeredPartial = stats["partial"]|default(0) %}
+        {% set answeredFalse = stats["false"]|default(0) %}
+        {% set notAnswered = stats["not_answered"]|default(0) %}
+        {% set answered = answeredTrue + answeredPartial + answeredFalse %}
+        {% set total = answered + notAnswered %}
+    {% endif %}
+
+    <div style="page-break-inside: avoid; position: relative; ">
+        <img src="data:image/png;base64, {{ img }}" width="400"/>
+        <table class="legend ">
+            <tr>
+                <td><b>{{ answeredTrue }}</b> Erfüllt</td>
+                <td>
+                    <div class="true"></div>
+                </td>
+            </tr>
+            <tr>
+                <td><b>{{ answeredPartial }}</b> Teilweise erfüllt</td>
+                <td>
+                    <div class="partial"></div>
+                </td>
+            </tr>
+            <tr>
+                <td><b>{{ answeredFalse }}</b> Nicht erfüllt</td>
+                <td>
+                    <div class="false"></div>
+            </tr>
+            <tr>
+                <td><b>{{ notAnswered }}</b> Nicht beantwortet</td>
+                <td>
+                    <div class="not_answered"></div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="answers">
+        {% for answer in result.answers %}
+            {% if category != answer.question.category %}
+                {% set category = answer.question.category %}
+                <h2 style="margin-bottom: 5px; margin-top: 25px;">Qualitätsfeld: {{ answer.question.category }}</h2>
+                {% if answer.question.category.miniCheckInfo %}
+                    {{ answer.question.category.miniCheckInfo | nl2br }}<br/><br/>
+                {% endif %}
+            {% endif %}
+            <div class="question-block" style="margin-bottom: 20px;">
+                <h3>{{ answer.question.question }}
+                    {% if answer.question.sustainable %}
+                        <img style="width: 18px; height: 16px;" src="./img/sustained.png"/>
+                    {% endif %}
+                </h3>
+                <div>
+                    <strong>Antwort:</strong>
+                    {% if answer.answer == 'true' %}
+                        Trifft zu
+                    {% elseif answer.answer == 'partial' %}
+                        Trifft teilweise zu
+                    {% elseif answer.answer == 'false' %}
+                        Trifft nicht zu
+                    {% elseif answer.answer != "" and (answer.answer + 0) is not same as(false) %}
+                        {{ answer.answer }}
+                    {% else %}
+                        Nicht beantwortet {{ answer.answer }}
+                    {% endif %}
+                </div>
+                {% if answer.question.miniCheckInfo %}
+                    <div style="margin-top: 5px;"><em>Hinweis: {{ answer.question.miniCheckInfo }}</em></div>
+                {% endif %}
+                {% if answer.answer == 'partial' or answer.answer == 'false' %}
+                    {% if answer.question.ideaboxes.count > 0 %}
+                        <div class="ideabox">
+                            <strong>Unser Tipp:</strong> {{ answer.question.ideaboxes.first() }}
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+
+    <div>
+        <h3>Weitere Funktionen im Qualitätsmanagement-Tool Unser Schulessen!</h3>
+        Das QM-Tool bietet über den Qualitäts-Check hinaus noch weitere hilfreiche Funktionen, die Sie in Ihrer Einrichtung nutzen können:<br/>
+        <ul>
+            <li>Ermittlung von <strong>Stammdaten</strong> zur Darstellung der Rahmenbedingungen für die Verpflegung</li>
+            <li><strong>Qualitäts-Check</strong> über neun Qualitätsfelder mit Ampelsystem zur Bewertung aller Aspekte</li>
+            <li><strong>Zufriedenheitsumfragen</strong>  zur Beteiligung der gesamtem Schulgemeinschaft</li>
+            <li><strong>Teller-Check</strong> für direktes Feedback zum Essensangebot</li>
+            <li><strong>Qualitätsprozess</strong> mit ToDos für die schrittweise Qualitätsentwicklung</li>
+            <li><strong>Ideen-Pool</strong> mit erprobten Verbesserungsansätzen</li>
+        </ul>
+        <p>Schulen und Einrichtungen können das QM-Tool kostenfrei nutzen!</p>
+    </div>
+
+    <div>
+        <h3>Wie geht es weiter?</h3>
+        Wenn Sie mehr über die Möglichkeiten von Unser Schulessen wissen möchten:<br/>
+        <ul>
+            <li>Schreiben Sie uns über das Kontaktformular „Interesse bekunden“.
+                <br/>
+                Gerne nehmen wir Kontakt zu Ihnen auf.
+                <a href="https://www.unser-schulessen.de/mitmachen/interesse-bekunden">Unser Schulessen - Interesse
+                    bekunden</a>.
+            </li>
+            <li>Melden Sie sich zu einer Online-Informationsrunde Unser Schulessen – kurz informiert an<br/>
+                <a href="https://www.unser-schulessen.de/mitmachen/termine">Unser Schulessen - Termine</a>
+            </li>
+            <li>Haben Sie konkreten Beratungsbedarf, melden Sie sich bei der Vernetzungsstelle Schulverpflegung in Ihrem
+                Bundesland. <a href="https://www.unser-schulessen.de/mitmachen/direktzugang">Unser Schulessen -
+                    Direktzugang</a>
+            </li>
+        </ul>
+    </div>
+{% endblock %} 

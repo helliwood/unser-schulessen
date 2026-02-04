@@ -1,0 +1,53 @@
+{% set bgColor = '#f0f0f6' %}
+
+{% extends 'clear.html.twig' %}
+
+{% block body %}
+    <div class="row">
+        <div class="col">
+            <div class="panel h-100 d-flex flex-column py-3 pb-4">
+                <h2 class="mb-2 pt-3">Herzlich willkommen zum Mini-Check</h2>
+                <p>Gute Schulverpflegung braucht Struktur, Beteiligung und ein klares Bild vom Ist-Zustand. Mit unserem
+                    Mini-Check erhalten Sie einen ersten Eindruck davon, wie das QM-Tool arbeitet, welche Themen dabei
+                    im Fokus stehen und wo Sie aktuell stehen.
+                    <br/><br/>
+                    Mit dem Mini-Check machen Sie den ersten Schritt, um das QM-Tool in Ihrer Einrichtung zu nutzen. Für
+                    die Zuordnung sind die Angaben zur Schule notwendig. Mit <span class="sustainable">&nbsp;</span>
+                    gekennzeichnete Qualitätsaspekte tragen zu einer nachhaltigen Schulverpflegung bei.</p>
+            </div>
+        </div>
+    </div>
+
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+    <div class="row mt-3 pb-3">
+        <div class="col">
+            <div class="panel h-100 d-flex flex-column py-3 pb-4">
+                <h3>{{ 'School'|trans }}</h3>
+                {{ form_widget(form) }}
+                <div class="row" style="margin-top: -15px;">
+                    <div class="col-sm-3">Bundesland</div>
+                    <div class="col-sm-9 d-flex">
+                        <strong>{{ app_state_country | trans }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row pb-3">
+        <div class="col">
+            <div class="panel h-100 d-flex flex-column py-3">
+                <div class="row">
+                    <div class="col-sm-3"></div>
+                    <div class="col-sm-9 d-flex">
+                        <button type="submit" id="save" name="save" class="btn-primary btn">Weiter</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{ form_end(form) }}
+{% endblock %}
+{% block javascripts %}
+    {% include ("mini-check/partial/resize.html.twig") %}
+{% endblock %}
