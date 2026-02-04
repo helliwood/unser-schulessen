@@ -44,7 +44,7 @@ Ein umfassendes Qualitätsmanagement-System für Schulverpflegung, entwickelt mi
 
 1. **Repository klonen**
    ```bash
-   git clone git@git.helliwood.de:helliwood/unser-schulessen.git
+   git clone https://github.com/helliwood/unser-schulessen.git
    cd unser-schulessen
    ```
 
