@@ -1,8 +1,5 @@
 # Unser Schulessen
 
-[![build status](http://git.helliwood.de/helliwood/unser-schulessen/badges/master/pipeline.svg)](https://git.helliwood.de/helliwood/unser-schulessen/pipelines)
-[![coverage report](http://git.helliwood.de/helliwood/unser-schulessen/badges/master/coverage.svg)](http://git.helliwood.de/helliwood/unser-schulessen/commits/master)
-
 A comprehensive quality management system for school meals, built with Symfony 5.4. The application supports schools across all German federal states in managing and evaluating meal quality through structured questionnaires, quality checks, and reporting features.
 
 ## Features
