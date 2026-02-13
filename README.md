@@ -47,7 +47,7 @@ A comprehensive quality management system for school meals, built with Symfony 5
 
 1. **Clone the repository**
    ```bash
-   git clone git@git.helliwood.de:helliwood/unser-schulessen.git
+   git clone https://github.com/helliwood/unser-schulessen.git
    cd unser-schulessen
    ```
 
