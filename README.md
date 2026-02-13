@@ -106,6 +106,7 @@ Additional technical documentation:
 - [**Architecture Overview (One-Page)**](README/ARCHITECTURE_OVERVIEW.md) - System boundaries, main components, data flows, deployment view, and federal-state separation
 - [**Component Inventory**](README/COMPONENT_INVENTORY.md) - Complete component directory with purpose, interfaces, owner, dependencies, environments, and state instances
 - [**Software List (Versions & Licenses)**](README/SOFTWARE_LIST.md) - OS, images, runtimes, frameworks, DB, proxy/orchestration, CI/CD, backups, and license documentation status
+- [**User Journeys and Data Flows**](README/USER_JOURNEYS.md) - Who enters which data and how it flows through browser, webserver, backend, database, storage, and email
 - [**Database ERD**](README/DATABASE_ERD.md) - Entity relationship diagrams of all database entities
 - [**Flag Filtering Implementation**](README/FLAG_FILTERING_IMPLEMENTATION.md) - Details of the dynamic flag system
 
