@@ -3,27 +3,27 @@
 [![build status](http://git.helliwood.de/helliwood/unser-schulessen/badges/master/pipeline.svg)](https://git.helliwood.de/helliwood/unser-schulessen/pipelines)
 [![coverage report](http://git.helliwood.de/helliwood/unser-schulessen/badges/master/coverage.svg)](http://git.helliwood.de/helliwood/unser-schulessen/commits/master)
 
-Ein umfassendes Qualitätsmanagement-System für Schulverpflegung, entwickelt mit Symfony 5.4. Die Anwendung unterstützt Schulen in allen deutschen Bundesländern bei der Verwaltung und Bewertung ihrer Essensqualität durch strukturierte Fragebögen, Qualitätschecks und Berichtsfunktionen.
+A comprehensive quality management system for school meals, built with Symfony 5.4. The application supports schools across all German federal states in managing and evaluating meal quality through structured questionnaires, quality checks, and reporting features.
 
 ## Features
 
-- **Multi-Mandanten-Architektur** - Unterstützung aller 16 deutschen Bundesländer mit landesspezifischen Fragebögen
-- **Qualitäts-Check-System** - Strukturierte Fragebögen zur Bewertung der Schulverpflegung
-- **Mini-Check** - Öffentlich zugängliche Schnellbewertung für Schulen
-- **Dynamisches Flag-System** - Flexible Kategorisierung von Fragen (Nachhaltigkeit, DGE-Richtlinien, etc.)
-- **PDF-Generierung** - Automatische Erstellung von Berichten und Auswertungen
-- **Benutzerverwaltung** - Rollenbasierte Zugriffskontrolle (Admin, Berater, Schule)
-- **Stammdaten-Management** - Verwaltung von Schulen, Kontakten und Personen
-- **Speiseumfragen** - Zusätzliche Umfragefunktionen für Schulessen
+- **Multi-tenant architecture** - Support for all 16 German federal states with state-specific questionnaires
+- **Quality check system** - Structured questionnaires for evaluating school meal quality
+- **Mini-Check** - Publicly accessible quick assessment for schools
+- **Dynamic flag system** - Flexible categorization of questions (sustainability, DGE guidelines, etc.)
+- **PDF generation** - Automated creation of reports and evaluations
+- **User management** - Role-based access control (admin, consultant, school)
+- **Master data management** - Management of schools, contacts, and persons
+- **Meal surveys** - Additional survey features for school meals
 
-## Technologie-Stack
+## Technology Stack
 
 ### Backend
 - **Framework:** Symfony 5.4 (PHP 7.4+)
-- **Datenbank:** MariaDB 10.3
+- **Database:** MariaDB 10.3
 - **ORM:** Doctrine 2.7
 - **PDF:** DomPDF
-- **E-Mail:** Sendinblue
+- **Email:** Sendinblue
 
 ### Frontend
 - **JavaScript:** Vue.js 2.6
@@ -31,13 +31,13 @@ Ein umfassendes Qualitätsmanagement-System für Schulverpflegung, entwickelt mi
 - **Build:** Webpack Encore
 - **Charts:** ApexCharts
 
-### Infrastruktur
+### Infrastructure
 - **Container:** Docker & Docker Compose
 - **CI/CD:** GitLab CI/CD
 
 ## Installation
 
-### Voraussetzungen
+### Prerequisites
 - Docker & Docker Compose
 - Node.js & npm
 - PHP 7.4+
@@ -45,86 +45,88 @@ Ein umfassendes Qualitätsmanagement-System für Schulverpflegung, entwickelt mi
 
 ### Setup
 
-1. **Repository klonen**
+1. **Clone the repository**
    ```bash
    git clone git@git.helliwood.de:helliwood/unser-schulessen.git
    cd unser-schulessen
    ```
 
-2. **Umgebungsvariablen konfigurieren**
+2. **Configure environment variables**
    ```bash
    cp .env.dist .env
-   # .env Datei bearbeiten und Datenbankverbindung konfigurieren
+   # Edit the .env file and configure the database connection
    ```
 
-3. **Docker-Container starten**
+3. **Start Docker containers**
    ```bash
    docker-compose up -d
    ```
 
-4. **Dependencies installieren**
+4. **Install dependencies**
    ```bash
    composer install
    npm install
    ```
 
-5. **Datenbank migrieren**
+5. **Run database migrations**
    ```bash
    php bin/console doctrine:migrations:migrate
    ```
 
-6. **Frontend bauen**
+6. **Build frontend assets**
    ```bash
    npm run build    # Production
-   npm run watch    # Development mit Hot-Reload
+   npm run watch    # Development with hot reload
    ```
 
 ## Testing
 
 ### PHPUnit Tests
 
-Die Tests verwenden eine separate Test-Datenbank, die über Docker-Compose bereitgestellt wird.
+The tests use a separate test database provided via Docker Compose.
 
-**Test-Datenbank vorbereiten:**
+**Prepare test database:**
 ```bash
-# Alles in einem Befehl:
+# All in one command:
 composer run rebuild-testdb
 
-# Oder einzeln:
+# Or step by step:
 php bin/console doctrine:schema:drop --full-database --env=test --force
 php bin/console doctrine:migrations:migrate --env=test -n
 php bin/console doctrine:fixtures:load --env=test --append
 ```
 
-**Tests ausführen:**
+**Run tests:**
 ```bash
 bin/phpunit
 ```
 
-## Dokumentation
+## Documentation
 
-Weiterführende technische Dokumentation:
+Additional technical documentation:
 
-- [**Technische Dokumentation**](README/TECHNICAL_DOCUMENTATION.md) - Vollständige Architekturbeschreibung, Module und API-Referenz
-- [**Datenbank ERD**](README/DATABASE_ERD.md) - Entity-Relationship-Diagramme aller Datenbankentitäten
-- [**Flag-Filter Implementierung**](README/FLAG_FILTERING_IMPLEMENTATION.md) - Details zum dynamischen Flag-System
+- [**Technical Documentation**](README/TECHNICAL_DOCUMENTATION.md) - Complete architecture description, modules, and API reference
+- [**Architecture Overview (One-Page)**](README/ARCHITECTURE_OVERVIEW.md) - System boundaries, main components, data flows, deployment view, and federal-state separation
+- [**Component Inventory**](README/COMPONENT_INVENTORY.md) - Complete component directory with purpose, interfaces, owner, dependencies, environments, and state instances
+- [**Software List (Versions & Licenses)**](README/SOFTWARE_LIST.md) - OS, images, runtimes, frameworks, DB, proxy/orchestration, CI/CD, backups, and license documentation status
+- [**Database ERD**](README/DATABASE_ERD.md) - Entity relationship diagrams of all database entities
+- [**Flag Filtering Implementation**](README/FLAG_FILTERING_IMPLEMENTATION.md) - Details of the dynamic flag system
 
-## Projektstruktur
+## Project Structure
 
 ```
-├── assets/                 # Frontend Assets (Vue.js, SCSS)
-├── config/                 # Symfony Konfiguration
-├── migrations/             # Doctrine Migrationen
-├── public/                 # Web Root (index.php, Assets)
+├── assets/                 # Frontend assets (Vue.js, SCSS)
+├── config/                 # Symfony configuration
+├── migrations/             # Doctrine migrations
+├── public/                 # Web root (index.php, assets)
 ├── src/
-│   ├── Controller/         # HTTP Controller
-│   ├── Entity/             # Doctrine Entities
-│   ├── Form/               # Symfony Forms
-│   ├── Repository/         # Datenbank-Repositories
-│   ├── Service/            # Business Logic
-│   └── Security/           # Authentifizierung
-├── templates/              # Twig Templates
-├── tests/                  # PHPUnit Tests
-└── translations/           # Übersetzungsdateien (de/en)
+│   ├── Controller/         # HTTP controllers
+│   ├── Entity/             # Doctrine entities
+│   ├── Form/               # Symfony forms
+│   ├── Repository/         # Database repositories
+│   ├── Service/            # Business logic
+│   └── Security/           # Authentication
+├── templates/              # Twig templates
+├── tests/                  # PHPUnit tests
+└── translations/           # Translation files (de/en)
 ```
-
