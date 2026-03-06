@@ -50,7 +50,8 @@ class FoodSurveyRepository extends ServiceEntityRepository
         bool $sortDesc,
         int $page,
         int $limit,
-        bool $closedOnly = false
+        bool $closedOnly = false,
+        bool $deletedOnly = false
     ) {
         $sortValues = ["name", "createdAt", "closesAt", "state", "type"];
 
@@ -60,21 +61,35 @@ class FoodSurveyRepository extends ServiceEntityRepository
 
         $states = $closedOnly ? [FoodSurvey::STATE_CLOSED] : [FoodSurvey::STATE_ACTIVE, FoodSurvey::STATE_NOT_ACTIVATED];
 
-        $totalRows = $this->createQueryBuilder('fs')
+        $totalRowsQb = $this->createQueryBuilder('fs')
             ->select('COUNT(fs.id)')
             ->where('fs.school = :school')
-            ->andWhere('fs.state IN (:states)')
-            ->setParameter('school', $school)
-            ->setParameter('states', $states)
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->setParameter('school', $school);
 
-        $items = $this->createQueryBuilder('fs')
+        if ($deletedOnly) {
+            $totalRowsQb->andWhere('fs.deleted = true');
+        } else {
+            $totalRowsQb->andWhere('fs.deleted = false')
+                ->andWhere('fs.state IN (:states)')
+                ->setParameter('states', $states);
+        }
+
+        $totalRows = $totalRowsQb->getQuery()->getSingleScalarResult();
+
+        $itemsQb = $this->createQueryBuilder('fs')
             ->select('fs')
             ->where('fs.school = :school')
-            ->andWhere('fs.state IN (:states)')
-            ->setParameter('school', $school)
-            ->setParameter('states', $states)
+            ->setParameter('school', $school);
+
+        if ($deletedOnly) {
+            $itemsQb->andWhere('fs.deleted = true');
+        } else {
+            $itemsQb->andWhere('fs.deleted = false')
+                ->andWhere('fs.state IN (:states)')
+                ->setParameter('states', $states);
+        }
+
+        $items = $itemsQb
             ->groupBy('fs')
             ->orderBy("fs." . $sort, $sortDesc ? 'DESC' : 'ASC')
             ->setFirstResult(($page - 1) * $limit)

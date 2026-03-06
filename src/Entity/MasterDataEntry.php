@@ -14,41 +14,40 @@ use Doctrine\ORM\Mapping as ORM;
  * MasterData MasterDataEntry
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity(repositoryClass="App\Repository\MasterDataEntryRepository")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\MasterDataEntryRepository::class)]
 class MasterDataEntry
 {
 
     /**
      * @var MasterData|null
-     * @ORM\Id
-     * @ORM\ManyToOne(targetEntity="\App\Entity\MasterData", cascade={"persist"}, fetch="EAGER", inversedBy="entries")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\Id]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\MasterData::class, cascade: ['persist'], fetch: 'EAGER', inversedBy: 'entries')]
     protected $masterData;
 
     /**
      *
      * @var string|null
-     * @ORM\Id
-     * @ORM\Column(type="string", length=190, nullable=false)
      */
+    #[ORM\Id]
+    #[ORM\Column(type: 'string', length: 190, nullable: false)]
     protected $step;
 
     /**
      *
      * @var string|null
-     * @ORM\Id
-     * @ORM\Column(name="`key`", length=190, type="string", nullable=false)
      */
+    #[ORM\Id]
+    #[ORM\Column(name: '`key`', length: 190, type: 'string', nullable: false)]
     protected $key;
 
     /**
      *
      * @var string|null
-     * @ORM\Column(type="string", nullable=true, length=2048)
      */
+    #[ORM\Column(type: 'string', nullable: true, length: 2048)]
     protected $value;
 
     /**

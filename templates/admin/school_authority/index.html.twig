@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <a class="btn btn-secondary float-right" href="{{ path('admin_school_authority_new') }}">Schulträger hinzufügen</a>
+        <h1>Schulträger</h1>
+        <div class="panel col-12">
+            <data-table
+                api-url="{{ path('admin_school_authority_list') }}"
+                :search="true"
+                sort-by="name"
+                :sort-desc="false"
+                :per-page="10"
+                :fields="[
+                    {key: 'name', label: 'Name', sortable: true},
+                    {key: 'contactPerson', label: 'Ansprechpartner', sortable: true},
+                    {key: 'contactEmail', label: 'E-Mail', sortable: true},
+                    {key: 'schoolCount', label: 'Schulen', sortable: false},
+                    {key: 'userCount', label: 'Nutzer', sortable: false},
+                    {key: 'options', label: 'Optionen', sortable: false, class:'options'}
+                ]">
+                <template v-slot:cell(options)="{row, callAndRefresh}">
+                    <b-button size="sm" :href="'/admin/school-authority/show/'+row.item.id" class="mr-2">
+                        Anzeigen
+                    </b-button>
+                    <b-button size="sm" :href="'/admin/school-authority/edit/'+row.item.id" class="mr-2" variant="warning">
+                        Bearbeiten
+                    </b-button>
+                    <b-button size="sm" variant="danger" v-b-modal="'modal-'+row.item.id">
+                        <i class="far fa-trash-alt"></i> Löschen
+                        <b-modal :id="'modal-'+row.item.id"
+                                 @ok="callAndRefresh({action:'delete', id:row.item.id}, '{{ path('admin_school_authority_list') }}')"
+                                 title="Schulträger löschen" ok-variant="danger" ok-title="Löschen"
+                                 cancel-title="Abbrechen">
+                            <p class="my-4">Möchten Sie den Schulträger '{{ '{{' }} row.item.name {{ '}}' }}' wirklich löschen?</p>
+                        </b-modal>
+                    </b-button>
+                </template>
+            </data-table>
+        </div>
+    </div>
+{% endblock %} 

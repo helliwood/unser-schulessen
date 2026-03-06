@@ -21,19 +21,16 @@ use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Exception;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Form\Form;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-/**
- * @Route("/admin/employee", name="admin_employee_")
- * @IsGranted("ROLE_ADMIN")
- */
+#[Route(path: '/admin/employee', name: 'admin_employee_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class EmployeeController extends AbstractController
 {
 
@@ -47,12 +44,12 @@ class EmployeeController extends AbstractController
     }
 
     /**
-     * @Route("/", name="home")
      * @param Request $request
      * @return JsonResponse|Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
+    #[Route(path: '/', name: 'home')]
     public function index(Request $request)
     {
 
@@ -72,7 +69,6 @@ class EmployeeController extends AbstractController
     }
 
     /**
-     * @Route("/{userId}/schools", name="list_schools")
      * @param int      $userId
      * @param MenuItem $menu
      * @param Request  $request
@@ -80,6 +76,7 @@ class EmployeeController extends AbstractController
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
+    #[Route(path: '/{userId}/schools', name: 'list_schools')]
     public function listSchools(int $userId, MenuItem $menu, Request $request): Response
     {
         $ur = $this->getDoctrine()->getRepository(User::class);
@@ -111,17 +108,17 @@ class EmployeeController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="new")
      * @param EntityManagerInterface       $em
-     * @param UserPasswordEncoderInterface $encoder
+     * @param UserPasswordHasherInterface $encoder
      * @param MenuItem                     $menu
      * @param Request                      $request
      * @return RedirectResponse|Response
      * @throws Exception
      */
+    #[Route(path: '/new', name: 'new')]
     public function new(
         EntityManagerInterface $em,
-        UserPasswordEncoderInterface $encoder,
+        UserPasswordHasherInterface $encoder,
         MenuItem $menu,
         Request $request
     ) {
@@ -164,18 +161,18 @@ class EmployeeController extends AbstractController
     }
 
     /**
-     * @Route("/{user}/edit", name="edit_user")
      * @param EntityManagerInterface       $em
-     * @param UserPasswordEncoderInterface $encoder
+     * @param UserPasswordHasherInterface $encoder
      * @param User                         $user
      * @param MenuItem                     $menu
      * @param Request                      $request
      * @return RedirectResponse|Response
      * @throws Exception
      */
+    #[Route(path: '/{user}/edit', name: 'edit_user')]
     public function editUser(
         EntityManagerInterface $em,
-        UserPasswordEncoderInterface $encoder,
+        UserPasswordHasherInterface $encoder,
         User $user,
         MenuItem $menu,
         Request $request
@@ -218,18 +215,18 @@ class EmployeeController extends AbstractController
     }
 
     /**
-     * @Route("/{user}/change-password", name="change_password")
      * @param User                         $user
      * @param MenuItem                     $menu
      * @param Request                      $request
-     * @param UserPasswordEncoderInterface $encoder
+     * @param UserPasswordHasherInterface $encoder
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      */
+    #[Route(path: '/{user}/change-password', name: 'change_password')]
     public function changePassword(
         User $user,
         MenuItem $menu,
         Request $request,
-        UserPasswordEncoderInterface $encoder
+        UserPasswordHasherInterface $encoder
     ) {
         $menu['admin']['employee']->addChild($user->getDisplayName(), [
             'route' => 'admin_employee_change_password',
@@ -247,7 +244,7 @@ class EmployeeController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             // save temp password
-            $encoded = $encoder->encodePassword($user, $user->getNewPassword());
+            $encoded = $encoder->hashPassword($user, $user->getNewPassword());
             $user->setPassword($encoded);
             $user->setTempPassword(true);
 
@@ -266,12 +263,12 @@ class EmployeeController extends AbstractController
 
 
     /**
-     * @Route("/{user}/change-email", name="change_email")
      * @param User     $user
      * @param MenuItem $menu
      * @param Request  $request
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      */
+    #[Route(path: '/{user}/change-email', name: 'change_email')]
     public function changeEmail(
         User $user,
         MenuItem $menu,
@@ -320,12 +317,12 @@ class EmployeeController extends AbstractController
     /**
      * @param User                         $user
      * @param Form                         $form
-     * @param UserPasswordEncoderInterface $encoder
+     * @param UserPasswordHasherInterface $encoder
      */
-    private function handlePasswordRequest(User &$user, Form $form, UserPasswordEncoderInterface $encoder): void
+    private function handlePasswordRequest(User &$user, Form $form, UserPasswordHasherInterface $encoder): void
     {
         if (! \is_null($form['newPassword']->getData())) {
-            $user->setPassword($encoder->encodePassword($user, $form['newPassword']->getData()));
+            $user->setPassword($encoder->hashPassword($user, $form['newPassword']->getData()));
         }
     }
 }

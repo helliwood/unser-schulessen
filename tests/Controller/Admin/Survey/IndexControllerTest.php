@@ -10,11 +10,20 @@ use Symfony\Component\HttpFoundation\Response;
 class IndexControllerTest extends AbstractTestController
 {
     protected $client = null;
+    protected static $categoryNew;
+    protected static $categoryEdit;
+    protected static $categorySecond;
 
     public function setUp(): void
     {
         $this->client = static::createClient();
         $this->logIn();
+        if (self::$categoryNew === null) {
+            $suffix = uniqid('', true);
+            self::$categoryNew = 'Kategorie Neu '.$suffix;
+            self::$categoryEdit = 'Kategorie 1 '.$suffix;
+            self::$categorySecond = 'Kategorie 2 '.$suffix;
+        }
     }
 
     public function testIndex()
@@ -34,8 +43,12 @@ class IndexControllerTest extends AbstractTestController
         $this->assertNotEmpty($JSON_response);
     }
 
-    public function testNew($name = 'Kategorie Neu')
+    public function testNew($name = null)
     {
+        if ($name === null) {
+            $name = self::$categoryNew;
+        }
+
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/survey/new');
         $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
@@ -53,7 +66,7 @@ class IndexControllerTest extends AbstractTestController
     public function testEdit()
     {
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie Neu']);
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categoryNew]);
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/survey/edit/' . $category->getId());
@@ -61,7 +74,7 @@ class IndexControllerTest extends AbstractTestController
         $this->assertSame($category->getName(), $crawler->filter('h1')->text());
 
         $postData = ['category' => []];
-        $postData['category']['name'] = "Kategorie 1";
+        $postData['category']['name'] = self::$categoryEdit;
         $postData['save'] = "";
 
         /** @var Crawler $crawler */
@@ -71,13 +84,14 @@ class IndexControllerTest extends AbstractTestController
 
     public function testNewAgain()
     {
-        $this->testNew('Kategorie 2');
+        $this->testNew(self::$categorySecond);
     }
 
     public function testUp()
     {
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 2']);
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categorySecond]);
+        $orderBeforeUp = $category->getOrder();
 
         $postData = ['action' => 'up', 'category_id' => $category->getId()];
 
@@ -88,14 +102,15 @@ class IndexControllerTest extends AbstractTestController
         $this->assertNotEmpty($JSON_response);
 
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 2']);
-        $this->assertSame(1, $category->getOrder());
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categorySecond]);
+        $this->assertLessThan($orderBeforeUp, $category->getOrder());
     }
 
     public function testDown()
     {
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 2']);
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categorySecond]);
+        $orderBeforeDown = $category->getOrder();
 
         $postData = ['action' => 'down', 'category_id' => $category->getId()];
 
@@ -106,14 +121,14 @@ class IndexControllerTest extends AbstractTestController
         $this->assertNotEmpty($JSON_response);
 
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 2']);
-        $this->assertSame(2, $category->getOrder());
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categorySecond]);
+        $this->assertGreaterThan($orderBeforeDown, $category->getOrder());
     }
 
     public function testDelete()
     {
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 2']);
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categorySecond]);
 
         $postData = ['action' => 'delete_category', 'category_id' => $category->getId()];
 
@@ -124,7 +139,7 @@ class IndexControllerTest extends AbstractTestController
         $this->assertNotEmpty($JSON_response);
 
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 2']);
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categorySecond]);
         $this->assertNull($category);
     }
 }

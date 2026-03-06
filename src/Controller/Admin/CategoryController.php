@@ -14,26 +14,23 @@ use App\Entity\QualityCheck\Questionnaire;
 use App\Form\CategoryType;
 use App\Repository\CategoryRepository;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/admin/category", name="admin_category_")
- * @IsGranted("ROLE_ADMIN")
- */
+#[Route(path: '/admin/category', name: 'admin_category_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class CategoryController extends AbstractController
 {
 
     /**
-     * @Route("/list/{id}", name="list")
      * @param Request $request
      * @return JsonResponse|\Symfony\Component\HttpFoundation\Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Doctrine\ORM\NoResultException
      * @throws \Throwable
      */
+    #[Route(path: '/list/{id}', name: 'list')]
     public function list(Request $request, Category $category)
     {
         /** @var CategoryRepository $cr */
@@ -70,12 +67,12 @@ class CategoryController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{id}", name="edit")
      * @param Category $category
      * @param Request  $request
      * @param MenuItem $menu
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      */
+    #[Route(path: '/edit/{id}', name: 'edit')]
     public function edit(Category $category, Request $request, MenuItem $menu)
     {
         $menu['admin']['questionnaire']->addChild($category->getQuestionnaire()->getName(), [
@@ -112,7 +109,6 @@ class CategoryController extends AbstractController
      * Wegen einem Bug in Symfony funktioniert weder {parent?} noch defaults={"parent":null}, deswegen wird
      * ein String als default Wert benutzt. Ansonsten ist parent NIE null (zumindestens dann nicht, wenn id = 1 ist)
      *
-     * @Route("/new/{id}/{parent}", name="new", defaults={"parent":"bug_string_als_default"}, requirements={"parent"="\d+"})
      * @param Questionnaire $questionnaire
      * @param Category|null $parent
      * @param Request       $request
@@ -120,6 +116,7 @@ class CategoryController extends AbstractController
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      * @throws \Exception
      */
+    #[Route(path: '/new/{id}/{parent}', name: 'new', defaults: ['parent' => 'bug_string_als_default'], requirements: ['parent' => '\d+'])]
     public function new(Questionnaire $questionnaire, ?Category $parent, Request $request, MenuItem $menu)
     {
         $menu = $menu['admin']['questionnaire']->addChild($questionnaire->getName(), [

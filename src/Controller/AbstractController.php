@@ -8,6 +8,8 @@
 
 namespace App\Controller;
 
+use Doctrine\Persistence\ManagerRegistry;
+use LogicException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Mailer\MailerInterface;
 
@@ -26,18 +28,44 @@ class AbstractController extends \Symfony\Bundle\FrameworkBundle\Controller\Abst
     /**
      * @var string
      */
-    protected $stateCountry;
+    protected $stateCountry = '';
 
     /**
-     * AbstractController constructor.
-     * @param MailerInterface       $mailer
-     * @param ParameterBagInterface $params
+     * @var ManagerRegistry|null
      */
-    public function __construct(MailerInterface $mailer, ParameterBagInterface $params)
+    private $doctrine;
+
+    public function __construct(?MailerInterface $mailer = null, ?ParameterBagInterface $params = null, ?ManagerRegistry $doctrine = null)
     {
-//        parent::__construct($mailer, $params);
+        if ($mailer !== null) {
+            $this->mailer = $mailer;
+        }
+
+        if ($params !== null) {
+            $this->stateCountry = $params->get('app_state_country');
+        }
+
+        if ($doctrine !== null) {
+            $this->doctrine = $doctrine;
+        }
+    }
+
+    #[\Symfony\Contracts\Service\Attribute\Required]
+    public function setMailer(MailerInterface $mailer): void
+    {
         $this->mailer = $mailer;
+    }
+
+    #[\Symfony\Contracts\Service\Attribute\Required]
+    public function setStateCountryParameter(ParameterBagInterface $params): void
+    {
         $this->stateCountry = $params->get('app_state_country');
+    }
+
+    #[\Symfony\Contracts\Service\Attribute\Required]
+    public function setDoctrineRegistry(ManagerRegistry $doctrine): void
+    {
+        $this->doctrine = $doctrine;
     }
 
     /**
@@ -75,5 +103,14 @@ class AbstractController extends \Symfony\Bundle\FrameworkBundle\Controller\Abst
     public function getStateCountry(): string
     {
         return $this->stateCountry;
+    }
+
+    protected function getDoctrine(): ManagerRegistry
+    {
+        if ($this->doctrine === null) {
+            throw new LogicException('Doctrine registry is not initialized on controller.');
+        }
+
+        return $this->doctrine;
     }
 }

@@ -6,13 +6,10 @@ use App\Service\IconHelper;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
-class PdfIconExtension extends AbstractExtension
+final class PdfIconExtension extends AbstractExtension
 {
-    private IconHelper $helper;
-
-    public function __construct(IconHelper $helper)
+    public function __construct(private IconHelper $helper)
     {
-        $this->helper = $helper;
     }
 
     public function getFunctions(): array

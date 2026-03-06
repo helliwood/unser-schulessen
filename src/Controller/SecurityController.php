@@ -9,6 +9,7 @@
 namespace App\Controller;
 
 use App\Entity\School;
+use App\Entity\SchoolAuthority;
 use App\Entity\User;
 use App\Entity\UserHasSchool;
 use App\Form\ActivateType;
@@ -21,7 +22,6 @@ use App\Repository\UserHasSchoolRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,7 +30,7 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class SecurityController extends AbstractController
@@ -45,10 +45,10 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * @Route("/login", name="login")
      * @param AuthenticationUtils $authenticationUtils
      * @return Response
      */
+    #[Route(path: '/login', name: 'login')]
     public function index(AuthenticationUtils $authenticationUtils): Response
     {
         if ($this->getUser()) {
@@ -68,12 +68,12 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * @Route("/reset", name="reset")
      * @param Request $request
      * @param MailerInterface $mailer
      * @return Response
      * @throws TransportExceptionInterface
      */
+    #[Route(path: '/reset', name: 'reset')]
     public function reset(Request $request, MailerInterface $mailer): Response
     {
         $form = $this->createForm(ResetPasswordType::class);
@@ -126,14 +126,14 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * @Route("/login/{token}", name="login_token")
      * @param string $token
      * @param Request $request
-     * @param UserPasswordEncoderInterface $encoder
+     * @param UserPasswordHasherInterface $encoder
      * @return Response
      * @throws NonUniqueResultException
      */
-    public function createNewPassword(string $token, Request $request, UserPasswordEncoderInterface $encoder): Response
+    #[Route(path: '/login/{token}', name: 'login_token')]
+    public function createNewPassword(string $token, Request $request, UserPasswordHasherInterface $encoder): Response
     {
         $em = $this->getDoctrine()->getManager();
         $user = $em->getRepository(User::class)->findUserByToken($token);
@@ -147,7 +147,7 @@ class SecurityController extends AbstractController
         if (\is_object($user) && ! \is_null($user->getHashExpirationDate()) && $today <= $user->getHashExpirationDate()) {
             if ($form->isSubmitted() && $form->isValid()) {
                 //save new password
-                $encoded = $encoder->encodePassword($user, $user->getPassword());
+                $encoded = $encoder->hashPassword($user, $user->getPassword());
                 $user->setPassword($encoded);
                 $user->setResetPasswordHash(null);
                 $user->setHashExpirationDate(null);
@@ -174,12 +174,12 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_USER")
-     * @Route("/profile", name="profile")
      * @param Request $request
      * @param MenuItem $menu
      * @return Response
      */
+    #[Route(path: '/profile', name: 'profile')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
     public function profile(Request $request, MenuItem $menu): Response
     {
         $menu['dashboard']->addChild("Profil", [
@@ -195,7 +195,7 @@ class SecurityController extends AbstractController
             $this->getSuccessMessage('Ihr Profil wurde erfolgreich gespeichert');
             /*
             if (! empty($form->get('profile')->get('new_password')->getData())) {
-                $user->setPassword($encoder->encodePassword($user, $form->get('user')->get('new_password')->getData()));
+                $user->setPassword($encoder->hashPassword($user, $form->get('user')->get('new_password')->getData()));
             }*/
 
             $entityManager = $this->getDoctrine()->getManager();
@@ -212,14 +212,14 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_USER")
-     * @Route("/change-password", name="change_password")
      * @param Request $request
      * @param MenuItem $menu
-     * @param UserPasswordEncoderInterface $encoder
+     * @param UserPasswordHasherInterface $encoder
      * @return Response
      */
-    public function changePassword(Request $request, UserPasswordEncoderInterface $encoder): Response
+    #[Route(path: '/change-password', name: 'change_password')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
+    public function changePassword(Request $request, UserPasswordHasherInterface $encoder): Response
     {
         $user = $this->getUser();
 
@@ -229,7 +229,7 @@ class SecurityController extends AbstractController
         $oldPassword = $form->get('oldPassword')->getData();
 
         if ($form->isSubmitted() && $form->isValid() && $encoder->isPasswordValid($user, $oldPassword)) {
-            $newPassword = $encoder->encodePassword($user, $form->get('newPassword')->getData());
+            $newPassword = $encoder->hashPassword($user, $form->get('newPassword')->getData());
 
             $user->setPassword($newPassword);
 
@@ -252,21 +252,21 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * @Route("/invitation/{token}/{user}/{school}", name="invitation")
      * @param string $token
      * @param User $user
      * @param School $school
      * @param Request $request
-     * @param UserPasswordEncoderInterface $encoder
+     * @param UserPasswordHasherInterface $encoder
      * @return Response
      * @throws NonUniqueResultException
      */
+    #[Route(path: '/invitation/{token}/{user}/{school}', name: 'invitation')]
     public function invitation(
         string $token,
         User $user,
         School $school,
         Request $request,
-        UserPasswordEncoderInterface $encoder
+        UserPasswordHasherInterface $encoder
     ): Response {
         /** @var UserRepository $ur */
         $ur = $this->getDoctrine()->getRepository(User::class);
@@ -300,7 +300,7 @@ class SecurityController extends AbstractController
             $form->handleRequest($request);
 
             if ($form->isSubmitted() && $form->isValid()) {
-                $user->setPassword($encoder->encodePassword($user, $user->getPassword()));
+                $user->setPassword($encoder->hashPassword($user, $user->getPassword()));
                 $user->setState(User::STATE_ACTIVE);
 
                 $uhs->setRespondedAt(new \DateTime());
@@ -329,14 +329,80 @@ class SecurityController extends AbstractController
     }
 
     /**
-     * @IsGranted("ROLE_USER")
-     * @Route("/change-temp-password", name="change_temp_password")
+     * @param string $token
+     * @param User $user
+     * @param SchoolAuthority $schoolAuthority
+     * @param Request $request
+     * @param UserPasswordHasherInterface $encoder
+     * @return Response
+     * @throws NonUniqueResultException
+     */
+    #[Route(path: '/invitation/school-authority/{token}/{user}/{schoolAuthority}', name: 'invitation_school_authority')]
+    public function schoolAuthorityInvitation(
+        string $token,
+        User $user,
+        SchoolAuthority $schoolAuthority,
+        Request $request,
+        UserPasswordHasherInterface $encoder
+    ): Response {
+        /** @var UserRepository $ur */
+        $ur = $this->getDoctrine()->getRepository(User::class);
+        $userByToken = $ur->findUserByToken($token);
+
+        if ($user !== $userByToken) {
+            throw $this->createAccessDeniedException('User not match!');
+        }
+
+        $error = null;
+        if ($userByToken->getSchoolAuthority() !== $schoolAuthority) {
+            $error = 'Die Einladung wurde zurückgezogen!';
+        } elseif ($user->getState() === User::STATE_BLOCKED) {
+            $error = 'Sie wurden blockiert!';
+        }
+
+        if ($error) {
+            $this->getErrorMessage($error);
+            return $this->redirect('/login');
+        }
+
+        if ($user->getState() === User::STATE_NOT_ACTIVATED) {
+            $form = $this->createForm(ActivateType::class, $user, []);
+            $form->handleRequest($request);
+
+            if ($form->isSubmitted() && $form->isValid()) {
+                $user->setPassword($encoder->hashPassword($user, $user->getPassword()));
+                $user->setState(User::STATE_ACTIVE);
+
+                $em = $this->getDoctrine()->getManager();
+                $em->flush();
+
+                $this->getSuccessMessage('Ihr Account wurde erfolgreich aktiviert.');
+
+                return $this->redirect('/login');
+            }
+        } elseif ($user->getState() === User::STATE_ACTIVE) {
+            if ($this->getUser()) {
+                return $this->redirect('/');
+            }
+        }
+
+        return $this->render('security/invitation_school_authority.html.twig', [
+            'user' => $user,
+            'schoolAuthority' => $schoolAuthority,
+            'form' => isset($form) ? $form->createView() : null,
+            'logo' => $this->logo,
+        ]);
+    }
+
+    /**
      * @param Request $request
      * @param MenuItem $menu
-     * @param UserPasswordEncoderInterface $encoder
+     * @param UserPasswordHasherInterface $encoder
      * @return Response
      */
-    public function changeTempPassword(Request $request, UserPasswordEncoderInterface $encoder): Response
+    #[Route(path: '/change-temp-password', name: 'change_temp_password')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
+    public function changeTempPassword(Request $request, UserPasswordHasherInterface $encoder): Response
     {
         $user = $this->getUser();
 
@@ -344,7 +410,7 @@ class SecurityController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $newPassword = $encoder->encodePassword($user, $user->getNewPassword());
+            $newPassword = $encoder->hashPassword($user, $user->getNewPassword());
             $user->setPassword($newPassword);
             $user->setTempPassword(false);
 

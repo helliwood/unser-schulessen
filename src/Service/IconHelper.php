@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-class IconHelper
+final class IconHelper
 {
     private string $svgDir;
     private string $pngCacheDir;
@@ -23,7 +23,8 @@ class IconHelper
         $svgPath = $this->svgDir . '/' . $iconName . '.svg';
 
         if (! \file_exists($svgPath)) {
-            return ''; // oder ein Fallback
+            // oder ein Fallback
+            return '';
         }
 
         $svgContent = \file_get_contents($svgPath);

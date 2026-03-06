@@ -301,13 +301,10 @@ class IndexControllerTest extends AbstractTestController
         /** @var Survey $survey */
         $survey = $this->getEntityManager()->getRepository(Survey::class)->findOneBy([], ['createdAt' => 'DESC']);
 
-        /** @var $school */
-        $school = $survey->getSchool();
-
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/survey/result/' . $survey->getId());
         $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
-        $this->assertSame($school . ': Umfrage-Ergebnis vom ' . $survey->getCreatedAt()->format("d.m.Y"), $crawler->filter('h1')->text());
+        $this->assertSame('Umfrage-Ergebnis vom ' . $survey->getCreatedAt()->format("d.m.Y"), $crawler->filter('h1')->text());
 
     }
 

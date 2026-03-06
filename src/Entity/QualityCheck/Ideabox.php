@@ -2,7 +2,7 @@
 
 namespace App\Entity\QualityCheck;
 
-use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
+use Doctrine\ORM\Mapping\InverseJoinColumn;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\JoinColumn;
@@ -13,60 +13,55 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * Ideabox Entity
  *
- * @ORM\Entity(repositoryClass="App\Repository\IdeaboxRepository")
- * @ORM\Table()
- * @IgnoreAnnotation("phpcsSuppress")
  */
+#[ORM\Table]
+#[ORM\Entity(repositoryClass: \App\Repository\IdeaboxRepository::class)]
 class Ideabox implements \JsonSerializable
 {
     /**
      * @var int
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="1024")
-     * @ORM\Column(type="string", length=1024)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 1024)]
+    #[ORM\Column(type: 'string', length: 1024)]
     private $idea;
 
     /**
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, name="`order`")
      */
+    #[ORM\Column(type: 'smallint', nullable: false, name: '`order`')]
     private $order;
 
     /**
      * @var Question
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Question", inversedBy="ideaboxes")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Question::class, inversedBy: 'ideaboxes')]
     private $question;
 
     /**
      * @var IdeaboxIcon[]|ArrayCollection
-     *
-     * @ORM\ManyToMany(targetEntity="\App\Entity\QualityCheck\IdeaboxIcon", inversedBy="ideabox")
-     * @JoinTable(name="ideaboxes_ideabox_icons",
-     *      joinColumns={@JoinColumn(name="ideabox_icon_id", referencedColumnName="id", onDelete="CASCADE")},
-     *      inverseJoinColumns={@JoinColumn(name="ideabox_id", referencedColumnName="id", onDelete="CASCADE")}
-     *      )
-     * @ORM\OrderBy({"id":"ASC"})
      */
+    #[JoinTable(name: 'ideaboxes_ideabox_icons')]
+    #[JoinColumn(name: 'ideabox_icon_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[InverseJoinColumn(name: 'ideabox_id', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[ORM\ManyToMany(targetEntity: \App\Entity\QualityCheck\IdeaboxIcon::class, inversedBy: 'ideabox')]
+    #[ORM\OrderBy(['id' => 'ASC'])]
     private $ideaboxIcons;
 
     /**
      * @var Ideabox
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Ideabox")
-     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Ideabox::class)]
     private $previous;
 
     /**

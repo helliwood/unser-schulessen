@@ -4,6 +4,7 @@
             :sort-desc="true"
             :per-page="10"
             :fields="[
+                    {key: 'name', label: 'Name', sortable: true},
                     {key: 'createdAt', label: 'Erstellt', sortable: true, formatter: (value, key, item) => {
                         if(value) {
                             return moment(value.date).format('DD.MM.YYYY') + ' (' + item.createdBy + ')';
@@ -33,6 +34,10 @@
             <b-button v-if="row.item.finalised" size="sm" variant="primary"
                       :href="'/quality_check/export/'+row.item.id" class="mr-2">
                 <i class="fas fa-file-pdf mr-1"></i>PDF-Download
+            </b-button>
+            <b-button v-if="row.item.finalised" size="sm" variant="primary"
+                      :href="'/quality_check/rename/'+row.item.id" class="mr-2">
+                <i class="fas fa-file-pdf mr-1"></i>Umbenennen
             </b-button>
         </template>
     </data-table>

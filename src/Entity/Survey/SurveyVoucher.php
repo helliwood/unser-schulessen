@@ -17,53 +17,51 @@ use Symfony\Component\Validator\Constraints as Assert;
  * SurveyVoucher Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(name="survey_survey_voucher")
- * @ORM\Entity(repositoryClass="App\Repository\Survey\SurveyVoucherRepository")
  */
+#[ORM\Table(name: 'survey_survey_voucher')]
+#[ORM\Entity(repositoryClass: \App\Repository\Survey\SurveyVoucherRepository::class)]
 class SurveyVoucher implements \JsonSerializable
 {
     /**
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var Survey
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Survey\Survey", inversedBy="vouchers")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Survey\Survey::class, inversedBy: 'vouchers')]
     private $survey;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="150")
-     * @ORM\Column(type="string", length=50, nullable=false, unique=true, options={"collation":"utf8mb4_bin"})
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 150)]
+    #[ORM\Column(type: 'string', length: 50, nullable: false, unique: true, options: ['collation' => 'utf8mb4_bin'])]
     private $voucher;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=false)
      */
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private $createdAt;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     private $createdBy;
 
     /**
      * @var ArrayCollection|SurveyQuestionAnswer[]
-     * @ORM\OneToMany(targetEntity="App\Entity\Survey\SurveyQuestionAnswer", mappedBy="voucher")
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\Survey\SurveyQuestionAnswer::class, mappedBy: 'voucher')]
     private $answers;
 
     /**

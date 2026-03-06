@@ -20,7 +20,6 @@ use App\Repository\UserHasSchoolRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,21 +28,19 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-/**
- * @Route("/admin/school/members", name="admin_school_members_")
- * @IsGranted("ROLE_ADMIN")
- */
+#[Route(path: '/admin/school/members', name: 'admin_school_members_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class MemberController extends AbstractController
 {
     /**
-     * @Route("/{id}/", name="list")
      * @param School $school
      * @param Request $request
      * @return JsonResponse|\Symfony\Component\HttpFoundation\Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+    #[Route(path: '/{id}/', name: 'list')]
     public function list(School $school, Request $request, EntityManagerInterface $em)
     {
         /** @var UserHasSchoolRepository $uhsr */
@@ -71,13 +68,13 @@ class MemberController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/new", name="new")
      * @param School $school
      * @param MenuItem $menu
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+    #[Route(path: '/{id}/new', name: 'new')]
     public function new(School $school, MenuItem $menu, Request $request, EntityManagerInterface $em)
     {
         $menu['admin']['school']->addChild($school->getName(), [
@@ -135,13 +132,13 @@ class MemberController extends AbstractController
     }
 
     /**
-     * @Route("/{id}/new-consultant", name="new_consultant")
      * @param School $school
      * @param MenuItem $menu
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\Response
      * @throws \Exception
      */
+    #[Route(path: '/{id}/new-consultant', name: 'new_consultant')]
     public function newConsultant(
         School $school,
         MenuItem $menu,
@@ -197,7 +194,6 @@ class MemberController extends AbstractController
     }
 
     /**
-     * @Route("/{school}/edit/{id}", name="edit")
      * @param School $school
      * @param User $user
      * @param MenuItem $menu
@@ -205,6 +201,7 @@ class MemberController extends AbstractController
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      * @throws TransportExceptionInterface
      */
+    #[Route(path: '/{school}/edit/{id}', name: 'edit')]
     public function edit(School $school, User $user, MenuItem $menu, Request $request, EntityManagerInterface $em)
     {
         $menu['admin']['school']->addChild($school->getName(), [
@@ -279,20 +276,20 @@ class MemberController extends AbstractController
     }
 
     /**
-     * @Route("/{school}/change-password/{user}", name="change_password")
      * @param User $user
      * @param School $school
      * @param MenuItem $menu
      * @param Request $request
-     * @param UserPasswordEncoderInterface $encoder
+     * @param UserPasswordHasherInterface $encoder
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      */
+    #[Route(path: '/{school}/change-password/{user}', name: 'change_password')]
     public function changePassword(
         User $user,
         School $school,
         MenuItem $menu,
         Request $request,
-        UserPasswordEncoderInterface $encoder,
+        UserPasswordHasherInterface $encoder,
         EntityManagerInterface $em
     ) {
         $menu['admin']['school']->addChild($school->getName(), [
@@ -317,7 +314,7 @@ class MemberController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             // save temp password
-            $encoded = $encoder->encodePassword($user, $user->getNewPassword());
+            $encoded = $encoder->hashPassword($user, $user->getNewPassword());
             $user->setPassword($encoded);
             $user->setTempPassword(true);
 

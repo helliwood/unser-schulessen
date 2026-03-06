@@ -17,7 +17,6 @@ use App\Entity\QualityCircle\ActionPlanNew;
 use App\Entity\QualityCircle\ToDo;
 use App\Entity\QualityCircle\ToDoItem;
 use App\Entity\QualityCircle\ToDoNew;
-use App\EventSubscriber\BeforeControllerInterface;
 use App\Form\QualityCircle\ActionPlanCompleteType;
 use App\Form\QualityCircle\ActionPlanType;
 use App\Form\QualityCircle\ToDoOpenType;
@@ -35,23 +34,17 @@ use Doctrine\ORM\NoResultException;
 use Dompdf\Dompdf;
 use Exception;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\ParamConverter;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
-/**
- * @Route("/quality_circle/todo", name="quality_circle_todo_")
- * @IsGranted("ROLE_USER")
- */
-class TodoController extends AbstractController implements BeforeControllerInterface
+#[Route(path: '/quality_circle/todo', name: 'quality_circle_todo_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
+class TodoController extends AbstractController
 {
     /**
      * @var QualityCheckService
@@ -75,26 +68,12 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @param ControllerEvent $event
-     * @throws Exception
-     */
-    public function before(ControllerEvent $event): void
-    {
-        if (! $this->qualityCheckService->getLastResult()) {
-            $this->getErrorMessage('Sie müssen erst den Qualitäts-Check bearbeiten.');
-            $event->setController(function () {
-                return $this->redirectToRoute('home');
-            });
-        }
-    }
-
-    /**
-     * @Route("/list-closed", name="list_closed")
      * @param Request $request
      * @return JsonResponse
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
+    #[Route(path: '/list-closed', name: 'list_closed')]
     public function index(Request $request): JsonResponse
     {
         /** @var ToDoNewRepository $tdr */
@@ -111,8 +90,6 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/new/{resultId}", name="new")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_KITCHEN') or is_granted('ROLE_FOOD_COMMISSIONER')")
      * @param Request $request
      * @param QualityCheckService $qualityCheckService
      * @param int|null $resultId
@@ -120,6 +97,8 @@ class TodoController extends AbstractController implements BeforeControllerInter
      * @throws ConnectionException
      * @throws NonUniqueResultException
      */
+    #[Route(path: '/new/{resultId}', name: 'new')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_KITCHEN') or is_granted('ROLE_FOOD_COMMISSIONER')"))]
     public function new(Request $request, QualityCheckService $qualityCheckService, ?int $resultId = null): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -179,13 +158,13 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/new-open", name="new_open")
-     * @IsGranted("ROLE_MENSA_AG")
      * @param Request  $request
      * @param MenuItem $menu
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/new-open', name: 'new_open')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_MENSA_AG')]
     public function newOpen(Request $request, MenuItem $menu): Response
     {
         $menu['quality_circle']->addChild('Neues offenes ToDo ', [
@@ -219,14 +198,14 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/edit/{id}", name="edit")
-     * @IsGranted("ROLE_MENSA_AG")
      * @param ToDoNew $toDo
      * @param MenuItem $menu
      * @param EntityManagerInterface $em
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/edit/{id}', name: 'edit')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_MENSA_AG')]
     public function edit(ToDoNew $toDo, MenuItem $menu, EntityManagerInterface $em): Response
     {
         if (\is_null($toDo)) {
@@ -251,12 +230,12 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/show/{id}", name="show")
      * @param ToDoNew  $toDo
      * @param MenuItem $menu
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/show/{id}', name: 'show')]
     public function show(ToDoNew $toDo, MenuItem $menu): Response
     {
         if ($toDo->getSchool() !== $this->getUser()->getCurrentSchool()) {
@@ -276,11 +255,11 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/export/{id}", name="export")
      * @param ToDoNew $toDo
      * @return void
      * @throws Exception
      */
+    #[Route(path: '/export/{id}', name: 'export')]
     public function export(ToDoNew $toDo): void
     {
         if ($toDo->getSchool() !== $this->getUser()->getCurrentSchool()) {
@@ -304,14 +283,14 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/complete/{id}", name="complete")
-     * @IsGranted("ROLE_MENSA_AG")
      * @param ToDoNew $toDo
      * @param Request $request
      * @param MenuItem $menu
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/complete/{id}', name: 'complete')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_MENSA_AG')]
     public function complete(ToDoNew $toDo, Request $request, MenuItem $menu): Response
     {
         if ($toDo->getSchool() !== $this->getUser()->getCurrentSchool()) {
@@ -356,13 +335,13 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/delete-todo/{id}", name="delete_todo")
-     * @IsGranted("ROLE_FOOD_COMMISSIONER")
-     * @IsGranted("ROLE_MENSA_AG")
      * @param ToDoNew $toDo
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/delete-todo/{id}', name: 'delete_todo')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_FOOD_COMMISSIONER')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_MENSA_AG')]
     public function deleteToDo(ToDoNew $toDo): Response
     {
         if ($toDo->getSchool() !== $this->getUser()->getCurrentSchool()) {
@@ -379,9 +358,6 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/action-plan/{id}/{action_plan_id<\d+>?}", name="action_plan", defaults={"actionPlan"=null})
-     * @ParamConverter("actionPlan", options={"mapping": {"action_plan_id": "id"}})
-     * @IsGranted("ROLE_MENSA_AG")
      * @param ToDoNew $toDo
      * @param ActionPlanNew|null $actionPlan
      * @param Request $request
@@ -389,8 +365,14 @@ class TodoController extends AbstractController implements BeforeControllerInter
      * @return Response
      * @throws Exception
      */
-    public function actionPlan(ToDoNew $toDo, ?ActionPlanNew $actionPlan, Request $request, MenuItem $menu): Response
-    {
+    #[Route(path: '/action-plan/{id}/{action_plan_id<\d+>?}', name: 'action_plan', defaults: ['actionPlan' => null])]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_MENSA_AG')]
+    public function actionPlan(
+        ToDoNew $toDo,
+        #[\Symfony\Bridge\Doctrine\Attribute\MapEntity(mapping: ['action_plan_id' => 'id'])] ?ActionPlanNew $actionPlan,
+        Request $request,
+        MenuItem $menu
+    ): Response {
         if ($toDo->getSchool() !== $this->getUser()->getCurrentSchool()) {
             throw new AccessDeniedException('Schule nicht gestattet.');
         }
@@ -448,13 +430,13 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/action-plan/{id}/show", name="action_plan_show")
      * @param ToDoItem $toDoItem
      * @param Request $request
      * @param MenuItem $menu
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/action-plan/{id}/show', name: 'action_plan_show')]
     public function actionPlanShow(ToDoItem $toDoItem, Request $request, MenuItem $menu): Response
     {
         if ($toDoItem->getTodo()->getResult()->getSchool() !== $this->getUser()->getCurrentSchool()) {
@@ -494,12 +476,12 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/delete-action-plan/{id}", name="delete_action_plan")
-     * @IsGranted("ROLE_MENSA_AG")
      * @param ActionPlanNew $actionPlan
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/delete-action-plan/{id}', name: 'delete_action_plan')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_MENSA_AG')]
     public function deleteActionPlan(ActionPlanNew $actionPlan): Response
     {
         if ($actionPlan->getTodo()->getSchool() !== $this->getUser()->getCurrentSchool()) {
@@ -515,14 +497,14 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/complete-action-plan/{id}", name="complete_action_plan")
-     * @IsGranted("ROLE_MENSA_AG")
      * @param ActionPlanNew $actionPlan
      * @param Request       $request
      * @param MenuItem      $menu
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/complete-action-plan/{id}', name: 'complete_action_plan')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_MENSA_AG')]
     public function completeActionPlan(ActionPlanNew $actionPlan, Request $request, MenuItem $menu, EmailNotificationService $emailNotificationService): Response
     {
         if ($actionPlan->getTodo()->getSchool() !== $this->getUser()->getCurrentSchool()) {
@@ -563,11 +545,11 @@ class TodoController extends AbstractController implements BeforeControllerInter
     }
 
     /**
-     * @Route("/archive", name="archive")
-     * @IsGranted("ROLE_MENSA_AG")
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/archive', name: 'archive')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_MENSA_AG')]
     public function archive(): Response
     {
         /** @var ToDoRepository $tdr */

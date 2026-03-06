@@ -10,38 +10,30 @@ namespace App\Controller\QualityCheck;
 
 use App\Controller\AbstractController;
 use App\Entity\QualityCheck\Result;
-use App\EventSubscriber\BeforeControllerInterface;
+use App\Form\ResultType;
 use App\Repository\QualityCheck\ResultRepository;
 use App\Service\EmailNotificationService;
-use App\Service\MasterDataService;
 use App\Service\QualityCheckService;
+use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Dompdf\Dompdf;
 use Exception;
 use Imagick;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
-/**
- * @Route("/quality_check", name="quality_check_")
- * @IsGranted("ROLE_USER")
- */
-class IndexController extends AbstractController implements BeforeControllerInterface
+#[Route(path: '/quality_check', name: 'quality_check_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
+class IndexController extends AbstractController
 {
-    /**
-     * @var MasterDataService $masterDataService
-     */
-    protected $masterDataService;
-
     /**
      * @var EmailNotificationService $emailNotificationService
      */
@@ -56,49 +48,29 @@ class IndexController extends AbstractController implements BeforeControllerInte
     /**
      * IndexController constructor.
      * @param MailerInterface $mailer
-     * @param MasterDataService $masterDataService
      * @param EmailNotificationService $emailNotificationService
-     * @param SessionInterface $session
+     * @param RequestStack $requestStack
      * @param ParameterBagInterface $params
      */
     public function __construct(
         MailerInterface $mailer,
-        MasterDataService $masterDataService,
         EmailNotificationService $emailNotificationService,
-        SessionInterface $session,
+        RequestStack $requestStack,
         ParameterBagInterface $params
     ) {
         parent::__construct($mailer, $params);
-        $this->masterDataService = $masterDataService;
         $this->emailNotificationService = $emailNotificationService;
-        $this->session = $session;
+        $this->session = $requestStack->getSession();
     }
 
     /**
-     * @param ControllerEvent $event
-     * @throws \Doctrine\ORM\NonUniqueResultException
-     */
-    public function before(ControllerEvent $event): void
-    {
-        if ($this->getUser() && ! $this->masterDataService->hasFinalisedMasterData()) {
-            $this->getErrorMessage('Sie müssen erst die Stammdaten ausfüllen.');
-
-            $event->setController(function () {
-                return $this->redirectToRoute('home');
-            });
-        }
-
-        return;
-    }
-
-    /**
-     * @Route("/", name="home")
      * @param Request $request
      * @param QualityCheckService $qualityCheckService
      * @param array|null $flags
      * @return Response|JsonResponse
      * @throws NonUniqueResultException
      */
+    #[Route(path: '/', name: 'home')]
     public function index(Request $request, QualityCheckService $qualityCheckService): Response
     {
         if ($request->isXmlHttpRequest()) {
@@ -126,8 +98,6 @@ class IndexController extends AbstractController implements BeforeControllerInte
     }
 
     /**
-     * @Route("/edit/{step}", name="edit", defaults={"step":1})
-     * @IsGranted("ROLE_FOOD_COMMISSIONER")
      * @param int $step
      * @param QualityCheckService $qualityCheckService
      * @param MenuItem $menu
@@ -136,6 +106,8 @@ class IndexController extends AbstractController implements BeforeControllerInte
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/edit/{step}', name: 'edit', defaults: ['step' => 1])]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_FOOD_COMMISSIONER')]
     public function edit(int $step, QualityCheckService $qualityCheckService, MenuItem $menu, Request $request, EmailNotificationService $emailNotificationService): Response
     {
         $menu['quality_check']->addChild('Bearbeiten', [
@@ -153,7 +125,7 @@ class IndexController extends AbstractController implements BeforeControllerInte
             $form->handleRequest($request);
 
             if ($form->isSubmitted() && $form->isValid()) {
-                $qualityCheckService->save($step, $form->getData(), $request->request->get('clear_category', []));
+                $qualityCheckService->save($step, $form->getData(), $request->request->all('clear_category'));
             }
 
             if ($request->request->has('next') && ! $request->request->get('Questionnaire')['stepPointer'] && $form->isValid()) {
@@ -197,27 +169,27 @@ class IndexController extends AbstractController implements BeforeControllerInte
     }
 
     /**
-     * @Route("/check/{question_id}/{value}", name="check")
-     * @IsGranted("ROLE_FOOD_COMMISSIONER")
      * @param int $question_id
      * @param int $value
      * @param QualityCheckService $qualityCheckService
      * @return Response
      * @throws \Exception
      */
+    #[Route(path: '/check/{question_id}/{value}', name: 'check')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_FOOD_COMMISSIONER')]
     public function check(int $question_id, int $value, QualityCheckService $qualityCheckService): Response
     {
         return new JsonResponse($qualityCheckService->calculateAnswer($question_id, $value));
     }
 
     /**
-     * @Route("/skip/{step}", name="skip")
-     * @IsGranted("ROLE_FOOD_COMMISSIONER")
      * @param int $step
      * @param QualityCheckService $qualityCheckService
      * @param Request $request
      * @return Response
      */
+    #[Route(path: '/skip/{step}', name: 'skip')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_FOOD_COMMISSIONER')]
     public function skip(int $step, QualityCheckService $qualityCheckService, Request $request): Response
     {
         if ($request->query->has('hideModal')) {
@@ -228,7 +200,6 @@ class IndexController extends AbstractController implements BeforeControllerInte
     }
 
     /**
-     * @Route("/result/{id}", name="result", defaults={"id":null})
      * @param int|null $id
      * @param QualityCheckService $qualityCheckService
      * @param MenuItem $menu
@@ -237,9 +208,10 @@ class IndexController extends AbstractController implements BeforeControllerInte
      * @throws NonUniqueResultException
      * @throws Exception
      */
+    #[Route(path: '/result/{id}', name: 'result', defaults: ['id' => null])]
     public function result(?int $id, QualityCheckService $qualityCheckService, MenuItem $menu, Request $request): Response
     {
-        $active_flags = $request->query->get('flags', []);
+        $active_flags = $request->query->all('flags');
 
         /** @var Result $result */
         $result = $qualityCheckService->getResult($id, $active_flags);
@@ -270,11 +242,39 @@ class IndexController extends AbstractController implements BeforeControllerInte
     }
 
     /**
-     * @Route("/export/{id}", name="export")
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @param Result $result
+     * @return void
+     */
+    #[Route(path: '/rename/{result}', name: 'rename')]
+    public function rename(Request $request, EntityManagerInterface $entityManager, Result $result): Response
+    {
+        $form = $this->createForm(ResultType::class, $result);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            if (! \is_null($request->request->get('cancel'))) {
+                $this->getErrorMessage('Abgebrochen!');
+                return $this->redirectToRoute('quality_check_home');
+            }
+            $entityManager->persist($result);
+            $entityManager->flush();
+            $this->getSuccessMessage();
+
+            return $this->redirectToRoute('quality_check_home');
+        }
+        return $this->render('quality_check/index/rename.html.twig', [
+            'form' => $form->createView(),
+            'result' => $result
+        ]);
+    }
+
+    /**
      * @param int $id
      * @param QualityCheckService $qualityCheckService
      * @throws \Exception
      */
+    #[Route(path: '/export/{id}', name: 'export')]
     public function export(int $id, QualityCheckService $qualityCheckService): void
     {
         $result = $qualityCheckService->getResult($id);
@@ -314,13 +314,13 @@ class IndexController extends AbstractController implements BeforeControllerInte
     }
 
     /**
-     * @Route("/chart/{result}/{active_flags}", name="chart")
      * @param Result $result
      * @param QualityCheckService $qualityCheckService
      * @param string|null $active_flags
      * @return Response
      * @throws NonUniqueResultException
      */
+    #[Route(path: '/chart/{result}/{active_flags}', name: 'chart')]
     public function chart(Result $result, QualityCheckService $qualityCheckService, ?string $active_flags = null): Response
     {
         // Flag-Parameter verarbeiten
@@ -368,11 +368,11 @@ class IndexController extends AbstractController implements BeforeControllerInte
     }
 
     /**
-     * @Route("/copy", name="copy")
      * @param QualityCheckService $qualityCheckService
      * @return Response
      * @throws \Exception
      */
+    #[Route(path: '/copy', name: 'copy')]
     public function copy(QualityCheckService $qualityCheckService): Response
     {
         $qualityCheckService->copyLastResult();
@@ -382,12 +382,12 @@ class IndexController extends AbstractController implements BeforeControllerInte
 
 
     /**
-     * @Route("/blanco", name="blanco")
      * @param QualityCheckService $qualityCheckService
      * @param MenuItem $menu
      * @return Response
      * @throws \Exception
      */
+    #[Route(path: '/blanco', name: 'blanco')]
     public function blancoResult(QualityCheckService $qualityCheckService, MenuItem $menu): Response
     {
         $menu['quality_check']->addChild('Blanko QC', [

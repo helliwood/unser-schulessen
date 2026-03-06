@@ -5,7 +5,7 @@ namespace App\Service\FlagDefinitions;
 /**
  * Bayern-spezifische Flag-Definitionen
  */
-class ByFlags
+final class ByFlags
 {
     /**
      * Flag-Definitionen für Bayern
@@ -15,9 +15,9 @@ class ByFlags
     {
         return [
             'guidelineCheck' => [
+                'color' => '#0079ac',
                 'description' => 'Leitlinien Check',
                 'icon' => 'fas fa-thumbs-up',
-                'color' => '#0079ac'
             ],
         ];
     }

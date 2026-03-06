@@ -1,0 +1,92 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <div class="print">
+            <h1>Träger-Umfrage: Auswertung</h1>
+            <h3>{{ survey.name }}</h3>
+        </div>
+
+        <div class="panel">
+            <div class="row align-items-start">
+                {% for question in survey.questions %}
+                    {% if question.type == constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_SINGLE') or question.type == constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_MULTI') %}
+                        {% set answeredDisplay = 0 %}
+                        {% for choice in question.choices %}
+                            {% set answeredDisplay = answeredDisplay + choice.answers|length %}
+                        {% endfor %}
+                    {% else %}
+                        {% set answeredDisplay = question.answers|length %}
+                    {% endif %}
+                    {% set totalRaw = survey.numberOfParticipants > 0 ? survey.numberOfParticipants : answeredDisplay + question.notAnswered() %}
+                    {% set totalDisplay = totalRaw < answeredDisplay ? answeredDisplay : totalRaw %}
+                    {% set participantDisplay = survey.numberOfParticipants > 0 ? survey.numberOfParticipants : totalDisplay %}
+
+                    <div class="col-12 col-xl-6 mb-4 d-flex align-items-stretch">
+                        <div class="w-100 p-3 border rounded bg-white">
+                            <h3 class="mb-2">Frage {{ loop.index }}: {{ question.question }}</h3>
+                            <p class="mb-3">
+                                {{ constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_LABELS')[question.type] }}<br>
+                                {% if question.type == constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_MULTI') %}
+                                    {{ answeredDisplay }} Antworten von {{ participantDisplay }} Teilnehmern wurden abgegeben
+                                {% else %}
+                                    {{ answeredDisplay }} von {{ totalDisplay }} Teilnehmern haben diese Frage beantwortet
+                                {% endif %}
+                            </p>
+
+                            {% if question.type == 'text' %}
+                                {% if question.answers|length > 0 %}
+                                    <ul class="mb-0">
+                                        {% for answer in question.answers %}
+                                            {% if answer.textAnswer %}
+                                                <li>{{ answer.textAnswer }}</li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <span class="text-muted">Keine Freitext-Antworten vorhanden.</span>
+                                {% endif %}
+                            {% else %}
+                                <apexchart type=pie
+                                           height=260
+                                           :options="{
+                                           {% if question.type == constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_HAPPY_UNHAPPY') %}
+                                                   colors: ['#a9a9a9', '#28a745', '#de543d'],
+                                           {% else %}
+                                                   colors: ['#a9a9a9', '#800080', '#8B4513', '#4F6D7A', '#993955', '#000000', '#C0D6DF', '#AE76A6', '#ff8000', '#C0DFA1'],
+                                           {% endif %}
+                                                   labels: ['Nicht beantwortet', '{{ question.answerLabels | join("', '") }}'],
+                                                   legend: {
+                                                       formatter: function (seriesName, opts) {
+                                                           const maxLength = 30;
+                                                           return seriesName.length > maxLength
+                                                               ? seriesName.substring(0, maxLength) + '…'
+                                                               : seriesName;
+                                                       },
+                                                   },
+                                                   responsive: [{
+                                                       breakpoint: 480,
+                                                       options: {
+                                                           chart: {
+                                                               width: 200
+                                                           },
+                                                           legend: {
+                                                               position: 'bottom'
+                                                           },
+                                                       }
+                                                   }],
+                                               }"
+                                           :series="[{{ question.notAnswered() }}, {{ question.answerValues | join(', ') }}]"></apexchart>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="d-flex justify-content-end">
+                <a href="{{ path('home') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i>Zurück zur Startseite
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

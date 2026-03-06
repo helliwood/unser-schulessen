@@ -26,14 +26,10 @@ use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * @Route("/Mini-Check", name="minicheck_")
- */
+#[Route(path: '/Mini-Check', name: 'minicheck_')]
 class MiniCheckController extends AbstractController
 {
-    /**
-     * @Route("/", name="home")
-     */
+    #[Route(path: '/', name: 'home')]
     public function indexAction(SessionInterface $session, Request $request, EntityManagerInterface $entityManager, MiniCheckService $miniCheckService): Response
     {
         $submitted = $request->isMethod('POST');
@@ -72,9 +68,9 @@ class MiniCheckController extends AbstractController
     }
 
     /**
-     * @Route("/step2", name="step2")
      * @throws NonUniqueResultException
      */
+    #[Route(path: '/step2', name: 'step2')]
     public function step2Action(SessionInterface $session, Request $request, MiniCheckService $miniCheckService, EntityManagerInterface $entityManager): Response
     {
         if (! $miniCheckService->isMiniCheckAvailable()) {
@@ -125,9 +121,7 @@ class MiniCheckController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/summary", name="summary")
-     */
+    #[Route(path: '/summary', name: 'summary')]
     public function summaryAction(SessionInterface $session, Request $request, EntityManagerInterface $entityManager, MailerInterface $mailer, TranslatorInterface $translator): Response
     {
         $result = $session->get('minicheck_result');
@@ -210,11 +204,11 @@ class MiniCheckController extends AbstractController
     }
 
     /**
-     * @Route("/chart/{result}", name="chart")
      * @param MiniCheckResult $result
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/chart/{result}', name: 'chart')]
     public function chart(MiniCheckResult $result): Response
     {
         $stats = $result->getGaugeStats();

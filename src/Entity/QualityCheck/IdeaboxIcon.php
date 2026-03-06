@@ -2,53 +2,50 @@
 
 namespace App\Entity\QualityCheck;
 
-use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
  * IdeaboxIcon Entity
  *
- * @ORM\Entity(repositoryClass="App\Repository\IdeaboxIconRepository")
- * @IgnoreAnnotation("phpcsSuppress")
-
  */
+#[ORM\Entity(repositoryClass: \App\Repository\IdeaboxIconRepository::class)]
 class IdeaboxIcon implements \JsonSerializable
 {
     /**
      * @var int
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer")
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
     private $id;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private $category;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255)]
     private $icon;
 
     /**
      * @var Ideabox
-     * @ORM\ManyToMany(targetEntity="\App\Entity\QualityCheck\Ideabox", mappedBy="ideaboxIcons")
      */
+    #[ORM\ManyToMany(targetEntity: \App\Entity\QualityCheck\Ideabox::class, mappedBy: 'ideaboxIcons')]
     private $ideabox;
 
     /**
      * @var int
-     * @ORM\Column(type="integer")
      */
+    #[ORM\Column(type: 'integer')]
     private $order;
 
     /**

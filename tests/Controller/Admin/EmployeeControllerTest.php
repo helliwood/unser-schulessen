@@ -15,7 +15,7 @@ use App\Entity\School;
 use App\Tests\Controller\AbstractTestController;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class EmployeeControllerTest extends AbstractTestController
 {

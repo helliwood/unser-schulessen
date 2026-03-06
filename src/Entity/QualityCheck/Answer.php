@@ -15,12 +15,10 @@ use Doctrine\ORM\Mapping\UniqueConstraint;
  * Answer Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(uniqueConstraints={
- *   @UniqueConstraint(columns={"question_id", "result_id"})
- * })
- * @ORM\Entity(repositoryClass="App\Repository\QualityCheck\AnswerRepository")
  */
+#[ORM\Table]
+#[UniqueConstraint(columns: ['question_id', 'result_id'])]
+#[ORM\Entity(repositoryClass: \App\Repository\QualityCheck\AnswerRepository::class)]
 class Answer
 {
     public const ANSWER_TRUE = "true";
@@ -38,31 +36,31 @@ class Answer
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var Question|null
-     * @ORM\ManyToOne(targetEntity="Question")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \Question::class)]
     private $question;
 
     /**
      *
      * @var string
-     * @ORM\Column(type="string", length=150, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 150, nullable: true)]
     private $answer;
 
     /**
      * @var Result|null
-     * @ORM\ManyToOne(targetEntity="Result", inversedBy="answers")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \Result::class, inversedBy: 'answers')]
     private $result;
 
     /**

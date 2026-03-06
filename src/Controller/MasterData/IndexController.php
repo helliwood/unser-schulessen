@@ -14,25 +14,22 @@ use App\Service\MasterDataService;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use Exception;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/master_data", name="master_data_")
- * @IsGranted("ROLE_USER")
- */
+#[Route(path: '/master_data', name: 'master_data_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
 class IndexController extends AbstractController
 {
     /**
-     * @Route("/", name="home")
      * @param MasterDataService $masterDataService
      * @return JsonResponse|Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+    #[Route(path: '/', name: 'home')]
     public function index(MasterDataService $masterDataService)
     {
         return $this->render('master_data/index/index.html.twig', [
@@ -42,11 +39,11 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/export", name="export")
      * @param MasterDataService $masterDataService
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|void
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+    #[Route(path: '/export', name: 'export')]
     public function export(MasterDataService $masterDataService)
     {
         if (! $masterDataService->hasFinalisedMasterData()) {
@@ -73,11 +70,11 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/export_blank", name="export_blank")
      * @param MasterDataService $masterDataService
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|void
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+    #[Route(path: '/export_blank', name: 'export_blank')]
     public function exportBlank(MasterDataService $masterDataService)
     {
         // instantiate and use the dompdf class
@@ -99,18 +96,22 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/edit-school", name="edit_school")
-     * @Security("is_granted('ROLE_SCHOOL_AUTHORITIES')")
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|Response
      * @throws Exception
      */
+    #[Route(path: '/edit-school', name: 'edit_school')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_SCHOOL_AUTHORITIES')"))]
     public function editSchool(Request $request)
     {
         $em = $this->getDoctrine()->getManager();
         $school = $this->getUser()->getCurrentSchool();
 
         $form = $this->createForm(SchoolType::class, $school, []);
+        $form->add('schoolAuthorityAccessAllowed', CheckboxType::class, [
+            'label' => 'Zugriff des Schulträgers erlauben',
+            'required' => false,
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -127,14 +128,14 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{step}", name="edit", defaults={"step":1})
-     * @Security("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param int $step
      * @param Request $request
      * @param MasterDataService $masterDataService
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/edit/{step}', name: 'edit', defaults: ['step' => 1])]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function edit(int $step, Request $request, MasterDataService $masterDataService): Response
     {
         $form = $masterDataService->getForm($step);
@@ -166,13 +167,13 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/show/{step}", name="show", defaults={"step":1})
      * @param int $step
      * @param Request $request
      * @param MasterDataService $masterDataService
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/show/{step}', name: 'show', defaults: ['step' => 1])]
     public function show(int $step, Request $request, MasterDataService $masterDataService): Response
     {
         if (! $masterDataService->hasFinalisedMasterData()) {
@@ -197,11 +198,11 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/portrait", name="portrait")
      * @param MasterDataService $masterDataService
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/portrait', name: 'portrait')]
     public function portrait(MasterDataService $masterDataService): Response
     {
         if (! $masterDataService->hasFinalisedMasterData()) {

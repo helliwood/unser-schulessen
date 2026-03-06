@@ -1,0 +1,27 @@
+<div class="col-12 mb-4">
+    <div class="panel h-100">
+        <h2><i class="far fa-trash-alt text-primary2 mr-1"></i>Papierkorb</h2>
+        <div class="mb-2">Hier finden Sie in den Papierkorb verschobene Umfragen.</div>
+        <data-table
+                api-url="{{ path('survey_list_deleted') }}"
+                sort-by="createdAt"
+                :sort-desc="true"
+                :per-page="10"
+                :fields="[
+                            {key: 'name', label: 'Name', sortable: true},
+                            {key: 'type', label: 'Typ', sortable: true, formatter: (value, key, item) => item.typeLabel},
+                            {key: 'stateLabel', label: 'Status', sortable: true},
+                            {key: 'createdAt', label: 'Erstellt', sortable: true,
+                                formatter: (value, key, item) => moment(item.createdAt.date).format('DD.MM.YYYY HH:mm')
+                            },
+                            {key: 'options', label: 'Optionen', sortable: false, class:'options'}
+                        ]">
+            <template v-slot:cell(options)="{ row, callAndRefresh }">
+                <b-button variant="success" size="sm"
+                          @click="callAndRefresh({action:'restore_survey', survey_id:row.item.id}, '{{ path('survey_list_deleted') }}')">
+                    <i class="fas fa-undo mr-1"></i>Wiederherstellen
+                </b-button>
+            </template>
+        </data-table>
+    </div>
+</div>

@@ -14,58 +14,57 @@ use Doctrine\ORM\Mapping as ORM;
  * Survey Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(name="survey_surveyquestion_choice_answer")
- * @ORM\Entity()
  */
+#[ORM\Table(name: 'survey_surveyquestion_choice_answer')]
+#[ORM\Entity]
 class SurveyQuestionChoiceAnswer
 {
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var SurveyQuestion
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Survey\SurveyQuestion", inversedBy="answers", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Survey\SurveyQuestion::class, inversedBy: 'answers', cascade: ['persist'], fetch: 'EAGER')]
     private $question;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=false)
      */
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private $createdAt;
 
     /**
      * @var SurveyVoucher|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Survey\SurveyVoucher", inversedBy="answers", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Survey\SurveyVoucher::class, inversedBy: 'answers', cascade: ['persist'], fetch: 'EAGER')]
     private $voucher;
 
     /**
      * @var SurveyQuestionChoice|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Survey\SurveyQuestionChoice", inversedBy="answers", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Survey\SurveyQuestionChoice::class, inversedBy: 'answers', cascade: ['persist'], fetch: 'EAGER')]
     private $choice;
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", length=1024, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 1024, nullable: true)]
     private $userAgent;
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", length=100, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
     private $userIp;
 
     /**

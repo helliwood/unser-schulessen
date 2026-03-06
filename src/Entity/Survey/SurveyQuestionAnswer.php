@@ -14,58 +14,63 @@ use Doctrine\ORM\Mapping as ORM;
  * Survey Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(name="survey_surveyquestion_answer")
- * @ORM\Entity()
  */
+#[ORM\Table(name: 'survey_surveyquestion_answer')]
+#[ORM\Entity]
 class SurveyQuestionAnswer
 {
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var SurveyQuestion
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Survey\SurveyQuestion", inversedBy="answers", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Survey\SurveyQuestion::class, inversedBy: 'answers', cascade: ['persist'], fetch: 'EAGER')]
     private $question;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=false)
      */
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private $createdAt;
 
     /**
      * @var SurveyVoucher|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Survey\SurveyVoucher", inversedBy="answers", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Survey\SurveyVoucher::class, inversedBy: 'answers', cascade: ['persist'], fetch: 'EAGER')]
     private $voucher;
 
     /**
      * @var bool|null
-     * @ORM\Column(type="boolean", nullable=true)
      */
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $answer;
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", length=1024, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 1024, nullable: true)]
     private $userAgent;
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", length=100, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
     private $userIp;
+
+    /**
+     * @var string|null
+     */
+    #[ORM\Column(type: 'string', length: 250, nullable: true)]
+    private $textAnswer;
 
     /**
      * SurveyQuestion constructor.
@@ -198,6 +203,24 @@ class SurveyQuestionAnswer
     public function setUserIp(?string $userIp): SurveyQuestionAnswer
     {
         $this->userIp = $userIp;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getTextAnswer(): ?string
+    {
+        return $this->textAnswer;
+    }
+
+    /**
+     * @param string|null $textAnswer
+     * @return $this
+     */
+    public function setTextAnswer(?string $textAnswer): SurveyQuestionAnswer
+    {
+        $this->textAnswer = $textAnswer;
         return $this;
     }
 }

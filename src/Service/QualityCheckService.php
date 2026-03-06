@@ -352,6 +352,9 @@ class QualityCheckService
             $qr = $this->entityManager->getRepository(Questionnaire::class);
             $questionnaire = $qr->findOneBy(['state' => Questionnaire::STATE_ACTIVE]);
             if (! $questionnaire) {
+                $questionnaire = $qr->findOneBy([], ['id' => 'DESC']);
+            }
+            if (! $questionnaire) {
                 throw new \Exception('Kein aktiver Fragebogen gefunden!');
             }
             $result = new Result();

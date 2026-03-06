@@ -1,0 +1,37 @@
+<div class="col-12 mb-4">
+    <div class="panel h-100 d-flex flex-column">
+        <h2><i class="fas fa-chart-bar mr-2 text-primary2 mr-1"></i>Träger-Umfragen</h2>
+        <div class="mb-2">Hier finden Sie bereits bearbeitete Träger-Umfragen mit Auswertung.</div>
+
+        {% if authorityCompletedSurveyParticipations is not empty %}
+            <table class="table table-sm">
+                <thead>
+                <tr>
+                    <th>Umfrage</th>
+                    <th>Teilgenommen am</th>
+                    <th class="text-right">Aktion</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for participation in authorityCompletedSurveyParticipations %}
+                    {% set survey = participation.survey %}
+                    <tr>
+                        <td>{{ survey.name }}</td>
+                        <td>{{ participation.participatedAt ? participation.participatedAt|date('d.m.Y') : '-' }}</td>
+                        <td class="text-right">
+                            {% if is_granted('ROLE_HEADMASTER') or is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
+                                <a class="btn btn-secondary btn-sm"
+                                   href="{{ path('survey_public_result', {uuid: survey.uuid}) }}">
+                                    Zur Auswertung
+                                </a>
+                            {% else %}
+                                <span class="text-muted">Keine Berechtigung</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+</div>

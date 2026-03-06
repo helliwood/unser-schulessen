@@ -12,7 +12,14 @@
 
 {% block body %}
     <h1 class="text-center">{{ survey.name }}</h1>
-    <h3 class="text-center">Umfrage {{ survey.school.name }}</h3>
+    <h3 class="text-center">
+        Umfrage
+        {% if survey.school %}
+            {{ survey.school.name }}
+        {% elseif survey.schoolAuthority %}
+            {{ survey.schoolAuthority.name }}
+        {% endif %}
+    </h3>
     {% if not closed %}
         <div class="panel">
             <h4 class="text-center mb-3">{{ survey.introduction }}</h4>

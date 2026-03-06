@@ -2,9 +2,10 @@
 
 namespace App\Tests\Controller\Admin;
 
+use App\DataFixtures\UnitTestFixtures;
 use App\Entity\QualityCheck\Category;
-use App\Entity\QualityCheck\Question;
 use App\Entity\QualityCheck\Questionnaire;
+use App\Entity\User;
 use App\Tests\Controller\AbstractTestController;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,19 +13,23 @@ use Symfony\Component\HttpFoundation\Response;
 class Questionnaire2ControllerTest extends AbstractTestController
 {
     protected $client = null;
-    protected const QUESTIONNAIRE_NEW = 'Fragebogen Neu';
-    protected const QUESTIONNAIRE_CLONED = 'Fragebogen gekloned';
+    protected static $questionnaireBaseName;
+    protected static $questionnaireClonedName;
 
     public function setUp(): void
     {
         $this->client = static::createClient();
         $this->logIn();
+        if (self::$questionnaireBaseName === null) {
+            $suffix = uniqid('', true);
+            self::$questionnaireBaseName = 'Fragebogen Neu '.$suffix;
+            self::$questionnaireClonedName = 'Fragebogen gekloned '.$suffix;
+        }
     }
 
     public function testActivate()
     {
-        /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_NEW]);
+        $questionnaire = $this->getOrCreateBaseQuestionnaire();
 
         $postData = ['action' => 'activate_questionnaire', 'questionnaire_id' => $questionnaire->getId()];
 
@@ -37,21 +42,20 @@ class Questionnaire2ControllerTest extends AbstractTestController
 
     public function testNewBasedOn()
     {
-        /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_NEW]);
+        $questionnaire = $this->getOrCreateBaseQuestionnaire();
 
         $postData = ['questionnaire' => []];
-        $postData['questionnaire']['name'] = self::QUESTIONNAIRE_CLONED;
+        $postData['questionnaire']['name'] = self::$questionnaireClonedName;
         $postData['questionnaire']['basedOn'] = $questionnaire->getId();
         $postData['save'] = "";
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('POST', '/admin/questionnaire/new', $postData);
         $this->assertSame(Response::HTTP_FOUND, $this->client->getResponse()->getStatusCode());
-        /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_NEW]);
+
         /** @var Questionnaire $clonedQuestionnaire */
-        $clonedQuestionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_CLONED]);
+        $clonedQuestionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::$questionnaireClonedName]);
+        $this->assertNotNull($clonedQuestionnaire);
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/questionnaire/show/' . $clonedQuestionnaire->getId());
@@ -67,9 +71,10 @@ class Questionnaire2ControllerTest extends AbstractTestController
             ->andWhere('c.parent IS NOT NULL')
             ->setParameter('questionnaire', $clonedQuestionnaire->getId())
             ->getQuery()
-            ->getResult()[0];
+            ->getResult();
+        $this->assertNotEmpty($clonedCategories);
 
-        $clonedSubCategoryQuestion = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['id' => $clonedCategories['id']]);
+        $clonedSubCategoryQuestion = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['id' => $clonedCategories[0]['id']]);
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/questionnaire/category/questions/' . $clonedSubCategoryQuestion->getId());
@@ -79,8 +84,15 @@ class Questionnaire2ControllerTest extends AbstractTestController
 
     public function testDelete()
     {
-        /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_CLONED]);
+        /** @var Questionnaire|null $questionnaire */
+        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::$questionnaireClonedName]);
+        if ($questionnaire === null) {
+            $questionnaire = new Questionnaire();
+            $questionnaire->setName(self::$questionnaireClonedName);
+            $questionnaire->setCreatedBy($this->getFixtureUser());
+            $this->getEntityManager()->persist($questionnaire);
+            $this->getEntityManager()->flush();
+        }
 
         $postData = ['action' => 'delete_questionnaire', 'questionnaire_id' => $questionnaire->getId()];
 
@@ -89,5 +101,43 @@ class Questionnaire2ControllerTest extends AbstractTestController
         $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
         $JSON_response = json_decode($this->client->getResponse()->getContent(), true);
         $this->assertNotEmpty($JSON_response);
+    }
+
+    private function getOrCreateBaseQuestionnaire(): Questionnaire
+    {
+        $em = $this->getEntityManager();
+        /** @var Questionnaire|null $questionnaire */
+        $questionnaire = $em->getRepository(Questionnaire::class)->findOneBy(['name' => self::$questionnaireBaseName]);
+        if ($questionnaire !== null) {
+            return $questionnaire;
+        }
+
+        $questionnaire = new Questionnaire();
+        $questionnaire->setName(self::$questionnaireBaseName);
+        $questionnaire->setCreatedBy($this->getFixtureUser());
+        $em->persist($questionnaire);
+        $em->flush();
+
+        $parentCategory = new Category();
+        $parentCategory->setName('Kategorie Parent '.uniqid('', true));
+        $parentCategory->setOrder(1);
+        $parentCategory->setQuestionnaire($questionnaire);
+        $em->persist($parentCategory);
+
+        $subCategory = new Category();
+        $subCategory->setParent($parentCategory);
+        $subCategory->setName('Kategorie Child '.uniqid('', true));
+        $subCategory->setOrder(1);
+        $subCategory->setQuestionnaire($questionnaire);
+        $em->persist($subCategory);
+
+        $em->flush();
+
+        return $questionnaire;
+    }
+
+    private function getFixtureUser(): User
+    {
+        return $this->getEntityManager()->getRepository(User::class)->findOneBy(['email' => UnitTestFixtures::TESTUSER_EMAIL]);
     }
 }

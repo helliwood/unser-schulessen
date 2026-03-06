@@ -9,32 +9,31 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Questionnaire Entity
  *
  * @author Victoria Köhring <köhring@helliwood.com>
- *
- * @ORM\Entity()
  */
+#[ORM\Entity]
 class Formula implements \JsonSerializable
 {
 
     /**
      * @var Question
-     * @ORM\Id
-     * @ORM\OneToOne(targetEntity="\App\Entity\QualityCheck\Question", inversedBy="formula", cascade={"persist"})
-     * @ORM\JoinColumn(name="question_id", onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(name: 'question_id', onDelete: 'CASCADE')]
+    #[ORM\Id]
+    #[ORM\OneToOne(targetEntity: \App\Entity\QualityCheck\Question::class, inversedBy: 'formula', cascade: ['persist'])]
     private $question;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=250, unique=false, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 250, unique: false, nullable: false)]
     private $formula_true;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=250, unique=false, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 250, unique: false, nullable: false)]
     private $formula_false;
 
     /**

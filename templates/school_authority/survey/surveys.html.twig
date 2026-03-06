@@ -1,0 +1,56 @@
+{% extends 'base.html.twig' %}
+{% set stateActive = constant('App\\Entity\\Survey\\Survey::STATE_ACTIVE') %}
+{% set stateNotActivated = constant('App\\Entity\\Survey\\Survey::STATE_NOT_ACTIVATED') %}
+{% set stateClosed = constant('App\\Entity\\Survey\\Survey::STATE_CLOSED') %}
+
+{% block title %}Meine Umfragen - Schulträger{% endblock %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <h1>Meine Umfragen</h1>
+
+        <div class="panel col-12">
+            {% if canManageSurveys %}
+                <div class="mb-3">
+                    <a class="btn btn-secondary" href="{{ path('school_authority_survey_new') }}">
+                        <i class="fas fa-plus mr-1"></i>Umfrage erstellen
+                    </a>
+                </div>
+            {% endif %}
+
+            <data-table
+                    api-url="{{ path('school_authority_surveys_ajax') }}"
+                    :search="true"
+                    sort-by="createdAt"
+                    :sort-desc="true"
+                    :per-page="10"
+                    :fields="[
+                        {key: 'name', label: 'Name', sortable: true},
+                        {key: 'type', label: 'Typ', sortable: false},
+                        {key: 'stateLabel', label: 'Status', sortable: false},
+                        {key: 'createdAt', label: 'Erstellt', sortable: false},
+                        {key: 'closesAt', label: 'Ablauf', sortable: false},
+                        {key: 'participationCount', label: 'Schulen', sortable: false},
+                        {key: 'options', label: 'Aktionen', sortable: false, class:'options text-right'}
+                    ]">
+                <template v-slot:cell(type)="row">
+                    <span v-if="row.item.isSchoolAuthorityTemplate" class="badge badge-info">Vorlage</span>
+                    <span v-else-if="row.item.isSchoolAuthoritySurvey" class="badge badge-primary">Schulträger-Umfrage</span>
+                    <span v-else class="badge badge-secondary">Standard</span>
+                </template>
+
+                <template v-slot:cell(options)="{ row }">
+                    <b-button size="sm" variant="secondary" :href="'/schultraeger/umfragen/'+row.item.id">
+                        <i class="far fa-eye mr-1"></i>
+                        Anzeigen
+                    </b-button>
+                </template>
+            </data-table>
+            <div class="mt-3">
+                <small class="text-muted">
+                    <strong>Typ:</strong> Vorlage = für Schulen freigeschaltete Vorlage, Schulträger-Umfrage = direkte Träger-Umfrage
+                </small>
+            </div>
+        </div>
+    </div>
+{% endblock %}

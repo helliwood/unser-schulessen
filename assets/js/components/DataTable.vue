@@ -4,6 +4,13 @@
             <b-spinner label="Spinning" variant="primary"></b-spinner>
         </div>
         <div :hidden="!loaded">
+            <div v-if="search" class="mb-3">
+                <b-form-input
+                        v-model="searchTerm"
+                        type="search"
+                        placeholder="Suchen..."
+                        @input="onSearchInput"></b-form-input>
+            </div>
             <b-table
                     v-bind="$attrs"
                     v-on="$listeners"
@@ -71,7 +78,15 @@
                 default: false
             },
             rowClicked: Function,
-            caption: String
+            caption: String,
+            search: {
+                type: Boolean,
+                default: false
+            },
+            searchDebounceMs: {
+                type: Number,
+                default: 300
+            }
         },
         data() {
             return {
@@ -79,20 +94,34 @@
                 loaded: false,
                 currentPage: this.page,
                 totalRows: 0,
-                isBusy: false
+                isBusy: false,
+                searchTerm: '',
+                searchDebounceTimer: null
+            }
+        },
+        beforeDestroy() {
+            if (this.searchDebounceTimer) {
+                clearTimeout(this.searchDebounceTimer);
             }
         },
         methods: {
             legend() {
-                var from = (this.currentPage - 1) * this.perPage;
+                if (this.totalRows === 0) {
+                    return 'Zeige 0 bis 0 von 0';
+                }
+                var from = (this.currentPage - 1) * this.perPage + 1;
                 var to = (this.currentPage - 1) * this.perPage + this.perPage;
-                return 'Zeige ' + (from <= 0 ? 1 : from) + ' bis ' + (to > this.totalRows ? this.totalRows : to) + ' von ' + this.totalRows;
+                return 'Zeige ' + from + ' bis ' + (to > this.totalRows ? this.totalRows : to) + ' von ' + this.totalRows;
             },
             myProvider(ctx) {
                 // Here we don't set isBusy prop, so busy state will be
                 // handled by table itself
                 this.isBusy = true;
-                const params = '?page=' + ctx.currentPage + '&size=' + ctx.perPage + '&sort=' + ctx.sortBy + '&sortDesc=' + ctx.sortDesc;
+                let params = '?page=' + ctx.currentPage + '&size=' + ctx.perPage + '&sort=' + ctx.sortBy + '&sortDesc=' + ctx.sortDesc;
+                if (this.search && this.searchTerm && this.searchTerm.trim() !== '') {
+                    const tokenized = this.searchTerm.trim().replace(/\s+/g, '%');
+                    params += '&search=' + encodeURIComponent(tokenized);
+                }
                 let promise = axios.get(ctx.apiUrl ? ctx.apiUrl + params : '' + params);
                 return promise.then((data) => {
                     // Here we could override the busy state, setting isBusy to false
@@ -136,6 +165,17 @@
                 this.$nextTick(function () {
                     this.$refs.table.refresh();
                 });
+            },
+            onSearchInput() {
+                this.currentPage = 1;
+                if (this.searchDebounceTimer) {
+                    clearTimeout(this.searchDebounceTimer);
+                }
+                this.searchDebounceTimer = setTimeout(() => {
+                    this.$nextTick(function () {
+                        this.$refs.table.refresh();
+                    });
+                }, this.searchDebounceMs);
             },
             rowClickedHere(item, index) {
                 if (this.rowClicked) {

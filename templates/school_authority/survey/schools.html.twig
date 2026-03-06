@@ -1,0 +1,71 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <h1>Schulen auswählen</h1>
+        <div class="panel">
+            <form method="post">
+                <div class="mb-3">
+                    <strong>Umfrage:</strong> {{ survey.name }}
+                </div>
+                <div class="mb-3">
+                    <button type="button" class="btn btn-secondary btn-sm mr-2 js-select-all-schools">
+                        <i class="fas fa-check-square mr-1"></i>Alle auswählen
+                    </button>
+                    <button type="button" class="btn btn-warning btn-sm js-deselect-all-schools">
+                        <i class="far fa-square mr-1"></i>Alle abwählen
+                    </button>
+                </div>
+                <div class="row">
+                    {% for school in schools %}
+                        <div class="col-md-6 mb-2">
+                            <label class="d-flex align-items-center">
+                                <input
+                                        type="checkbox"
+                                        name="schools[]"
+                                        value="{{ school.id }}"
+                                        class="mr-2 js-school-checkbox"
+                                        {% for participation in participations %}
+                                            {% if participation.school.id == school.id %}checked{% endif %}
+                                        {% endfor %}
+                                >
+                                {{ school.name }}
+                            </label>
+                        </div>
+                    {% endfor %}
+                </div>
+                <div class="mt-3 d-flex">
+                    <button type="submit" class="btn btn-primary mr-2"><i class="far fa-save mr-1"></i>Speichern</button>
+                    <a href="{{ path('school_authority_surveys') }}" class="btn btn-secondary"><i class="fas fa-arrow-left mr-1"></i>Zurück</a>
+                </div>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkboxes = document.querySelectorAll('.js-school-checkbox');
+            const selectAllButton = document.querySelector('.js-select-all-schools');
+            const deselectAllButton = document.querySelector('.js-deselect-all-schools');
+
+            if (selectAllButton) {
+                selectAllButton.addEventListener('click', function () {
+                    checkboxes.forEach(function (checkbox) {
+                        checkbox.checked = true;
+                    });
+                });
+            }
+
+            if (deselectAllButton) {
+                deselectAllButton.addEventListener('click', function () {
+                    checkboxes.forEach(function (checkbox) {
+                        checkbox.checked = false;
+                    });
+                });
+            }
+        });
+    </script>
+{% endblock %}

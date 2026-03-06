@@ -18,9 +18,8 @@ use Doctrine\ORM\PersistentCollection;
  * Result Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity(repositoryClass="App\Repository\QualityCheck\ResultRepository")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\QualityCheck\ResultRepository::class)]
 class Result implements \JsonSerializable
 {
 
@@ -39,80 +38,83 @@ class Result implements \JsonSerializable
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     protected $id;
 
     /**
      * @var School|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\School", inversedBy="results")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\School::class, inversedBy: 'results')]
     protected $school;
 
     /**
      * @var User|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class)]
     protected $createdBy;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: 'datetime')]
     protected $createdAt;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     protected $lastEditedAt;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     protected $lastEditedBy;
 
     /**
      *
      * @var bool|null
-     * @ORM\Column(type="boolean", nullable=false, options={"default":false})
      */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     protected $finalised = false;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     protected $finalisedBy;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     protected $finalisedAt;
 
     /**
      * @var Questionnaire
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Questionnaire")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Questionnaire::class)]
     protected $questionnaire;
 
     /**
      * @var Answer[]|ArrayCollection
-     * @ORM\OneToMany(targetEntity="\App\Entity\QualityCheck\Answer", mappedBy="result", cascade={"persist"}, orphanRemoval=true, indexBy="question_id")
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\QualityCheck\Answer::class, mappedBy: 'result', cascade: ['persist'], orphanRemoval: true, indexBy: 'question_id')]
     private $answers;
+
+    /**
+     * @var string|null
+     */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    protected $name;
 
     /**
      * Result constructor.
@@ -373,6 +375,24 @@ class Result implements \JsonSerializable
     public function setAnswers($answers): Result
     {
         $this->answers = $answers;
+        return $this;
+    }
+
+    /**
+     * @return string|null
+     */
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    /**
+     * @param string|null $name
+     * @return $this
+     */
+    public function setName(?string $name): Result
+    {
+        $this->name = $name;
         return $this;
     }
 
@@ -640,10 +660,31 @@ class Result implements \JsonSerializable
     /**
      * @return string[]
      */
+    public function getGaugeStats(): array
+    {
+        $stats = ["true" => 0, "partial" => 0, "false" => 0, "not_answered" => 0];
+        foreach ($this->getAnswers() as $answer) {
+            $answerType = $answer->calculateAnswer();
+            if ($answerType === null) {
+                $answerType = 'not_answered';
+            }
+            if (isset($stats[$answerType])) {
+                $stats[$answerType]++;
+            } else {
+                $stats[$answerType] = 1;
+            }
+        }
+        return $stats;
+    }
+
+    /**
+     * @return string[]
+     */
     public function jsonSerialize(): array
     {
         return [
             'id' => $this->getId(),
+            'name' => $this->getName(),
             'createdAt' => $this->getCreatedAt(),
             'createdBy' => $this->getCreatedBy()->getDisplayName(),
             'finalised' => $this->isFinalised(),

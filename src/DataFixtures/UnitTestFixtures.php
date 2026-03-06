@@ -9,9 +9,16 @@ use App\Entity\School;
 use App\Entity\SchoolYear;
 use App\Entity\User;
 use App\Entity\UserHasSchool;
+use App\Entity\QualityCheck\Answer;
+use App\Entity\QualityCheck\Category;
+use App\Entity\QualityCheck\Formula;
+use App\Entity\QualityCheck\Question;
+use App\Entity\QualityCheck\Questionnaire;
+use App\Entity\QualityCheck\Result;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class UnitTestFixtures extends Fixture
 {
@@ -26,16 +33,16 @@ class UnitTestFixtures extends Fixture
     public const TESTUSER_LAST_NAME = 'Tester';
 
     /**
-     * @var UserPasswordEncoderInterface
+     * @var UserPasswordHasherInterface
      */
     private $encoder;
 
-    public function __construct(UserPasswordEncoderInterface $encoder)
+    public function __construct(UserPasswordHasherInterface $encoder)
     {
         $this->encoder = $encoder;
     }
 
-    public function load(ObjectManager $manager)
+    public function load(ObjectManager $manager): void
     {
         /** Erzeugt letztes, dieses und nächstes Schuljahr in der DB */
         for ($year = date('Y') - 1; $year <= date('Y') + 1; $year++) {
@@ -57,7 +64,7 @@ class UnitTestFixtures extends Fixture
 
         $user = new User();
         $user->setEmail(self::TESTUSER_EMAIL);
-        $user->setPassword($this->encoder->encodePassword($user, self::TESTUSER_PASSWORD));
+        $user->setPassword($this->encoder->hashPassword($user, self::TESTUSER_PASSWORD));
         $user->setState(User::STATE_ACTIVE);
         $user->addRole(User::ROLE_ADMIN);
         $manager->persist($user);
@@ -70,7 +77,7 @@ class UnitTestFixtures extends Fixture
 
         $user2 = new User();
         $user2->setEmail(self::TESTUSER2_EMAIL);
-        $user2->setPassword($this->encoder->encodePassword($user, self::TESTUSER_PASSWORD));
+        $user2->setPassword($this->encoder->hashPassword($user, self::TESTUSER_PASSWORD));
         $user2->setState(User::STATE_ACTIVE);
         $user2->addRole(User::ROLE_HEADMASTER);
         $manager->persist($user2);
@@ -123,6 +130,51 @@ class UnitTestFixtures extends Fixture
         $user->setCurrentSchool($school);
         $user2->getUserHasSchool()->add($userHasSchool2);
         $user2->setCurrentSchool($school);
+
+        // Minimaler aktiver Qualitäts-Check Fragebogen für Controller-Tests.
+        $questionnaire = new Questionnaire();
+        $questionnaire
+            ->setName('Test Fragebogen')
+            ->setCreatedBy($user)
+            ->setState(Questionnaire::STATE_ACTIVE);
+        $manager->persist($questionnaire);
+
+        $category = new Category();
+        $category
+            ->setQuestionnaire($questionnaire)
+            ->setName('Test Kategorie')
+            ->setOrder(1);
+        $manager->persist($category);
+
+        $question = new Question();
+        $question
+            ->setCategory($category)
+            ->setQuestion('Test Frage')
+            ->setOrder(1)
+            ->setType(Question::TYPE_NEEDED);
+        $formula = new Formula();
+        $formula
+            ->setFormulaTrue('>= 4')
+            ->setFormulaFalse('<= 2');
+        $question->setFormula($formula);
+        $manager->persist($question);
+
+        $result = new Result();
+        $result
+            ->setSchool($school)
+            ->setCreatedBy($user)
+            ->setQuestionnaire($questionnaire)
+            ->setFinalised(true)
+            ->setFinalisedBy($user)
+            ->setFinalisedAt(new \DateTime());
+        $answer = new Answer();
+        $answer
+            ->setQuestion($question)
+            ->setResult($result)
+            ->setAnswer(Answer::ANSWER_TRUE);
+        $result->setAnswers(new ArrayCollection([$answer]));
+        $manager->persist($result);
+        $manager->persist($answer);
 
         $manager->flush();
     }

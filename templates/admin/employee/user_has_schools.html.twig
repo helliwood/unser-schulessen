@@ -23,7 +23,7 @@
                         :fields="[
                                 {key: 'school.name', label: 'Name', sortable: false},
                                 // {key: 'personType', label: 'Typ', sortable: false},
-                                // {key: 'options', label: 'Optionen', sortable: false, class:'options'}
+                                {key: 'options', label: 'Optionen', sortable: false, class:'options'}
                             ]">
                     <template v-slot:cell(school.name)="row">
                         {{ '{{' }}row.item.school.name{{ '}}' }}
@@ -32,6 +32,14 @@
                         {{ '{{' }}row.item.personType{{ '}}' }}<br/>
                         <span class="text-muted small">Rolle: {{ '{{' }}row.item.roleText{{ '}}' }}</span>
 
+                    </template>
+                    <template v-slot:cell(options)="row">
+                        <b-button size="sm" :href="'/admin/school/show/'+row.item.school.id" class="mr-2">
+                            Anzeigen
+                        </b-button>
+                        {#                        <b-button v-if="row.item.hasCurrentMasterData" size="sm" :href="'/admin/school/export-master-data/'+row.item.id" class="mr-2">#}
+                        {#                            RB#}
+                        {#                        </b-button>#}
                     </template>
                     {#<template v-slot:cell(options)="{row, callAndRefresh}">
                         <b-button size="sm"

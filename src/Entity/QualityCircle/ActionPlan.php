@@ -16,62 +16,60 @@ use Symfony\Component\Validator\Constraints as Assert;
  * ToDoItem-Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity(repositoryClass="App\Repository\QualityCircle\ToDoItemRepository")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\QualityCircle\ToDoItemRepository::class)]
 class ActionPlan implements \JsonSerializable
 {
     /**
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var ToDoItem
-     * @ORM\OneToOne(targetEntity="App\Entity\QualityCircle\ToDoItem", inversedBy="actionPlan")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\OneToOne(targetEntity: \App\Entity\QualityCircle\ToDoItem::class, inversedBy: 'actionPlan')]
     private $todoItem;
 
     /**
      *
      * @var string|null
-     * @Assert\NotBlank()
-     * @Assert\Length(max="1024")
-     * @ORM\Column(type="string", length=1024, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 1024)]
+    #[ORM\Column(type: 'string', length: 1024, nullable: false)]
     private $what;
 
     /**
      *
      * @var string|null
-     * @Assert\NotBlank()
-     * @Assert\Length(max="1024")
-     * @ORM\Column(type="string", length=1024, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 1024)]
+    #[ORM\Column(type: 'string', length: 1024, nullable: false)]
     private $who;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="date", name="`when`")
      */
+    #[ORM\Column(type: 'date', name: '`when`')]
     private $when;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     private $createdBy;
 
     /**

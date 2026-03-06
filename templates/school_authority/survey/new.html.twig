@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <h1>{% if isTemplate %}Neue Trägervorlage{% else %}Neue Schulträger-Umfrage{% endif %}</h1>
+        <div class="panel">
+            {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+            {{ form_row(form.name) }}
+            {{ form_row(form.introduction) }}
+            {% if not isTemplate %}
+                {{ form_row(form.closesAt) }}
+            {% endif %}
+            <hr>
+            <h4>Schulen auswählen</h4>
+            <div class="mb-3">
+                <button type="button" class="btn btn-secondary btn-sm mr-2 js-select-all-schools">
+                    <i class="fas fa-check-square mr-1"></i>Alle auswählen
+                </button>
+                <button type="button" class="btn btn-warning btn-sm js-deselect-all-schools">
+                    <i class="far fa-square mr-1"></i>Alle abwählen
+                </button>
+            </div>
+            <div class="row">
+                {% for school in schools %}
+                    <div class="col-md-6 mb-2">
+                        <label class="d-flex align-items-center">
+                            <input type="checkbox"
+                                   name="schools[]"
+                                   value="{{ school.id }}"
+                                   class="mr-2 js-school-checkbox"
+                                   {% if school.id in selectedSchoolIds %}checked{% endif %}>
+                            {{ school.name }}
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="form-group mt-3">
+                <div class="d-flex">
+                    <button type="submit" id="save" name="save" class="btn-primary btn"><i class="far fa-save mr-1"></i>Speichern</button>
+                    <a href="{{ path('school_authority_survey_new') }}" class="btn btn-secondary ml-2"><i class="fas fa-arrow-left mr-1"></i>Zurück</a>
+                </div>
+            </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkboxes = document.querySelectorAll('.js-school-checkbox');
+            const selectAllButton = document.querySelector('.js-select-all-schools');
+            const deselectAllButton = document.querySelector('.js-deselect-all-schools');
+
+            if (selectAllButton) {
+                selectAllButton.addEventListener('click', function () {
+                    checkboxes.forEach(function (checkbox) {
+                        checkbox.checked = true;
+                    });
+                });
+            }
+
+            if (deselectAllButton) {
+                deselectAllButton.addEventListener('click', function () {
+                    checkboxes.forEach(function (checkbox) {
+                        checkbox.checked = false;
+                    });
+                });
+            }
+        });
+    </script>
+{% endblock %}

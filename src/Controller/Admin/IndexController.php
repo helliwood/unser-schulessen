@@ -12,24 +12,21 @@ use App\Controller\AbstractController;
 use App\Repository\MasterDataRepository;
 use App\Repository\QualityCheck\ResultRepository;
 use App\Repository\QuestionnaireRepository;
+use App\Repository\SchoolAuthorityRepository;
 use App\Repository\SchoolRepository;
 use App\Repository\SchoolYearRepository;
 use App\Repository\Survey\CategoryRepository;
 use App\Repository\Survey\SurveyQuestionRepository;
 use App\Repository\UserRepository;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/admin", name="admin_")
- * @IsGranted("ROLE_ADMIN")
- */
+#[Route(path: '/admin', name: 'admin_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class IndexController extends AbstractController
 {
 
     /**
-     * @Route("/{selectedYear}", name="home", defaults={"selectedYear":null}, requirements={"selectedYear"="\d+"})
      * @param string|null $selectedYear
      * @param QuestionnaireRepository $qr
      * @param ResultRepository $rr
@@ -38,9 +35,11 @@ class IndexController extends AbstractController
      * @param CategoryRepository $cr
      * @param UserRepository $ur
      * @param MasterDataRepository $mr
+     * @param SchoolYearRepository $syr
+     * @param SchoolAuthorityRepository $sar
      * @return Response
-     * @throws \DateMalformedPeriodStringException
      */
+    #[Route(path: '/{selectedYear}', name: 'home', defaults: ['selectedYear' => null], requirements: ['selectedYear' => '\d+'])]
     public function index(
         ?string $selectedYear,
         QuestionnaireRepository $qr,
@@ -50,11 +49,12 @@ class IndexController extends AbstractController
         CategoryRepository $cr,
         UserRepository $ur,
         MasterDataRepository $mr,
-        SchoolYearRepository $syr
+        SchoolYearRepository $syr,
+        SchoolAuthorityRepository $sar
     ): Response {
-        
-        $currentYear = (int) \date('Y');
-        $currentMonth = (int) \date('m');
+
+        $currentYear = (int)\date('Y');
+        $currentMonth = (int)\date('m');
 
         // Ab September zählt das neue Schuljahr
         $schoolYear = $currentMonth >= 9 ? $currentYear : $currentYear - 1;
@@ -80,7 +80,8 @@ class IndexController extends AbstractController
             'state_country' => $this->getStateCountry(),
             'selectedYear' => $selectedYear,
             'schoolYear' => $schoolYear,
-            'firstSchoolYear' => $firstSchoolYear
+            'firstSchoolYear' => $firstSchoolYear,
+            'schoolAuthorityCount' => $sar->count([])
         ]);
     }
 }

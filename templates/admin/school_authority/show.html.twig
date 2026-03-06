@@ -1,0 +1,58 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1 class="text-success mb-3">{{ schoolAuthority.name }}</h1>
+    <div class="panel p-4 w-100">
+        <dl class="row">
+            <dt class="col-sm-3">Beschreibung</dt>
+            <dd class="col-sm-9">{{ schoolAuthority.description }}</dd>
+            <dt class="col-sm-3">Ansprechpartner</dt>
+            <dd class="col-sm-9">{{ schoolAuthority.contactPerson }}</dd>
+            <dt class="col-sm-3">E-Mail</dt>
+            <dd class="col-sm-9">{{ schoolAuthority.contactEmail }}</dd>
+            <dt class="col-sm-3">Telefon</dt>
+            <dd class="col-sm-9">{{ schoolAuthority.contactPhone }}</dd>
+            <dt class="col-sm-3">Anzahl Schulen</dt>
+            <dd class="col-sm-9">{{ schoolAuthority.schools|length }}</dd>
+        </dl>
+        <a href="{{ path('admin_school_authority_edit', {'id': schoolAuthority.id}) }}" class="btn btn-warning">Bearbeiten</a>
+        <a href="{{ path('admin_school_authority_home') }}" class="btn btn-secondary">Zurück zur Übersicht</a>
+    </div>
+    <div class="panel p-4 w-100 mt-4">
+        <div class="d-flex mb-3">
+            <h2>Mitglieder</h2>
+            <div class="ml-auto">
+                <a href="{{ path('admin_school_authority_members_new', {id: schoolAuthority.id}) }}" class="btn btn-secondary">Mitglied einladen</a>
+            </div>
+        </div>
+        <data-table
+            api-url="{{ path('admin_school_authority_members_list', {id: schoolAuthority.id}) }}"
+            sort-by="displayName"
+            :sort-desc="false"
+            :per-page="10"
+            :fields="[
+                {key: 'displayName', label: 'Name', sortable: true},
+                {key: 'email', label: 'E-Mail', sortable: true},
+                {key: 'createdAt', label: 'Erstellt am', sortable: true},
+                {key: 'options', label: 'Optionen', sortable: false, class:'options'}
+            ]">
+            <template v-slot:cell(options)="{row, callAndRefresh}">
+                <b-button-group size="sm">
+                    <b-button size="sm"
+                              :href="'/admin/school-authority/members/{{ schoolAuthority.id }}/edit/' + row.item.id"
+                              class="mr-0">
+                        <i class="fas fa-edit mr-1"></i>Bearbeiten
+                    </b-button>
+                    <b-dropdown size="sm" right text="">
+                        <b-dropdown-item
+                                v-if="row.item.id != {{ app.user.id }}"
+                                :href="'/?_switch_user=' + encodeURIComponent(row.item.email)"
+                                variant="primary">
+                            <i class="fas fa-user-secret"></i> Impersonieren
+                        </b-dropdown-item>
+                    </b-dropdown>
+                </b-button-group>
+            </template>
+        </data-table>
+    </div>
+{% endblock %} 

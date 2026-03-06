@@ -63,7 +63,7 @@ class ContactsControllerTest extends AbstractTestController
         /** @var Crawler $crawler */
         $crawler = $this->client->request('POST', '/master_data/contacts/edit/' . $contact->getId());
         $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
-        $this->assertSame($this->lastName, $crawler->filter('h1')->text());
+        $this->assertSame($contact->getDisplayName(), $crawler->filter('h1')->text());
 
         $postData = ['contact' => []];
         $postData['contact']['salutation'] = "Herr";

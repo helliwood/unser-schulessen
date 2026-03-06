@@ -1,0 +1,246 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ school.name }} - Schulträger-Dashboard{% endblock %}
+
+{% block body %}
+    {% set AnswerEntity = 'App\\Entity\\QualityCheck\\Result::' %}
+
+    <div class="example-wrapper">
+        <h1 class="mb-4">{{ school.name }}</h1>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100">
+                    <h2>Schulinformationen</h2>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Adresse</dt>
+                        <dd class="col-sm-8">
+                            {{ school.address.street }}<br>
+                            {{ school.address.postalcode }} {{ school.address.city }}
+                        </dd>
+
+                        <dt class="col-sm-4">Telefon</dt>
+                        <dd class="col-sm-8">{{ school.address.telephone|default('-') }}</dd>
+
+                        <dt class="col-sm-4">E-Mail</dt>
+                        <dd class="col-sm-8">{{ school.address.email|default('-') }}</dd>
+                    </dl>
+                    <hr>
+                    <h4 class="mb-2">Schulträger-Nutzer</h4>
+                    {% if schoolAuthorityMembers|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Rolle</th>
+                                    <th>E-Mail</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for member in schoolAuthorityMembers %}
+                                    <tr>
+                                        <td>{{ member.displayName }}</td>
+                                        <td>{{ member.roleLabel }}</td>
+                                        <td>{{ member.email }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <span class="text-muted">Keine Schulträger-Nutzer zugewiesen</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100">
+                    <h2>Aktuelle Gesamtauswertung</h2>
+                    {% if latestResult %}
+                        {% set countQuestions = latestResult.questions|length %}
+                        {% set countTrue = latestResult.countAnswers(constant(AnswerEntity ~ 'ANSWER_TRUE')) %}
+                        {% set countPartial = latestResult.countAnswers(constant(AnswerEntity ~ 'ANSWER_PARTIAL')) %}
+                        {% set countFalse = latestResult.countAnswers(constant(AnswerEntity ~ 'ANSWER_FALSE')) %}
+                        {% set countAnswered = countTrue + countPartial + countFalse %}
+                        {% set countNotAnswered = countQuestions - countAnswered %}
+                        {% set percentTrue = countQuestions > 0 ? (countTrue / countQuestions * 100)|number_format(2, ',', '') : '0,00' %}
+                        {% set percentPartial = countQuestions > 0 ? (countPartial / countQuestions * 100)|number_format(2, ',', '') : '0,00' %}
+                        {% set percentFalse = countQuestions > 0 ? (countFalse / countQuestions * 100)|number_format(2, ',', '') : '0,00' %}
+                        {% set percentNotAnswered = countQuestions > 0 ? (countNotAnswered / countQuestions * 100)|number_format(2, ',', '') : '0,00' %}
+
+                        <img srcset="{{ path('school_authority_school_qc_gauge', {'id': school.id}) }}"
+                             class="img-fluid" alt="Qualitäts-Check Gesamtauswertung"/>
+                        <div class="small text-muted mt-2">
+                            {{ countAnswered }} Kriterien von {{ countQuestions }} Gesamtkriterien bewertet.<br>
+                            {{ latestResult.countAnsweredMainCategories() }} von {{ latestResult.questionnaire.categories|length }} Qualitätsfeldern bewertet.<br>
+                            <span class="text-success">{{ countTrue }} Erfüllt ({{ percentTrue }}%)</span>,
+                            <span class="text-warning">{{ countPartial }} Teilweise erfüllt ({{ percentPartial }}%)</span>,
+                            <span class="text-danger">{{ countFalse }} Nicht erfüllt ({{ percentFalse }}%)</span>,
+                            <span style="color: #adb5bd;">{{ countNotAnswered }} Nicht beantwortet ({{ percentNotAnswered }}%)</span><br>
+                            Stand: {{ latestResult.finalisedAt|date('d.m.Y') }}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info mb-0">
+                            Keine Bewertung vorhanden
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h3>Unsere Schule</h3>
+                    <div><strong>Stammdaten-Einträge:</strong> {{ summary.ourSchool.masterDataCount }}</div>
+                    <div><strong>Mitglieder:</strong> {{ summary.ourSchool.membersAccepted }} / {{ summary.ourSchool.membersTotal }}</div>
+                    <div class="mt-auto">
+                        <a href="{{ path('school_authority_school_master_data_export', {'id': school.id}) }}" class="btn btn-secondary mt-3">
+                            <i class="fas fa-print mr-1"></i>Stammdaten - PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h3>Qualitäts-Check</h3>
+                    <div><strong>Finalisierte Checks:</strong> {{ summary.qualityCheck.count }}</div>
+                    <div><strong>Letzter Check:</strong>
+                        {{ summary.qualityCheck.lastDate ? summary.qualityCheck.lastDate|date('d.m.Y') : '-' }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h3>Qualitätsprozess</h3>
+                    <div><strong>ToDos gesamt:</strong> {{ summary.qualityCircle.count }}</div>
+                    <div><strong>ToDos offen:</strong> {{ summary.qualityCircle.openCount }}</div>
+                    <div><strong>Letztes ToDo:</strong>
+                        {{ summary.qualityCircle.lastDate ? summary.qualityCircle.lastDate|date('d.m.Y') : '-' }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h3>Zufriedenheitsumfrage</h3>
+                    <div><strong>Umfragen gesamt:</strong> {{ summary.survey.count }}</div>
+                    <div><strong>Aktiv:</strong> {{ summary.survey.active }}</div>
+                    <div><strong>Geschlossen:</strong> {{ summary.survey.closed }}</div>
+                    <hr>
+                    <h4 class="mb-2">Abgeschlossene Umfragen (letzte 3)</h4>
+                    {% if closedSurveyItems|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Teilnehmer</th>
+                                    <th class="text-right">Aktion</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for item in closedSurveyItems %}
+                                    <tr>
+                                        <td>
+                                            {{ item.survey.name }}<br>
+                                            <small class="text-muted">Ablauf: {{ item.survey.closesAt ? item.survey.closesAt|date('d.m.Y') : '-' }}</small>
+                                        </td>
+                                        <td>{{ item.participants }}</td>
+                                        <td class="text-right">
+                                            <a class="btn btn-secondary btn-sm"
+                                               href="{{ path('school_authority_school_survey_result', {'school': school.id, 'survey': item.survey.id}) }}">
+                                                <i class="fas fa-chart-bar mr-1"></i>Auswertung
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted mt-2">Keine abgeschlossenen Umfragen vorhanden</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h3>Teller-Check</h3>
+                    <div><strong>Teller-Checks gesamt:</strong> {{ summary.foodSurvey.count }}</div>
+                    <div><strong>Aktiv:</strong> {{ summary.foodSurvey.active }}</div>
+                    <div><strong>Geschlossen:</strong> {{ summary.foodSurvey.closed }}</div>
+                    <hr>
+                    <h4 class="mb-2">Abgeschlossene Teller-Checks (letzte 3)</h4>
+                    {% if closedFoodSurveyItems|length > 0 %}
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Teller</th>
+                                    <th>Check</th>
+                                    <th>Teilnehmer</th>
+                                    <th class="text-right">Aktion</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for foodSurvey in closedFoodSurveyItems %}
+                                    <tr>
+                                        <td style="width: 96px;">
+                                            <img src="{{ path('food_survey_image', {'id': foodSurvey.id, 'spots': 1}) }}"
+                                                 alt="Teller-Check Bild"
+                                                 style="width: 84px; height: 56px; object-fit: cover; border-radius: 4px;">
+                                        </td>
+                                        <td>
+                                            {{ foodSurvey.name }}<br>
+                                            <small class="text-muted">Ablauf: {{ foodSurvey.closesAt ? foodSurvey.closesAt|date('d.m.Y') : '-' }}</small>
+                                        </td>
+                                        <td>{{ foodSurvey.results|length }}</td>
+                                        <td class="text-right">
+                                            <a class="btn btn-secondary btn-sm"
+                                               href="{{ path('school_authority_school_food_survey_result', {'school': school.id, 'foodSurvey': foodSurvey.id}) }}">
+                                                <i class="fas fa-chart-bar mr-1"></i>Auswertung
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-muted mt-2">Keine abgeschlossenen Teller-Checks vorhanden</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h3><i class="far fa-life-ring text-primary2 mr-1"></i>Hilfe</h3>
+                    <p>Kurze Erläuterung zur Schulübersicht im Trägerdashboard.</p>
+                    <p class="text-muted mb-2">Hier finden Sie die wichtigsten Kennzahlen und direkten Zugang zu Auswertungen.</p>
+                    <button v-b-modal.modal-help-school-authority-school-details class="btn btn-secondary mt-auto" type="button">
+                        <i class="fas fa-link mr-1"></i>Hilfe aufrufen
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <b-modal id="modal-help-school-authority-school-details" title="Hilfe Schulübersicht (Träger)" size="xl" ok-only>
+            <h5>Wofür ist diese Seite?</h5>
+            <p>Diese Ansicht zeigt den aktuellen Stand einer einzelnen Schule aus Sicht des Schulträgers.</p>
+
+            <h5>Schulinformationen</h5>
+            <p>Hier sehen Sie Adress- und Kontaktdaten sowie zugewiesene Schulträger-Nutzer der Schule.</p>
+
+            <h5>Aktuelle Gesamtauswertung</h5>
+            <p>Der Gauge zeigt den letzten finalisierten Qualitäts-Check inklusive Verteilung der Ergebnisse.</p>
+
+            <h5>Zufriedenheitsumfrage</h5>
+            <p>Die letzten 3 abgeschlossenen Umfragen werden mit Teilnehmerzahl und Auswertungs-Button angezeigt.</p>
+
+            <h5>Teller-Check</h5>
+            <p>Die letzten 3 abgeschlossenen Teller-Checks enthalten Vorschaubild, Teilnehmerzahl und direkten Link zur Auswertung.</p>
+
+            <h5>Hinweis</h5>
+            <p>Wenn der Trägerzugriff für eine Schule deaktiviert wurde, sind Detailzugriffe und Auswertungen gesperrt.</p>
+        </b-modal>
+
+    </div>
+{% endblock %} 

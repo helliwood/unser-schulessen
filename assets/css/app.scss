@@ -2,6 +2,7 @@
 $primary: #16411C;
 $primary2: #16411C; // Dunkelgrün für Icons in Boxen
 $secondary: #FFC500;
+$warning: #e5c86f;
 $danger: #990000;
 $success: #28a745; // Dunkleres Grün für besseren Kontrast
 $info: #3d6ba0; // Dunkles Blau für WCAG AA Kontrast (mindestens 4.5:1)
@@ -52,6 +53,10 @@ $panel-headings-color: $body-color;
   background-color: #3d6ba0; // Dunkles Blau für WCAG AA Kontrast (mindestens 4.5:1)
   border-color: #3d6ba0;
   color: #fff;
+}
+
+.btn-warning {
+  color: #212529;
 }
 
 .copyright {

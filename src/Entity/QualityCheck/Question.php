@@ -8,7 +8,6 @@
 
 namespace App\Entity\QualityCheck;
 
-use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Doctrine\ORM\Mapping\UniqueConstraint;
@@ -19,12 +18,10 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @author Maurice Karg <karg@helliwood.com>
  *
- * @ORM\Table(uniqueConstraints={
- *   @UniqueConstraint(columns={"category_id", "question"})
- * })
- * @ORM\Entity(repositoryClass="App\Repository\QuestionRepository")
- * @IgnoreAnnotation("phpcsSuppress")
  */
+#[ORM\Table]
+#[UniqueConstraint(columns: ['category_id', 'question'])]
+#[ORM\Entity(repositoryClass: \App\Repository\QuestionRepository::class)]
 class Question implements \JsonSerializable
 {
     public const TYPE_NEEDED = "needed";
@@ -32,103 +29,100 @@ class Question implements \JsonSerializable
     /**
      *
      * @var int
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      *
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="190")
-     * @ORM\Column(type="string", length=190)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 190)]
+    #[ORM\Column(type: 'string', length: 190)]
     private $question;
 
     /**
      *
      * @var bool|null
-     * @ORM\Column(type="boolean", nullable=false, options={"default":false})
      */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private $sustainable = false;
 
     /**
      * @var string[] Zusätzliche beschreibende Flags für die Questions
-     * @ORM\Column(type="json", nullable=true)
      */
+    #[ORM\Column(type: 'json', nullable: true)]
     private $flags = null;
 
     /**
      *
      * @var bool|null
-     * @ORM\Column(type="boolean", nullable=false, options={"default":false})
      */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private $miniCheck = false;
 
 
     /**
      * @var string|null
-     * @Assert\Length(max="512")
-     * @ORM\Column(type="string", length=512, nullable=true)
      */
+    #[Assert\Length(max: 512)]
+    #[ORM\Column(type: 'string', length: 512, nullable: true)]
     private $miniCheckInfo;
 
     /**
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, name="`order`")
      */
+    #[ORM\Column(type: 'smallint', nullable: false, name: '`order`')]
     private $order;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @ORM\Column(name="`type`", type="string", length=50, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(name: '`type`', type: 'string', length: 50, nullable: false)]
     private $type = self::TYPE_NOT_NEEDED;
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $masterDataQuestion;
 
     /**
      * @var Category
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Category", inversedBy="questions")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Category::class, inversedBy: 'questions')]
     private $category;
 
     /**
      * @var Question
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Question")
-     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Question::class)]
     private $previous;
 
     /**
      * @var Ideabox[]|ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity="\App\Entity\QualityCheck\Ideabox", mappedBy="question", orphanRemoval=true, indexBy="id")
-     * @ORM\OrderBy({"order":"ASC"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\QualityCheck\Ideabox::class, mappedBy: 'question', orphanRemoval: true, indexBy: 'id')]
+    #[ORM\OrderBy(['order' => 'ASC'])]
     private $ideaboxes;
 
     /**
      * @var Formula|null
-     * @ORM\OneToOne(targetEntity="\App\Entity\QualityCheck\Formula", mappedBy="question", cascade={"persist", "remove"}, orphanRemoval=true)
      */
+    #[ORM\OneToOne(targetEntity: \App\Entity\QualityCheck\Formula::class, mappedBy: 'question', cascade: ['persist', 'remove'], orphanRemoval: true)]
     private $formula;
 
     /**
      * @var string|null
-     * @Assert\Length(max="190")
-     * @ORM\Column(type="string", length=190, nullable=true)
      */
+    #[Assert\Length(max: 190)]
+    #[ORM\Column(type: 'string', length: 190, nullable: true)]
     private $help;
 
     /**

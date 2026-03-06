@@ -22,9 +22,20 @@
                         gelbe Kriterien aus Ihrem aktuellen Qualitäts-Check-Ergebnis beziehen. Oder Sie erstellen ein
                         selbstformuliertes To Do.</p>
                     {% if is_granted('ROLE_MENSA_AG') or is_granted('ROLE_FOOD_COMMISSIONER') %}
-                        <a class="btn btn-secondary" href="{{ path('quality_circle_todo_new') }}"><i
-                                    class="fas fa-plus mr-1"></i>To Do auswählen</a>
-                        <a class="btn btn-secondary ml-1" href="{{ path('quality_circle_todo_new_open') }}"><i
+                        {% if hasQualityCheck %}
+                            <a class="btn btn-secondary" href="{{ path('quality_circle_todo_new') }}"><i
+                                        class="fas fa-plus mr-1"></i>To Do auswählen</a>
+                        {% else %}
+                            <div class="d-inline-block">
+                                <button class="btn btn-outline-dark" disabled="disabled">
+                                    <i class="fas fa-lock mr-1"></i>To Do auswählen
+                                </button>
+                                <div class="text-muted small mt-1 mb-2">
+                                    „To Do auswählen“ ist erst nach einem abgeschlossenen Qualitäts-Check verfügbar.
+                                </div>
+                            </div>
+                        {% endif %}
+                        <a class="btn btn-secondary" href="{{ path('quality_circle_todo_new_open') }}"><i
                                     class="fas fa-plus mr-1"></i>To Do erstellen</a>
                     {% endif %}
                 </div>

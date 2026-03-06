@@ -15,69 +15,64 @@ use Doctrine\ORM\Mapping as ORM;
  * MasterData Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(uniqueConstraints={
- *      @ORM\UniqueConstraint(name="MD_School_Version_unique",
- *      columns={"school_id", "school_year"})
- * })
- * @ORM\Entity(repositoryClass="App\Repository\MasterDataRepository")
  */
+#[ORM\Table]
+#[ORM\UniqueConstraint(name: 'MD_School_Version_unique', columns: ['school_id', 'school_year'])]
+#[ORM\Entity(repositoryClass: \App\Repository\MasterDataRepository::class)]
 class MasterData
 {
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     protected $id;
 
     /**
      * @var School|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\School", cascade={"persist"}, fetch="EAGER", inversedBy="masterData")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\School::class, cascade: ['persist'], fetch: 'EAGER', inversedBy: 'masterData')]
     protected $school;
 
     /**
      * @var SchoolYear|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\SchoolYear", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=false, name="school_year", referencedColumnName="year", onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: false, name: 'school_year', referencedColumnName: 'year', onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\SchoolYear::class, cascade: ['persist'], fetch: 'EAGER')]
     protected $schoolYear;
 
     /**
      *
      * @var bool|null
-     * @ORM\Column(type="boolean", nullable=false, options={"default":false})
      */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     protected $finalised = false;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     protected $finalisedBy;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: 'datetime')]
     protected $createdAt;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     protected $finalisedAt;
     /**
      * @var MasterDataEntry[]|ArrayCollection
-     * @ORM\OneToMany(targetEntity="\App\Entity\MasterDataEntry", cascade={"persist"}, mappedBy="masterData", fetch="EAGER")
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\MasterDataEntry::class, cascade: ['persist'], mappedBy: 'masterData', fetch: 'EAGER')]
     protected $entries;
 
     /**

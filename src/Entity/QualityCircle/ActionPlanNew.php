@@ -17,91 +17,89 @@ use Symfony\Component\Validator\Constraints as Assert;
  * ActionPlanNew-Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity()
  */
+#[ORM\Entity]
 class ActionPlanNew implements \JsonSerializable
 {
     /**
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var ToDoNew
-     * @ORM\ManyToOne(targetEntity="App\Entity\QualityCircle\ToDoNew", inversedBy="actionPlans")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCircle\ToDoNew::class, inversedBy: 'actionPlans')]
     private $toDo;
 
     /**
      *
      * @var string|null
-     * @Assert\NotBlank()
-     * @Assert\Length(max="1024")
-     * @ORM\Column(type="string", length=1024, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 1024)]
+    #[ORM\Column(type: 'string', length: 1024, nullable: false)]
     private $what;
 
     /**
      *
      * @var string|null
-     * @Assert\NotBlank()
-     * @Assert\Length(max="2048")
-     * @ORM\Column(type="string", length=1024, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 2048)]
+    #[ORM\Column(type: 'string', length: 1024, nullable: false)]
     private $how;
 
     /**
      *
      * @var string|null
-     * @Assert\NotBlank()
-     * @Assert\Length(max="1024")
-     * @ORM\Column(type="string", length=1024, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 1024)]
+    #[ORM\Column(type: 'string', length: 1024, nullable: false)]
     private $who;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="date", name="`when`")
      */
+    #[ORM\Column(type: 'date', name: '`when`')]
     private $when;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     private $createdBy;
 
     /**
      * @var bool|null
-     * @Assert\Type("bool")
-     * @ORM\Column(type="boolean", nullable=true)
      */
+    #[Assert\Type('bool')]
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $completed;
 
     /**
      * @var bool
-     * @ORM\Column(type="boolean", nullable=false, options={"default":false})
      */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private $closed = false;
 
     /**
      * @var string|null
-     * @Assert\Length(max="1024")
-     * @ORM\Column(type="string", length=1024, nullable=true)
      */
+    #[Assert\Length(max: 1024)]
+    #[ORM\Column(type: 'string', length: 1024, nullable: true)]
     private $note;
 
     /**

@@ -105,6 +105,13 @@
             </div>
             <div class="col-md-6 mb-4">
                 <div class="panel">
+                    <h2>Schulträger</h2>
+                    {{ 'xSchultraeger'|trans({'%count%':schoolAuthorityCount|default(0)}) }}<br/>
+                    <a class="btn btn-secondary mt-3" href="{{ path('admin_school_authority_home') }}">Öffnen</a>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel">
                     <h2>Fragebögen</h2>
                     <p>Kriterien des Qualitäts-Check und Ideenbox-Inhalte</p>
                     {{ 'xFragebogen'|trans({'%count%':questionnaireCount}) }}<br/>

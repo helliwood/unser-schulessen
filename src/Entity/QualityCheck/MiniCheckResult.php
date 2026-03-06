@@ -7,41 +7,32 @@ use DateTime;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity
- */
+#[ORM\Entity]
 class MiniCheckResult
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     protected ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="\App\Entity\School", cascade={"persist"})
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
-     **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\School::class, cascade: ['persist'])]
     protected ?School $school = null;
 
-    /**
-     * @ORM\Column(type="datetime")
-     */
+    #[ORM\Column(type: 'datetime')]
     protected ?DateTime $createdAt = null;
 
     /**
      * @var Questionnaire
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Questionnaire")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Questionnaire::class)]
     protected Questionnaire $questionnaire;
 
     /**
      * @var MiniCheckAnswer[]|ArrayCollection
-     * @ORM\OneToMany(targetEntity="\App\Entity\QualityCheck\MiniCheckAnswer", mappedBy="result", cascade={"persist"}, orphanRemoval=true, indexBy="question_id")
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\QualityCheck\MiniCheckAnswer::class, mappedBy: 'result', cascade: ['persist'], orphanRemoval: true, indexBy: 'question_id')]
     private $answers;
 
     public function __construct()

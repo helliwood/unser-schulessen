@@ -19,23 +19,20 @@ use App\Repository\CategoryRepository;
 use App\Repository\QuestionnaireRepository;
 use Doctrine\DBAL\Connection;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/admin/questionnaire", name="admin_questionnaire_")
- * @IsGranted("ROLE_ADMIN")
- */
+#[Route(path: '/admin/questionnaire', name: 'admin_questionnaire_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class QuestionnaireController extends AbstractController
 {
     /**
-     * @Route("/", name="home")
      * @param Request $request
      * @return JsonResponse|\Symfony\Component\HttpFoundation\Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+    #[Route(path: '/', name: 'home')]
     public function index(Request $request)
     {
         if ($request->isXmlHttpRequest()) {
@@ -75,12 +72,12 @@ class QuestionnaireController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="new")
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      * @throws \Doctrine\DBAL\ConnectionException
      * @throws \Throwable
      */
+    #[Route(path: '/new', name: 'new')]
     public function new(Request $request)
     {
         $questionnaire = new Questionnaire();
@@ -198,7 +195,6 @@ class QuestionnaireController extends AbstractController
     }
 
     /**
-     * @Route("/show/{id}", name="show")
      * @param Request       $request
      * @param Questionnaire $questionnaire
      * @param MenuItem      $menu
@@ -206,6 +202,7 @@ class QuestionnaireController extends AbstractController
      * @throws \Exception
      * @throws \Throwable
      */
+    #[Route(path: '/show/{id}', name: 'show')]
     public function show(Request $request, Questionnaire $questionnaire, MenuItem $menu): \Symfony\Component\HttpFoundation\Response
     {
         if ($request->isXmlHttpRequest()) {

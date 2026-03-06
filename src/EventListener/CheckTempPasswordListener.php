@@ -9,20 +9,11 @@ use Symfony\Component\Security\Core\Security;
 
 final class CheckTempPasswordListener
 {
-    /**
-     * @var Security
-     */
-    protected $security;
-
-    public function __construct(Security $security)
+    public function __construct(protected Security $security)
     {
-        $this->security = $security;
     }
 
-    /**
-     * @param ControllerEvent $event
-     * @throws \Exception
-     */
+    /** @throws \Exception */
     public function __invoke(ControllerEvent $event): void
     {
         if ($this->security->getUser()
@@ -30,9 +21,7 @@ final class CheckTempPasswordListener
             && $this->security->getUser()->isTempPassword()) {
             if (! $event->getController()[0] instanceof SecurityController ||
                 $event->getController()[1] !== 'changeTempPassword') {
-                $event->setController(static function () {
-                    return new RedirectResponse('/change-temp-password');
-                });
+                $event->setController(static fn () => new RedirectResponse('/change-temp-password'));
             }
         }
     }

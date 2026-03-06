@@ -9,6 +9,7 @@
 namespace App\Repository;
 
 use App\Entity\School;
+use App\Entity\SchoolAuthority;
 use DateTime;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -40,13 +41,20 @@ class SchoolRepository extends ServiceEntityRepository
      * @param int $page
      * @param int $limit
      * @param string|null $flag
+     * @param string $search
      * @return array
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
-    public function find4Ajax(string $sort, bool $sortDesc, int $page, int $limit, ?string $flag = null): array
-    {
-        $sortValues = ["name", "createdAt", "address.city", "hasCurrentMasterData", "lastQcDate", "finalisedCount", "unfinalisedCount", "surveys", "foodSurveys", "userHasSchoolCount", "id"];
+    public function find4Ajax(
+        string $sort,
+        bool $sortDesc,
+        int $page,
+        int $limit,
+        ?string $flag = null,
+        string $search = ''
+    ): array {
+        $sortValues = ["name", "createdAt", "address.city", "schoolAuthorityName", "schoolAuthorityAccessAllowed", "hasCurrentMasterData", "lastQcDate", "finalisedCount", "unfinalisedCount", "surveys", "foodSurveys", "userHasSchoolCount", "id"];
 
         if (! \in_array($sort, $sortValues)) {
             $sort = "name";
@@ -54,10 +62,12 @@ class SchoolRepository extends ServiceEntityRepository
 
         $qbTotal = $this->createQueryBuilder('s');
         $qbTotal->leftJoin('s.address', 'address')
+            ->leftJoin('s.schoolAuthority', 'sa')
             ->select('COUNT(s.id)');
 
         $qbItems = $this->createQueryBuilder('s');
-        $qbItems->leftJoin('s.address', 'address');
+        $qbItems->leftJoin('s.address', 'address')
+            ->leftJoin('s.schoolAuthority', 'sa');
 
         $currentYear = (int)\date('Y');
 
@@ -89,8 +99,10 @@ class SchoolRepository extends ServiceEntityRepository
             ->addSelect('(SELECT COUNT(uhs3.user)
                  FROM App\Entity\UserHasSchool uhs3
                  WHERE uhs3.school = s AND uhs3.state = 1) AS memberCount')
+            ->addSelect('sa.name AS schoolAuthorityName')
+            ->addSelect('CASE WHEN sa.id IS NULL THEN -1 WHEN s.schoolAuthorityAccessAllowed = true THEN 1 ELSE 0 END AS authorityAccessSort')
             ->setParameter('year', $currentYear)
-            ->groupBy('s.id, address.id')
+            ->groupBy('s.id, address.id, sa.id')
             ->setFirstResult(($page - 1) * $limit)
             ->setMaxResults($limit);
 
@@ -116,6 +128,30 @@ class SchoolRepository extends ServiceEntityRepository
             }
         }
 
+        $search = \trim($search);
+        if ($search !== '') {
+            $tokens = \preg_split('/\s+/', $search);
+            if ($tokens === false) {
+                $tokens = [];
+            }
+
+            $tokenIndex = 0;
+            foreach ($tokens as $token) {
+                if ($token === '') {
+                    continue;
+                }
+                $paramName = 'searchToken' . $tokenIndex;
+                $condition = 'LOWER(s.name) LIKE :' . $paramName
+                    . ' OR LOWER(address.city) LIKE :' . $paramName
+                    . ' OR LOWER(COALESCE(sa.name, \'\')) LIKE :' . $paramName;
+                $qbItems->andWhere('(' . $condition . ')')
+                    ->setParameter($paramName, '%' . \mb_strtolower($token) . '%');
+                $qbTotal->andWhere('(' . $condition . ')')
+                    ->setParameter($paramName, '%' . \mb_strtolower($token) . '%');
+                $tokenIndex++;
+            }
+        }
+
 
         $totalRows = $qbTotal
             ->getQuery()
@@ -127,6 +163,8 @@ class SchoolRepository extends ServiceEntityRepository
             'name' => 's.name',
             'createdAt' => 's.createdAt',
             'address.city' => 'address.city',
+            'schoolAuthorityName' => 'schoolAuthorityName',
+            'schoolAuthorityAccessAllowed' => 'authorityAccessSort',
             'lastQcDate' => 'lastQcDate',
             'hasCurrentMasterData' => 'hasCurrentMasterData',
             'finalisedCount' => 'finalisedCount',
@@ -155,9 +193,43 @@ class SchoolRepository extends ServiceEntityRepository
                 'userHasSchoolCount' => $row['userHasSchoolCount'],
                 'invitationCount' => $row['invitationCount'],
                 'memberCount' => $row['memberCount'],
+                'schoolAuthorityName' => $row['schoolAuthorityName'],
+                'schoolAuthorityAccessAllowed' => $school->isSchoolAuthorityAccessAllowed(),
             ]);
         }
 
         return ["totalRows" => $totalRows, "items" => $items];
+    }
+
+    /**
+     * @return School[]
+     */
+    public function findBySchoolAuthorityAndSearch(SchoolAuthority $schoolAuthority, string $search = ''): array
+    {
+        $qb = $this->createQueryBuilder('s')
+            ->where('s.schoolAuthority = :schoolAuthority')
+            ->setParameter('schoolAuthority', $schoolAuthority)
+            ->orderBy('s.name', 'ASC');
+
+        $search = \trim($search);
+        if ($search !== '') {
+            $tokens = \preg_split('/\s+/', $search);
+            if ($tokens === false) {
+                $tokens = [];
+            }
+
+            $tokenIndex = 0;
+            foreach ($tokens as $token) {
+                if ($token === '') {
+                    continue;
+                }
+                $paramName = 'searchToken' . $tokenIndex;
+                $qb->andWhere('LOWER(s.name) LIKE :' . $paramName)
+                    ->setParameter($paramName, '%' . \mb_strtolower($token) . '%');
+                $tokenIndex++;
+            }
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

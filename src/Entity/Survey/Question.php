@@ -16,50 +16,47 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Question Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(name="survey_question", uniqueConstraints={
- *   @UniqueConstraint(columns={"category_id", "question"})
- * })
- * @ORM\Entity(repositoryClass="App\Repository\Survey\QuestionRepository")
  */
+#[ORM\Table(name: 'survey_question')]
+#[UniqueConstraint(columns: ['category_id', 'question'])]
+#[ORM\Entity(repositoryClass: \App\Repository\Survey\QuestionRepository::class)]
 class Question implements \JsonSerializable
 {
     /**
      *
      * @var int
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      *
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="190")
-     * @ORM\Column(type="string", length=190)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 190)]
+    #[ORM\Column(type: 'string', length: 190)]
     private $question;
 
     /**
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, name="`order`")
      */
+    #[ORM\Column(type: 'smallint', nullable: false, name: '`order`')]
     private $order;
 
     /**
      * @var bool
-     * @ORM\Column(type="boolean", nullable=true, name="sustainable", options={"default":"0"})
      */
+    #[ORM\Column(type: 'boolean', nullable: true, name: 'sustainable', options: ['default' => '0'])]
     private $sustainable = false;
 
     /**
      * @var Category
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Survey\Category", inversedBy="questions")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Survey\Category::class, inversedBy: 'questions')]
     private $category;
 
     /**

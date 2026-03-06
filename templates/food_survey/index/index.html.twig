@@ -26,11 +26,13 @@
                 <div class="panel h-100 d-flex flex-column">
                     <h2><i class="far fa-life-ring text-primary2 mr-1"></i>Hilfe</h2>
                     <p>Wie erstelle ich einen Teller-Check?</p>
-                    <p>Die Schritt für Schritt Anleitung zum Download gibt nützliche Tipps.</p>
+                    <p>Die Online-Hilfe gibt Ihnen nützliche Tipps.</p>
                     <p>
+                        <button v-b-modal.modal-help class="btn btn-secondary" href="#">
+                            <i class="fas fa-link mr-1"></i>Hilfe aufrufen
+                        </button>
                         <a class="btn btn-secondary" target="_blank" href="/documents/Tellercheck_Schritt_für_Schritt_Schulessen.pdf">
-                            <i class="fas fa-link mr-1"></i>
-                            Schritt für Schritt Anleitung Downloaden
+                            <i class="fas fa-file mr-1"></i>Schritt für Schritt Anleitung Downloaden
                         </a>
                     </p>
                 </div>
@@ -41,10 +43,47 @@
 
             {% include ('food_survey/index/partials/_archived_surveys.html.twig') %}
         </div>
+        <div class="mt-2">
+            <a class="btn btn-link pl-0" href="{{ path('food_survey_trash') }}">
+                <i class="far fa-trash-alt mr-1"></i>Zum Papierkorb
+            </a>
+        </div>
     </div>
 
     <!-- Modal Component -->
-    <b-modal id="modal-help" title="Hilfe Zufriedenheitsbefragung" size="xl" ok-only>
-        Die Hilfe folgt später.
+    <b-modal id="modal-help" title="Hilfe Teller-Check" size="xl" ok-only>
+        <h5>Wofür ist der Teller-Check?</h5>
+        <p>Mit dem Teller-Check erfassen Sie Rückmeldungen zum aktuellen Speiseangebot direkt anhand eines Fotos.
+            So erhalten Sie konkrete Hinweise zu Akzeptanz und Qualität einzelner Komponenten.</p>
+
+        <h5>Startbereich und Buttons</h5>
+        <ul>
+            <li><strong>Teller-Check erstellen</strong>: Legt einen neuen Teller-Check an.</li>
+            <li><strong>Teller-Check kopieren</strong>: Übernimmt einen bestehenden Teller-Check als Vorlage.</li>
+            <li><strong>Hilfe aufrufen</strong>: Öffnet diese Anleitung.</li>
+            <li><strong>Schritt für Schritt Anleitung Downloaden</strong>: Lädt die externe PDF-Anleitung herunter.</li>
+        </ul>
+
+        <h5>Typischer Ablauf</h5>
+        <ol>
+            <li>Neuen Teller-Check erstellen oder bestehende Vorlage kopieren.</li>
+            <li>Foto des Speiseangebots auswählen und erforderliche Angaben ergänzen.</li>
+            <li>Teller-Check aktivieren und für Teilnehmende bereitstellen.</li>
+            <li>Ergebnisse im Bereich „Aktuelle Teller-Checks“ beobachten.</li>
+            <li>Abgeschlossene Checks im Archiv vergleichen und dokumentieren.</li>
+        </ol>
+
+        <h5>Bereiche auf der Seite</h5>
+        <ul>
+            <li><strong>Aktuelle Teller-Checks</strong>: Laufende oder vorbereitete Checks mit Bearbeitungsoptionen.</li>
+            <li><strong>Beendete Teller-Checks</strong>: Abgeschlossene Checks zur Auswertung und Nachverfolgung.</li>
+        </ul>
+
+        <h5>Praxis-Tipps</h5>
+        <ul>
+            <li>Verwenden Sie ein aktuelles, gut erkennbares Foto des realen Speiseangebots.</li>
+            <li>Nutzen Sie konsistente Benennungen (z. B. Datum/ Menülinie), damit Vergleiche leichter fallen.</li>
+            <li>Planen Sie wiederkehrende Checks, um Entwicklungen über die Zeit sichtbar zu machen.</li>
+        </ul>
     </b-modal>
 {% endblock %}

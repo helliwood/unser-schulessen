@@ -8,6 +8,7 @@
 
 namespace App\Repository;
 
+use App\Entity\SchoolAuthority;
 use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\ORM\NonUniqueResultException;
@@ -62,6 +63,11 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
             ->getOneOrNullResult();
     }
 
+    public function loadUserByIdentifier(string $identifier): ?User
+    {
+        return $this->loadUserByUsername($identifier);
+    }
+
     /**
      * @param string $token
      * @return User
@@ -110,6 +116,59 @@ class UserRepository extends ServiceEntityRepository implements UserLoaderInterf
             ->getResult();
 
         return ["totalRows" => $totalRows, "items" => $items];
+    }
+
+    /**
+     * Liefert User für einen bestimmten Schulträger für die DataTable-API
+     */
+    public function findBySchoolAuthority4Ajax(
+        SchoolAuthority $schoolAuthority,
+        string $sort,
+        bool $sortDesc,
+        int $page,
+        int $limit
+    ): array {
+        $sortValues = ["displayName", "email", "createdAt"];
+        if (! \in_array($sort, $sortValues)) {
+            $sort = "email";
+        }
+
+        // Für displayName sortieren wir nach email, da displayName eine Methode ist
+        $sortField = $sort === "displayName" ? "email" : $sort;
+
+        $qb = $this->createQueryBuilder('u')
+            ->where('u.schoolAuthority = :schoolAuthority')
+            ->setParameter('schoolAuthority', $schoolAuthority)
+            ->orderBy('u.' . $sortField, $sortDesc ? 'DESC' : 'ASC')
+            ->setFirstResult(($page - 1) * $limit)
+            ->setMaxResults($limit);
+
+        $totalRows = $this->createQueryBuilder('u')
+            ->select('COUNT(u.id)')
+            ->where('u.schoolAuthority = :schoolAuthority')
+            ->setParameter('schoolAuthority', $schoolAuthority)
+            ->getQuery()->getSingleScalarResult();
+
+        $items = $qb->getQuery()->getResult();
+        $result = [];
+        foreach ($items as $user) {
+            $result[] = [
+                'id' => $user->getId(),
+                'displayName' => $user->getDisplayName(),
+                'email' => $user->getEmail(),
+                'createdAt' => $user->getCreatedAt()->format('d.m.Y'),
+            ];
+        }
+
+        // Wenn nach displayName sortiert werden soll, sortieren wir das Ergebnis manuell
+        if ($sort === "displayName") {
+            \usort($result, function ($a, $b) use ($sortDesc) {
+                $comparison = \strcasecmp($a['displayName'], $b['displayName']);
+                return $sortDesc ? -$comparison : $comparison;
+            });
+        }
+
+        return ["totalRows" => $totalRows, "items" => $result];
     }
 
 //    /**

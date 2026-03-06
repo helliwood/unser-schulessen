@@ -2,7 +2,7 @@
     <div class="panel h-100">
         <h2><i class="fas fa-copy text-primary2 mr-1"></i>Vorlagen</h2>
         <div class="mb-2">Hier finden Sie die vorgefertigten Umfragen der Vernetzungsstelle.</div>
-        <data-table
+            <data-table
                 api-url="{{ path('survey_list_survey_templates') }}"
                 sort-by="createdAt"
                 :sort-desc="true"
@@ -14,8 +14,13 @@
                         return item.typeLabel;
                         }
                         },
+                        {key: 'closesAt', label: 'Ablauf', sortable: false},
                         {key: 'options', label: 'Optionen', sortable: false, class:'options text-right'}
                         ]">
+            <template v-slot:cell(name)="{ row }">
+                {{ '{{' }}row.item.name{{ '}}' }}
+                <span v-if="row.item.isAuthorityTemplate" class="badge badge-info ml-1">Trägervorlage</span>
+            </template>
             <template v-slot:cell(options)="{ row, callAndRefresh }">
                 {% if is_granted('ROLE_ADMIN') %}
                     <b-button variant="info" size="sm" :href="'/survey/new/'+ row.item.uuid" >
@@ -25,7 +30,7 @@
                         <b-button size="sm" variant="secondary" :href="'/survey/edit/'+row.item.id">
                             <i class="fas fa-edit mr-1"></i>Bearbeiten
                         </b-button>
-                        <b-dropdown size="sm" right text="..." v-b-tooltip.hover.right.v-danger
+                        <b-dropdown size="sm" right text="" v-b-tooltip.hover.right.v-danger
                                     title="Ermöglicht weitere Optionen der Bearbeitung der Umfrage." aria-label="Weitere Optionen">
                             <b-dropdown-item
                                     variant="primary"
@@ -60,11 +65,6 @@
                                              v-if="row.item.type=='{{ constant('App\\Entity\\Survey\\Survey::TYPE_VOUCHER') }}'"
                                              :href="'/survey/voucher/'+row.item.id"><i
                                         class="fas fa-qrcode mr-1" title=""></i> Voucher
-                            </b-dropdown-item>
-                            <b-dropdown-item variant="danger"
-                                             v-if="row.item.state=={{ stateActive }}"
-                                             :href="'/survey/state/{{ stateClosed }}/'+row.item.id">
-                                <i class="fas fa-sign-out-alt mr-1" title=""></i>Beenden
                             </b-dropdown-item>
                             {% if is_granted('ROLE_FOOD_COMMISSIONER') %}
                                 <b-dropdown-item variant="danger"

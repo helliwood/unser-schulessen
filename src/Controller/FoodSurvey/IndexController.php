@@ -25,8 +25,6 @@ use ImagickDrawException;
 use ImagickException;
 use Knp\Menu\MenuItem;
 use Ramsey\Uuid\Uuid;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Component\Finder\Exception\AccessDeniedException;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -35,17 +33,15 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/food-survey", name="food_survey_")
- * @IsGranted("ROLE_USER")
- */
+#[Route(path: '/food-survey', name: 'food_survey_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
 class IndexController extends AbstractController
 {
     /**
-     * @Route("/", name="home")
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/', name: 'home')]
     public function index(): Response
     {
         return $this->render('food_survey/index/index.html.twig', [
@@ -54,7 +50,23 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/list", name="list")
+     * @param MenuItem $menu
+     * @return Response
+     * @throws Exception
+     */
+    #[Route(path: '/papierkorb', name: 'trash')]
+    public function trash(MenuItem $menu): Response
+    {
+        $menu['food-survey']->addChild('Papierkorb', [
+            'route' => 'food_survey_trash',
+        ]);
+
+        return $this->render('food_survey/index/trash.html.twig', [
+            'school' => $this->getUser()->getCurrentSchool()
+        ]);
+    }
+
+    /**
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
@@ -62,51 +74,112 @@ class IndexController extends AbstractController
      * @throws NoResultException
      * @throws Exception
      */
+    #[Route(path: '/list', name: 'list')]
     public function list(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         /** @var FoodSurveyRepository $sr */
         $sr = $entityManager->getRepository(FoodSurvey::class);
-        return new JsonResponse($sr->find4Ajax(
-            $this->getUser()->getCurrentSchool(),
-            $request->query->get('sort', 'createdAt'),
-            $request->query->getBoolean('sortDesc', true),
-            $request->query->getInt('page', 1),
-            $request->query->getInt('size', 1)
-        ));
-    }
-
-    /**
-     * @Route("/list-closed", name="list_closed")
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return JsonResponse
-     * @throws NoResultException
-     * @throws NonUniqueResultException
-     * @throws Exception
-     */
-    public function listClosed(Request $request, EntityManagerInterface $entityManager): JsonResponse
-    {
-        /** @var FoodSurveyRepository $sr */
-        $sr = $entityManager->getRepository(FoodSurvey::class);
+        if ($request->isMethod(Request::METHOD_POST)) {
+            $foodSurvey = $entityManager->getRepository(FoodSurvey::class)->find($request->get('survey_id', null));
+            if (! $foodSurvey || $foodSurvey->getSchool() !== $this->getUser()->getCurrentSchool()) {
+                throw new AccessDeniedException('Schule nicht gestattet.');
+            }
+            if ($request->get('action') === 'delete_survey') {
+                if ($foodSurvey->getState() !== FoodSurvey::STATE_CLOSED && $foodSurvey->getState() !== FoodSurvey::STATE_NOT_ACTIVATED) {
+                    throw new \Exception('Nur beendete oder nicht gestartete Teller-Checks können in den Papierkorb verschoben werden.');
+                }
+                $foodSurvey->setDeleted(true);
+                $entityManager->persist($foodSurvey);
+                $entityManager->flush();
+            }
+            if ($request->get('action') === 'restore_survey') {
+                $foodSurvey->setDeleted(false);
+                $entityManager->persist($foodSurvey);
+                $entityManager->flush();
+            }
+        }
         return new JsonResponse($sr->find4Ajax(
             $this->getUser()->getCurrentSchool(),
             $request->query->get('sort', 'createdAt'),
             $request->query->getBoolean('sortDesc', true),
             $request->query->getInt('page', 1),
             $request->query->getInt('size', 1),
+            false,
+            false
+        ));
+    }
+
+    /**
+     * @param Request $request
+     * @param EntityManagerInterface $entityManager
+     * @return JsonResponse
+     * @throws NoResultException
+     * @throws NonUniqueResultException
+     * @throws Exception
+     */
+    #[Route(path: '/list-closed', name: 'list_closed')]
+    public function listClosed(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var FoodSurveyRepository $sr */
+        $sr = $entityManager->getRepository(FoodSurvey::class);
+        if ($request->isMethod(Request::METHOD_POST) && $request->get('action') === 'delete_survey') {
+            $foodSurvey = $entityManager->getRepository(FoodSurvey::class)->find($request->get('survey_id', null));
+            if (! $foodSurvey || $foodSurvey->getSchool() !== $this->getUser()->getCurrentSchool()) {
+                throw new AccessDeniedException('Schule nicht gestattet.');
+            }
+            if ($foodSurvey->getState() !== FoodSurvey::STATE_CLOSED) {
+                throw new \Exception('Nur beendete Teller-Checks können in den Papierkorb verschoben werden.');
+            }
+            $foodSurvey->setDeleted(true);
+            $entityManager->persist($foodSurvey);
+            $entityManager->flush();
+        }
+        return new JsonResponse($sr->find4Ajax(
+            $this->getUser()->getCurrentSchool(),
+            $request->query->get('sort', 'createdAt'),
+            $request->query->getBoolean('sortDesc', true),
+            $request->query->getInt('page', 1),
+            $request->query->getInt('size', 1),
+            true,
+            false
+        ));
+    }
+
+    #[Route(path: '/list-deleted', name: 'list_deleted')]
+    public function listDeleted(Request $request, EntityManagerInterface $entityManager): JsonResponse
+    {
+        /** @var FoodSurveyRepository $sr */
+        $sr = $entityManager->getRepository(FoodSurvey::class);
+        if ($request->isMethod(Request::METHOD_POST) && $request->get('action') === 'restore_survey') {
+            $foodSurvey = $entityManager->getRepository(FoodSurvey::class)->find($request->get('survey_id', null));
+            if (! $foodSurvey || $foodSurvey->getSchool() !== $this->getUser()->getCurrentSchool()) {
+                throw new AccessDeniedException('Schule nicht gestattet.');
+            }
+            $foodSurvey->setDeleted(false);
+            $entityManager->persist($foodSurvey);
+            $entityManager->flush();
+        }
+
+        return new JsonResponse($sr->find4Ajax(
+            $this->getUser()->getCurrentSchool(),
+            $request->query->get('sort', 'createdAt'),
+            $request->query->getBoolean('sortDesc', true),
+            $request->query->getInt('page', 1),
+            $request->query->getInt('size', 1),
+            false,
             true
         ));
     }
 
     /**
-     * @Route("/state/{state}/{id}", name="state")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_KITCHEN') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') or is_granted('ROLE_FOOD_COMMISSIONER')")
      * @param int $state
      * @param FoodSurvey $foodSurvey
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/state/{state}/{id}', name: 'state')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_KITCHEN') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') or is_granted('ROLE_FOOD_COMMISSIONER')"))]
     public function state(int $state, FoodSurvey $foodSurvey, EntityManagerInterface $entityManager): Response
     {
         if ($foodSurvey->getSchool() !== $this->getUser()->getCurrentSchool()) {
@@ -136,21 +209,22 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/delete/{id}", name="delete")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param FoodSurvey $foodSurvey
      * @param EntityManagerInterface $entityManager
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/delete/{id}', name: 'delete')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function delete(FoodSurvey $foodSurvey, EntityManagerInterface $entityManager): Response
     {
         if ($foodSurvey->getSchool() !== $this->getUser()->getCurrentSchool()) {
             throw new AccessDeniedException('Schule nicht gestattet.');
         }
 
-        if ($foodSurvey->getState() === FoodSurvey::STATE_NOT_ACTIVATED) {
-            $entityManager->remove($foodSurvey);
+        if ($foodSurvey->getState() === FoodSurvey::STATE_NOT_ACTIVATED || $foodSurvey->getState() === FoodSurvey::STATE_CLOSED) {
+            $foodSurvey->setDeleted(true);
+            $entityManager->persist($foodSurvey);
             $entityManager->flush();
         }
 
@@ -158,12 +232,12 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/creator/{id}", name="creator", defaults={"id":null})
      * @param FoodSurvey|null $foodSurvey
      * @param MenuItem $menu
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/creator/{id}', name: 'creator', defaults: ['id' => null])]
     public function creator(?FoodSurvey $foodSurvey, MenuItem $menu): Response
     {
 
@@ -178,13 +252,13 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/clone", name="clone")
      * @param MenuItem $menu
      * @param Request $request
      * @param EntityManagerInterface $em
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/clone', name: 'clone')]
     public function clone(MenuItem $menu, Request $request, EntityManagerInterface $em): Response
     {
 
@@ -250,10 +324,10 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/load/{id}", name="load", defaults={"id":null})
      * @param FoodSurvey|null $foodSurvey
      * @return JsonResponse
      */
+    #[Route(path: '/load/{id}', name: 'load', defaults: ['id' => null])]
     public function load(?FoodSurvey $foodSurvey): JsonResponse
     {
         if (\is_null($foodSurvey)) {
@@ -263,13 +337,13 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/upload", name="upload")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws ImagickException
      * @throws Exception
      */
+    #[Route(path: '/upload', name: 'upload')]
     public function upload(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $id = $request->get('id');
@@ -320,12 +394,12 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/save-spot", name="save_spot")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws Exception
      */
+    #[Route(path: '/save-spot', name: 'save_spot')]
     public function saveSpot(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $id = $request->get('id', null);
@@ -373,12 +447,12 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/result/{id}", name="result")
      * @param FoodSurvey $foodSurvey
      * @param MenuItem $menu
      * @return Response
      * @throws Exception
      */
+    #[Route(path: '/result/{id}', name: 'result')]
     public function result(FoodSurvey $foodSurvey, MenuItem $menu): Response
     {
         if ($foodSurvey->getSchool() !== $this->getUser()->getCurrentSchool()) {
@@ -397,12 +471,12 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/remove-spot", name="remove_spot")
      * @param Request $request
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse
      * @throws Exception
      */
+    #[Route(path: '/remove-spot', name: 'remove_spot')]
     public function removeSpot(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
         $id = $request->get('id', null);
@@ -425,7 +499,6 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/image/{id}/{spots}", name="image", defaults={"spots":false})
      * @param FoodSurvey $foodSurvey
      * @param bool $spots
      * @param bool $returnContent
@@ -433,6 +506,7 @@ class IndexController extends AbstractController
      * @throws ImagickDrawException
      * @throws ImagickException
      */
+    #[Route(path: '/image/{id}/{spots}', name: 'image', defaults: ['spots' => false])]
     public function image(FoodSurvey $foodSurvey, bool $spots = false, bool $returnContent = false)
     {
         $file = $this->getParameter('food_survey_directory') . '/' . $foodSurvey->getId() . '.jpg';
@@ -496,11 +570,11 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/export/{id}", name="export")
      * @param FoodSurvey $foodSurvey
      * @return void
      * @throws Exception
      */
+    #[Route(path: '/export/{id}', name: 'export')]
     public function export(FoodSurvey $foodSurvey): void
     {
         $img = \base64_encode($this->image($foodSurvey, true, true));

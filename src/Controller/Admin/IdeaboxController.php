@@ -9,7 +9,6 @@ use App\Form\IdeaboxType;
 use App\Repository\IdeaboxRepository;
 use Exception;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,14 +16,11 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Throwable;
 
-/**
- * @Route("/admin/questionnaire/category/questions/ideabox", name="admin_questionnaire_category_questions_ideabox_")
- * @IsGranted("ROLE_ADMIN")
- */
+#[Route(path: '/admin/questionnaire/category/questions/ideabox', name: 'admin_questionnaire_category_questions_ideabox_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class IdeaboxController extends AbstractController
 {
     /**
-     * @Route("/{id}", name="home")
      * @param Question $question
      * @param Request  $request
      * @param MenuItem $menu
@@ -32,6 +28,7 @@ class IdeaboxController extends AbstractController
      * @throws Exception
      * @throws Throwable
      */
+    #[Route(path: '/{id}', name: 'home')]
     public function index(Question $question, Request $request, MenuItem $menu)
     {
         if ($request->isXmlHttpRequest()) {
@@ -92,12 +89,12 @@ class IdeaboxController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{id}", name="edit", requirements={"id": "\d+"})
      * @param Ideabox  $ideabox
      * @param Request  $request
      * @param MenuItem $menu
      * @return RedirectResponse|Response
      * */
+    #[Route(path: '/edit/{id}', name: 'edit', requirements: ['id' => '\d+'])]
     public function edit(Ideabox $ideabox, Request $request, MenuItem $menu)
     {
         $form = $this->createForm(IdeaboxType::class, $ideabox, []);
@@ -144,13 +141,13 @@ class IdeaboxController extends AbstractController
     }
 
     /**
-     * @Route("/new/{id}", name="new")
      * @param Request  $request
      * @param Question $question
      * @param MenuItem $menu
      * @return RedirectResponse|Response
      * @throws Exception
      */
+    #[Route(path: '/new/{id}', name: 'new')]
     public function new(Request $request, Question $question, MenuItem $menu)
     {
         $ideabox = new Ideabox();

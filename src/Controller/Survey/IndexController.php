@@ -30,8 +30,6 @@ use PhpOffice\PhpSpreadsheet\Exception;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\Extension\Core\Type\IntegerType;
 use Symfony\Component\Form\FormError;
@@ -43,10 +41,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
-/**
- * @Route("/survey", name="survey_")
- * @IsGranted("ROLE_USER")
- */
+#[Route(path: '/survey', name: 'survey_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
 class IndexController extends AbstractController
 {
 
@@ -60,11 +56,50 @@ class IndexController extends AbstractController
         $this->em = $entityManager;
     }
 
+    private function assertCanAccessSurvey(Survey $survey): void
+    {
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return;
+        }
+
+        $user = $this->getUser();
+        if ($survey->getSchoolAuthority() !== null) {
+            if (! $this->isGranted('ROLE_SCHOOL_AUTHORITY')) {
+                throw new AccessDeniedException('Schule nicht gestattet.');
+            }
+            if (! $user || $survey->getSchoolAuthority() !== $user->getSchoolAuthority()) {
+                throw new AccessDeniedException('Schule nicht gestattet.');
+            }
+            return;
+        }
+
+        if (! $survey->getSchool() || $survey->getSchool() !== $user->getCurrentSchool()) {
+            throw new AccessDeniedException('Schule nicht gestattet.');
+        }
+    }
+
+    private function assertSchoolSurveyAccess(Survey $survey): void
+    {
+        if ($this->isGranted('ROLE_ADMIN')) {
+            return;
+        }
+
+        $user = $this->getUser();
+        if (! $survey->getSchool() || $survey->getSchool() !== $user->getCurrentSchool()) {
+            throw new AccessDeniedException('Schule nicht gestattet.');
+        }
+    }
+
+    private function getSurveyMenuKey(): string
+    {
+        return $this->isGranted('ROLE_SCHOOL_AUTHORITY') ? 'school_authority_surveys' : 'survey';
+    }
+
     /**
-     * @Route("/", name="home")
      * @return Response
      * @throws \Exception
      */
+    #[Route(path: '/', name: 'home')]
     public function index(): Response
     {
         return $this->render('survey/index/index.html.twig', [
@@ -73,13 +108,29 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/new/{uuid}", name="new", defaults={"uuid": null})
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
+     * @param MenuItem $menu
+     * @return Response
+     */
+    #[Route(path: '/papierkorb', name: 'trash')]
+    public function trash(MenuItem $menu): Response
+    {
+        $menu[$this->getSurveyMenuKey()]->addChild('Papierkorb', [
+            'route' => 'survey_trash',
+        ]);
+
+        return $this->render('survey/index/trash.html.twig', [
+            'school' => $this->getUser()->getCurrentSchool(),
+        ]);
+    }
+
+    /**
      * @param Request $request
      * @param string|null $uuid
      * @return Response
      * @throws ConnectionException
      */
+    #[Route(path: '/new/{uuid}', name: 'new', defaults: ['uuid' => null])]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') or is_granted('ROLE_ADMIN')"))]
     public function new(Request $request, ?string $uuid): Response
     {
         $em = $this->getDoctrine()->getManager();
@@ -110,6 +161,7 @@ class IndexController extends AbstractController
             try {
                 $survey->setCreatedBy($this->getUser());
                 $survey->setSchool($this->getUser()->getCurrentSchool());
+                $survey->setSchoolAuthority(null);
                 if (! \is_null($templateSurvey)) {
                     $order = 1;
                     foreach ($templateSurvey->getQuestions() as $question) {
@@ -144,19 +196,17 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{id}", name="edit")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param Survey $survey
      * @param Request $request
      * @param MenuItem $menu
      * @return Response
      * @throws \Exception
      */
+    #[Route(path: '/edit/{id}', name: 'edit')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') or is_granted('ROLE_SCHOOL_AUTHORITY') or is_granted('ROLE_ADMIN')"))]
     public function edit(Survey $survey, Request $request, MenuItem $menu): Response
     {
-        if ($survey->getSchool() !== $this->getUser()->getCurrentSchool() && ! $this->isGranted("ROLE_ADMIN")) {
-            throw new AccessDeniedException('Schule nicht gestattet.');
-        }
+        $this->assertCanAccessSurvey($survey);
 
         $form = $this->createForm(SurveyType::class, $survey, ['isAdmin' => $this->isGranted("ROLE_ADMIN")]);
         $form->handleRequest($request);
@@ -171,7 +221,7 @@ class IndexController extends AbstractController
             return $this->redirectToRoute('survey_home');
         }
 
-        $menu['survey']->addChild('Umfrage bearbeiten', [
+        $menu[$this->getSurveyMenuKey()]->addChild('Umfrage bearbeiten', [
             'route' => 'survey_edit',
             'routeParameters' => ['id' => $survey->getId()]
         ]);
@@ -184,8 +234,6 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/questions/{id}", name="questions")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param Survey $survey
      * @param Request $request
      * @param MenuItem $menu
@@ -194,8 +242,11 @@ class IndexController extends AbstractController
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Throwable
      */
+    #[Route(path: '/questions/{id}', name: 'questions')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') or is_granted('ROLE_SCHOOL_AUTHORITY') or is_granted('ROLE_ADMIN')"))]
     public function questions(Survey $survey, Request $request, MenuItem $menu)
     {
+        $this->assertCanAccessSurvey($survey);
         if ($request->isXmlHttpRequest()) {
             /** @var SurveyQuestionRepository $sqr */
             $sqr = $this->getDoctrine()->getRepository(SurveyQuestion::class);
@@ -226,7 +277,7 @@ class IndexController extends AbstractController
             ));
         }
 
-        $menu['survey']->addChild($survey->getName() . ': Fragen', [
+        $menu[$this->getSurveyMenuKey()]->addChild($survey->getName() . ': Fragen', [
             'route' => 'survey_questions',
             'routeParameters' => ['id' => $survey->getId()]
         ]);
@@ -237,8 +288,6 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/questions/add/{id}/{type}", name="questions_add")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param Survey $survey
      * @param string $type
      * @param Request $request
@@ -246,12 +295,15 @@ class IndexController extends AbstractController
      * @return Response
      * @throws \Exception
      */
+    #[Route(path: '/questions/add/{id}/{type}', name: 'questions_add')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') or is_granted('ROLE_SCHOOL_AUTHORITY') or is_granted('ROLE_ADMIN')"))]
     public function addQuestion(Survey $survey, string $type, Request $request, MenuItem $menu): Response
     {
+        $this->assertCanAccessSurvey($survey);
         if (! \in_array($type, \array_keys(SurveyQuestion::TYPE_LABELS))) {
             throw new \Exception('Type (' . $type . ') not found!');
         }
-        $menu['survey']->addChild($survey->getName() . ': Fragen', [
+        $menu[$this->getSurveyMenuKey()]->addChild($survey->getName() . ': Fragen', [
             'route' => 'survey_questions',
             'routeParameters' => ['id' => $survey->getId()]
         ])->addChild('Frage hinzufügen', [
@@ -282,17 +334,18 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/questions/edit/{id}", name="questions_edit")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param SurveyQuestion $question
      * @param Request $request
      * @param MenuItem $menu
      * @return Response
      * @throws \Throwable
      */
+    #[Route(path: '/questions/edit/{id}', name: 'questions_edit')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') or is_granted('ROLE_SCHOOL_AUTHORITY') or is_granted('ROLE_ADMIN')"))]
     public function editQuestion(SurveyQuestion $question, Request $request, MenuItem $menu): Response
     {
-        $menu['survey']->addChild($question->getSurvey()->getName() . ': Fragen', [
+        $this->assertCanAccessSurvey($question->getSurvey());
+        $menu[$this->getSurveyMenuKey()]->addChild($question->getSurvey()->getName() . ': Fragen', [
             'route' => 'survey_questions',
             'routeParameters' => ['id' => $question->getSurvey()->getId()]
         ])->addChild($question->getQuestion(), [
@@ -333,19 +386,17 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/result/{id}", name="result")
      * @param Survey $survey
      * @param MenuItem $menu
      * @return Response
      * @throws \Exception
      */
+    #[Route(path: '/result/{id}', name: 'result')]
     public function result(Survey $survey, MenuItem $menu): Response
     {
-        if ($survey->getSchool() !== $this->getUser()->getCurrentSchool()) {
-            throw new AccessDeniedException('Schule nicht gestattet.');
-        }
+        $this->assertCanAccessSurvey($survey);
 
-        $menu['survey']->addChild($survey->getName() . ' Ergebnis', [
+        $menu[$this->getSurveyMenuKey()]->addChild($survey->getName() . ' Ergebnis', [
             'route' => 'survey_result',
             'routeParameters' => ['id' => $survey->getId()]
         ]);
@@ -355,20 +406,24 @@ class IndexController extends AbstractController
             $notAnswered[$question->getId()] = $question->getNotAnswered();
         }
 
+        $schoolLabel = $survey->getSchool()
+            ? $survey->getSchool()->getName()
+            : ($survey->getSchoolAuthority() ? $survey->getSchoolAuthority()->getName() : '');
+
         return $this->render('survey/index/result.html.twig', [
             'survey' => $survey,
-            'school' => $this->getUser()->getCurrentSchool(),
+            'school' => $schoolLabel,
             'not_answered' => $notAnswered,
         ]);
     }
 
     /**
-     * @Route("/list", name="list")
      * @param Request $request
      * @return JsonResponse
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Exception
      */
+    #[Route(path: '/list', name: 'list')]
     public function list(Request $request): JsonResponse
     {
         /** @var SurveyRepository $sr */
@@ -378,13 +433,61 @@ class IndexController extends AbstractController
             switch ($request->get('action', null)) {
                 case "delete_survey":
                     $survey = $em->getRepository(Survey::class)->find($request->get('survey_id', null));
-                    if ($survey->getState() !== 0 && $survey->getSchool() !== $this->getUser()->getCurrentSchool()) {
+                    if (! $survey || ! $survey->getSchool() || $survey->isSchoolAuthoritySurvey()) {
                         throw new \Exception('No rights for survey!');
                     }
-                    $em->remove($survey);
+                    if ($survey->getSchool() !== $this->getUser()->getCurrentSchool()) {
+                        throw new \Exception('No rights for survey!');
+                    }
+                    if ($survey->getState() !== Survey::STATE_CLOSED && $survey->getState() !== Survey::STATE_NOT_ACTIVATED) {
+                        throw new \Exception('Nur beendete oder nicht gestartete Umfragen können in den Papierkorb verschoben werden.');
+                    }
+                    $survey->setDeleted(true);
+                    $em->persist($survey);
+                    $em->flush();
+                    break;
+                case "restore_survey":
+                    $survey = $em->getRepository(Survey::class)->find($request->get('survey_id', null));
+                    if (! $survey || ! $survey->getSchool() || $survey->isSchoolAuthoritySurvey()) {
+                        throw new \Exception('No rights for survey!');
+                    }
+                    if ($survey->getSchool() !== $this->getUser()->getCurrentSchool()) {
+                        throw new \Exception('No rights for survey!');
+                    }
+                    $survey->setDeleted(false);
+                    $em->persist($survey);
                     $em->flush();
                     break;
             }
+        }
+
+        $search = \trim((string) $request->query->get('search', ''));
+        if ($search !== '') {
+            $school = $this->getUser()->getCurrentSchool();
+            $qb = $this->getDoctrine()->getRepository(Survey::class)
+                ->createQueryBuilder('s')
+                ->where('s.school = :school')
+                ->andWhere('s.surveyTemplate = false')
+                ->andWhere('s.deleted = false')
+                ->andWhere('s.name LIKE :search')
+                ->setParameter('school', $school)
+                ->setParameter('search', '%' . $search . '%');
+
+            $totalRows = (int) $qb->select('COUNT(s.id)')
+                ->getQuery()
+                ->getSingleScalarResult();
+
+            $items = $qb->select('s')
+                ->orderBy('s.createdAt', 'DESC')
+                ->setFirstResult(($request->query->getInt('page', 1) - 1) * $request->query->getInt('size', 1))
+                ->setMaxResults($request->query->getInt('size', 1))
+                ->getQuery()
+                ->getResult();
+
+            return new JsonResponse([
+                'totalRows' => $totalRows,
+                'items' => $items,
+            ]);
         }
 
         return new JsonResponse($sr->find4Ajax(
@@ -392,17 +495,19 @@ class IndexController extends AbstractController
             $request->query->get('sort', 'createdAt'),
             $request->query->getBoolean('sortDesc', true),
             $request->query->getInt('page', 1),
-            $request->query->getInt('size', 1)
+            $request->query->getInt('size', 1),
+            false,
+            false
         ));
     }
 
     /**
-     * @Route("/listSurveyTemplates", name="list_survey_templates")
      * @param Request $request
      * @return JsonResponse
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Exception
      */
+    #[Route(path: '/listSurveyTemplates', name: 'list_survey_templates')]
     public function listSurveyTemplates(Request $request): JsonResponse
     {
         /** @var SurveyRepository $sr */
@@ -412,6 +517,9 @@ class IndexController extends AbstractController
             switch ($request->get('action', null)) {
                 case "delete_survey":
                     $survey = $em->getRepository(Survey::class)->find($request->get('survey_id', null));
+                    if (! $survey->getSchool() || $survey->isSchoolAuthoritySurvey()) {
+                        throw new \Exception('No rights for survey!');
+                    }
                     if ($survey->getState() !== 0 && $survey->getSchool() !== $this->getUser()->getCurrentSchool()) {
                         throw new \Exception('No rights for survey!');
                     }
@@ -421,43 +529,162 @@ class IndexController extends AbstractController
             }
         }
 
-        return new JsonResponse($sr->findSurveyTemplates4Ajax(
-            $request->query->get('sort', 'createdAt'),
-            $request->query->getBoolean('sortDesc', true),
-            $request->query->getInt('page', 1),
-            $request->query->getInt('size', 1)
-        ));
+        $sort = $request->query->get('sort', 'createdAt');
+        $sortDesc = $request->query->getBoolean('sortDesc', true);
+        $page = $request->query->getInt('page', 1);
+        $size = $request->query->getInt('size', 1);
+
+        $templates = $sr->createQueryBuilder('s')
+            ->where('s.surveyTemplate = true')
+            ->andWhere('s.schoolAuthority IS NULL')
+            ->andWhere('s.deleted = false')
+            ->getQuery()
+            ->getResult();
+
+        $authorityTemplates = [];
+        $currentSchool = $this->getUser()->getCurrentSchool();
+        if ($currentSchool && $currentSchool->getSchoolAuthority()) {
+            $authorityTemplates = $sr->createQueryBuilder('s')
+                ->join('s.schoolParticipations', 'sp')
+                ->where('s.surveyTemplate = true')
+                ->andWhere('s.schoolAuthority = :schoolAuthority')
+                ->andWhere('s.state = :state')
+                ->andWhere('sp.school = :school')
+                ->andWhere('s.deleted = false')
+                ->setParameter('schoolAuthority', $currentSchool->getSchoolAuthority())
+                ->setParameter('state', Survey::STATE_ACTIVE)
+                ->setParameter('school', $currentSchool)
+                ->getQuery()
+                ->getResult();
+        }
+
+        $items = [];
+        foreach (\array_merge($authorityTemplates, $templates) as $survey) {
+            if (! $survey instanceof Survey) {
+                continue;
+            }
+            // Defensive filter: only real templates are allowed in this list.
+            if (! $survey->getSurveyTemplate()) {
+                continue;
+            }
+            $createdAt = $survey->getCreatedAt();
+            $closesAt = $survey->getClosesAt();
+            $items[] = [
+                'id' => $survey->getId(),
+                'uuid' => $survey->getUuid(),
+                'name' => $survey->getName(),
+                'type' => $survey->getType(),
+                'typeLabel' => Survey::TYPE_LABELS[$survey->getType()] ?? null,
+                'state' => $survey->getState(),
+                'createdAt' => $createdAt ? $createdAt->getTimestamp() : 0,
+                'closesAt' => $closesAt ? $closesAt->format('d.m.Y') : '-',
+                'isAuthorityTemplate' => $survey->isSchoolAuthorityTemplate(),
+            ];
+        }
+
+        $sortValues = ['name', 'createdAt', 'type', 'state'];
+        if (! \in_array($sort, $sortValues, true)) {
+            $sort = 'createdAt';
+        }
+
+        \usort($items, static function (array $a, array $b) use ($sort, $sortDesc): int {
+            $left = $a[$sort] ?? null;
+            $right = $b[$sort] ?? null;
+            if (\is_string($left)) {
+                $left = \mb_strtolower($left);
+            }
+            if (\is_string($right)) {
+                $right = \mb_strtolower($right);
+            }
+            $result = $left <=> $right;
+            return $sortDesc ? -$result : $result;
+        });
+
+        $totalRows = \count($items);
+        $items = \array_slice($items, ($page - 1) * $size, $size);
+
+        return new JsonResponse([
+            'totalRows' => $totalRows,
+            'items' => \array_values($items),
+        ]);
     }
 
     /**
-     * @Route("/list-closed", name="list_closed")
      * @param Request $request
      * @return JsonResponse
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Exception
      */
+    #[Route(path: '/list-closed', name: 'list_closed')]
     public function listClosed(Request $request): JsonResponse
     {
         /** @var SurveyRepository $sr */
         $sr = $this->getDoctrine()->getRepository(Survey::class);
+        if ($request->isMethod(Request::METHOD_POST) && $request->get('action') === 'delete_survey') {
+            $em = $this->getDoctrine()->getManager();
+            $survey = $em->getRepository(Survey::class)->find($request->get('survey_id', null));
+            if (! $survey || ! $survey->getSchool() || $survey->getSchool() !== $this->getUser()->getCurrentSchool()) {
+                throw new \Exception('No rights for survey!');
+            }
+            if ($survey->getState() !== Survey::STATE_CLOSED) {
+                throw new \Exception('Nur beendete Umfragen können in den Papierkorb verschoben werden.');
+            }
+            $survey->setDeleted(true);
+            $em->persist($survey);
+            $em->flush();
+        }
         return new JsonResponse($sr->find4Ajax(
             $this->getUser()->getCurrentSchool(),
             $request->query->get('sort', 'createdAt'),
             $request->query->getBoolean('sortDesc', true),
             $request->query->getInt('page', 1),
             $request->query->getInt('size', 1),
-            true
+            true,
+            false
         ));
     }
 
     /**
-     * @Route("/proposal/categories", name="proposal_categories")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param Request $request
      * @return JsonResponse
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Exception
      */
+    #[Route(path: '/list-deleted', name: 'list_deleted')]
+    public function listDeleted(Request $request): JsonResponse
+    {
+        /** @var SurveyRepository $sr */
+        $sr = $this->getDoctrine()->getRepository(Survey::class);
+        if ($request->isMethod(Request::METHOD_POST) && $request->get('action') === 'restore_survey') {
+            $em = $this->getDoctrine()->getManager();
+            $survey = $em->getRepository(Survey::class)->find($request->get('survey_id', null));
+            if (! $survey || ! $survey->getSchool() || $survey->getSchool() !== $this->getUser()->getCurrentSchool()) {
+                throw new \Exception('No rights for survey!');
+            }
+            $survey->setDeleted(false);
+            $em->persist($survey);
+            $em->flush();
+        }
+
+        return new JsonResponse($sr->find4Ajax(
+            $this->getUser()->getCurrentSchool(),
+            $request->query->get('sort', 'createdAt'),
+            $request->query->getBoolean('sortDesc', true),
+            $request->query->getInt('page', 1),
+            $request->query->getInt('size', 1),
+            false,
+            true
+        ));
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws \Exception
+     */
+    #[Route(path: '/proposal/categories', name: 'proposal_categories')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') or is_granted('ROLE_SCHOOL_AUTHORITY') or is_granted('ROLE_ADMIN')"))]
     public function proposalCategories(Request $request): JsonResponse
     {
         /** @var CategoryRepository $sr */
@@ -471,14 +698,14 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/proposal/questions/{id}", name="proposal_questions")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param Category $category
      * @param Request $request
      * @return JsonResponse
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Exception
      */
+    #[Route(path: '/proposal/questions/{id}', name: 'proposal_questions')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') or is_granted('ROLE_SCHOOL_AUTHORITY') or is_granted('ROLE_ADMIN')"))]
     public function proposalQuestions(Category $category, Request $request): JsonResponse
     {
         /** @var QuestionRepository $sr */
@@ -493,18 +720,16 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/state/{state}/{id}", name="state")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param int $state
      * @param Survey $survey
      * @return Response
      * @throws \Exception
      */
+    #[Route(path: '/state/{state}/{id}', name: 'state')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function state(int $state, Survey $survey): Response
     {
-        if ($survey->getSchool() !== $this->getUser()->getCurrentSchool()) {
-            throw new AccessDeniedException('Schule nicht gestattet.');
-        }
+        $this->assertCanAccessSurvey($survey);
 
         if ($survey->getState() === Survey::STATE_NOT_ACTIVATED && $state === Survey::STATE_ACTIVE) {
             $survey->setState(Survey::STATE_ACTIVE);
@@ -525,8 +750,6 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/voucher/{id}", name="voucher")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param Survey $survey
      * @param Request $request
      * @param MenuItem $menu
@@ -534,11 +757,11 @@ class IndexController extends AbstractController
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Doctrine\DBAL\ConnectionException
      */
+    #[Route(path: '/voucher/{id}', name: 'voucher')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function voucher(Survey $survey, Request $request, MenuItem $menu): Response
     {
-        if ($survey->getSchool() !== $this->getUser()->getCurrentSchool()) {
-            throw new AccessDeniedException('Schule nicht gestattet.');
-        }
+        $this->assertSchoolSurveyAccess($survey);
 
         if ($request->isXmlHttpRequest()) {
             /** @var SurveyVoucherRepository $svr */
@@ -590,17 +813,15 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/voucher-download/{id}", name="voucher_download")
-     * @Security("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param Survey $survey
      * @return StreamedResponse
      * @throws \PhpOffice\PhpSpreadsheet\Exception
      */
+    #[Route(path: '/voucher-download/{id}', name: 'voucher_download')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_MENSA_AG') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function downloadVoucher(Survey $survey): StreamedResponse
     {
-        if ($survey->getSchool() !== $this->getUser()->getCurrentSchool()) {
-            throw new AccessDeniedException('Schule nicht gestattet.');
-        }
+        $this->assertSchoolSurveyAccess($survey);
 
         $spreadsheet = new Spreadsheet();
         /** @var Worksheet $sheet */
@@ -654,11 +875,11 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/copy/{surveyId}", name="copy")
      * @param int $surveyId
      * @return Response
      * @throws InvalidArgumentException
      */
+    #[Route(path: '/copy/{surveyId}', name: 'copy')]
     public function copy(int $surveyId): Response
     {
         $oldSurvey = $this->getDoctrine()->getRepository(Survey::class)->findOneBy(['id' => $surveyId]);
@@ -672,6 +893,7 @@ class IndexController extends AbstractController
         $newSurvey->setName($date->format('d.m.Y H:i:s'))
             ->setCreatedBy($this->getUser())
             ->setSurveyTemplate(false)
+            ->setSchoolAuthority(null)
             ->setSchool($this->getUser()->getCurrentSchool());
 
         $countVouchers = \count($this->getDoctrine()->getRepository(SurveyVoucher::class)->findBy(['survey' => $oldSurvey]));
@@ -686,10 +908,10 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/ajax", name="ajax")
      * @param Request $request
      * @return string
      */
+    #[Route(path: '/ajax', name: 'ajax')]
     public function ajax(Request $request): string
     {
         $questionPosition = 0;
@@ -709,6 +931,10 @@ class IndexController extends AbstractController
             $newQuestion->setSustainable($questionFromPool->isSustainable());
 
             $survey = $em->getRepository(Survey::class)->findOneBy(['id' => $data['surveyId']]);
+            if (! $survey instanceof Survey) {
+                throw new InvalidArgumentException('Die Umfrage konnte nicht gefunden werden!');
+            }
+            $this->assertCanAccessSurvey($survey);
             $newQuestion->setSurvey($survey);
 
             $order = $survey->getQuestions()->count() + $questionPosition;
@@ -722,13 +948,15 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/export/{survey}", name="export")
      * @param Survey $survey
      * @return StreamedResponse
      * @throws Exception
      */
+    #[Route(path: '/export/{survey}', name: 'export')]
     public function export(Survey $survey): StreamedResponse
     {
+        $this->assertSchoolSurveyAccess($survey);
+
         $spreadsheet = new Spreadsheet();
         $spreadsheet->getDefaultStyle()->getNumberFormat()->setFormatCode('#');
         $sheet = $spreadsheet->getActiveSheet();
@@ -751,6 +979,13 @@ class IndexController extends AbstractController
                 $sheet->setCellValue('C' . ($i + $row), $question->getAnswers(true)->count());
                 $sheet->setCellValue('D' . ($i + $row), $question->getAnswers(false)->count());
                 $sheet->setCellValue('E' . ($i + $row), $question->getNotAnswered());
+            } elseif ($question->getType() === SurveyQuestion::TYPE_TEXT) {
+                $sheet->setCellValue('C' . ($i + $row), 'Freitext Antworten');
+                $row++;
+                foreach ($question->getAnswers() as $j => $answer) {
+                    $sheet->setCellValue('C' . ($i + $row + $j), $answer->getTextAnswer());
+                }
+                $row += \count($question->getAnswers()) - 1;
             } else {
                 foreach ($question->getChoices() as $j => $choices) {
                     $sheet->setCellValue($this->intToChar($j + 2) . ($i + $row), $choices->getChoice());

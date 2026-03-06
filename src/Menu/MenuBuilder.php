@@ -9,8 +9,6 @@
 namespace App\Menu;
 
 use App\Entity\User;
-use App\Service\MasterDataService;
-use App\Service\QualityCheckService;
 use Knp\Menu\FactoryInterface;
 use Knp\Menu\ItemInterface;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -34,39 +32,25 @@ class MenuBuilder
     private $security;
 
     /**
-     * @var MasterDataService
-     */
-    private $masterDataService;
-
-    /**
-     * @var QualityCheckService
-     */
-    private $qualityCheckService;
-
-    /**
      * @var string
      */
     private $stateCountry;
 
     /**
      * MenuBuilder constructor.
-     * @param FactoryInterface      $factory
-     * @param Security              $security
-     * @param MasterDataService     $masterDataService
-     * @param QualityCheckService   $qualityCheckService
+     * @param FactoryInterface $factory
+     * @param Security $security
+     * @param MasterDataService $masterDataService
+     * @param QualityCheckService $qualityCheckService
      * @param ParameterBagInterface $params
      */
     public function __construct(
         FactoryInterface $factory,
         Security $security,
-        MasterDataService $masterDataService,
-        QualityCheckService $qualityCheckService,
         ParameterBagInterface $params
     ) {
         $this->factory = $factory;
         $this->security = $security;
-        $this->masterDataService = $masterDataService;
-        $this->qualityCheckService = $qualityCheckService;
         $this->stateCountry = $params->get('app_state_country');
     }
 
@@ -79,11 +63,32 @@ class MenuBuilder
         $menu = $this->factory->createItem('home', ['label' => 'Überblick', 'route' => 'home'])
             ->setChildrenAttribute('class', 'nav');
 
-        if ($this->security->getUser() && ! \is_null($this->security->getUser()->getCurrentSchool())) {
+        if ($this->security->isGranted('ROLE_SCHOOL_AUTHORITY')) {
+            $menu->addChild('dashboard', ['label' => 'Dashboard', 'route' => 'school_authority_dashboard'])
+                ->setAttribute('data-icon', 'fas fa-home')
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link');
+
+            $menu->addChild('school_authority_schools', ['label' => 'Meine Schulen', 'route' => 'school_authority_schools'])
+                ->setAttribute('data-icon', 'fas fa-building')
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link');
+
+            $menu->addChild('school_authority_surveys', ['label' => 'Umfragen', 'route' => 'school_authority_surveys'])
+                ->setAttribute('data-icon', 'fas fa-chart-bar')
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link');
+
+            $menu->addChild('school_authority_profile', ['label' => 'Trägerprofil', 'route' => 'school_authority_profile'])
+                ->setAttribute('data-icon', 'fas fa-user')
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link');
+        } elseif ($this->security->getUser() && ! \is_null($this->security->getUser()->getCurrentSchool())) {
             $menu->addChild('dashboard', ['label' => 'Überblick', 'route' => 'home'])
                 ->setAttribute('data-icon', 'fas fa-home')
                 ->setAttribute('class', 'w-100')
                 ->setLinkAttribute('class', 'nav-link');
+
 
             if (($this->stateCountry === 'rp' && $this->security->getUser()->getCurrentSchool()->getAuditEnd() >= new \DateTime())
                 || $this->stateCountry !== 'rp'
@@ -108,8 +113,7 @@ class MenuBuilder
                         ->setLinkAttribute('class', 'nav-link');
                 }
 
-                if (! \is_null($this->security->getUser())
-                    && $this->masterDataService->hasFinalisedMasterData()) {
+                if (! \is_null($this->security->getUser())) {
                     $menu->addChild('quality_check', ['label' => 'Qualitäts-Check', 'route' => 'quality_check_home'])
                         ->setAttribute('data-icon', 'fas fa-clipboard-check')
                         ->setAttribute('class', 'w-100')
@@ -117,7 +121,6 @@ class MenuBuilder
                 }
 
                 if (! \is_null($this->security->getUser())
-                    && ! \is_null($this->qualityCheckService->getLastResult())
                     && $this->security->isGranted('ROLE_KITCHEN')) {
                     $menu->addChild('quality_circle', ['label' => 'Qualitätsprozess', 'route' => 'quality_circle_home'])
                         ->setAttribute('data-icon', 'fas fa-circle-notch')
@@ -148,38 +151,41 @@ class MenuBuilder
                     ->setAttribute('class', 'w-100')
                     ->setLinkAttribute('class', 'nav-link');
             }
+        }
+        if ($this->security->isGranted('ROLE_ADMIN')) {
+            $admin = $menu->addChild('admin', ['label' => 'Administration', 'route' => 'admin_home'])
+                ->setAttribute('data-icon', 'fas fa-cogs')
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link');
 
-            if ($this->security->isGranted('ROLE_ADMIN')) {
-                $admin = $menu->addChild('admin', ['label' => 'Administration', 'route' => 'admin_home'])
-                    ->setAttribute('data-icon', 'fas fa-cogs')
-                    ->setAttribute('class', 'w-100')
-                    ->setLinkAttribute('class', 'nav-link');
+            $admin->addChild('school', ['label' => 'Schulen', 'route' => 'admin_school_home'])
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link');
 
-                $admin->addChild('school', ['label' => 'Schulen', 'route' => 'admin_school_home'])
-                    ->setAttribute('class', 'w-100')
-                    ->setLinkAttribute('class', 'nav-link');
+            $admin->addChild('school_authority', ['label' => 'Schulträger', 'route' => 'admin_school_authority_home'])
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link');
 
-                $admin->addChild('questionnaire', ['label' => 'Fragebögen', 'route' => 'admin_questionnaire_home'])
-                    ->setAttribute('class', 'w-100')
-                    ->setLinkAttribute('class', 'nav-link')
-                    ->addChild('questionnaire_new', ['label' => 'Neuer Fragebogen', 'route' => 'admin_questionnaire_new'])
-                    ->setAttribute('class', 'w-100')
-                    ->setLinkAttribute('class', 'nav-link');
+            $admin->addChild('questionnaire', ['label' => 'Fragebögen', 'route' => 'admin_questionnaire_home'])
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link')
+                ->addChild('questionnaire_new', ['label' => 'Neuer Fragebogen', 'route' => 'admin_questionnaire_new'])
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link');
 
-                $admin->addChild('survey', ['label' => 'Umfragen', 'route' => 'admin_survey_home'])
-                    ->setAttribute('class', 'w-100')
-                    ->setLinkAttribute('class', 'nav-link')
-                    ->addChild('survey_new', ['label' => 'Neue Kategorie', 'route' => 'admin_survey_new'])
-                    ->setAttribute('class', 'w-100')
-                    ->setLinkAttribute('class', 'nav-link');
+            $admin->addChild('survey', ['label' => 'Umfragen', 'route' => 'admin_survey_home'])
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link')
+                ->addChild('survey_new', ['label' => 'Neue Kategorie', 'route' => 'admin_survey_new'])
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link');
 
-                $admin->addChild('employee', ['label' => 'Mitarbeiter', 'route' => 'admin_employee_home'])
-                    ->setAttribute('class', 'w-100')
-                    ->setLinkAttribute('class', 'nav-link')
-                    ->addChild('employee_new', ['label' => 'Neuer Mitarbeiter', 'route' => 'admin_employee_new'])
-                    ->setAttribute('class', 'w-100')
-                    ->setLinkAttribute('class', 'nav-link');
-            }
+            $admin->addChild('employee', ['label' => 'Mitarbeiter', 'route' => 'admin_employee_home'])
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link')
+                ->addChild('employee_new', ['label' => 'Neuer Mitarbeiter', 'route' => 'admin_employee_new'])
+                ->setAttribute('class', 'w-100')
+                ->setLinkAttribute('class', 'nav-link');
         }
         return $menu;
     }

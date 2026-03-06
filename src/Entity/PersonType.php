@@ -14,9 +14,8 @@ use Doctrine\ORM\Mapping as ORM;
  * Person Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity()
  */
+#[ORM\Entity]
 class PersonType
 {
     public const TYPE_HEADMASTER = 'Schulleitung';
@@ -43,9 +42,9 @@ class PersonType
 
     /**
      * @var string|null
-     * @ORM\Id
-     * @ORM\Column(type="string", length=100, nullable=false)
      */
+    #[ORM\Id]
+    #[ORM\Column(type: 'string', length: 100, nullable: false)]
     protected $name;
 
     /**

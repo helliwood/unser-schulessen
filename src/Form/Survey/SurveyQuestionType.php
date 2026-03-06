@@ -65,6 +65,13 @@ class SurveyQuestionType extends AbstractType
                     'disabled' => $disabled,
                     'constraints' => [new Valid(), new Count(['min' => 1, 'max' => 60])],
                 ]);
+        } elseif ($options['type'] === SurveyQuestion::TYPE_TEXT) {
+            $builder
+                ->add('question', null, [
+                    'disabled' => $options['surveyState'],
+                    'help' => 'Formulieren Sie die Frage so, dass sie mit einem kurzen Text beantwortet werden kann.',
+                ])
+            ;
         } else {
             throw new \Exception('Survey question type not found! ' . $options['type']);
         }

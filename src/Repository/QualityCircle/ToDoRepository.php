@@ -100,4 +100,44 @@ class ToDoRepository extends ServiceEntityRepository
 
         return ["totalRows" => $totalRows, "items" => $items];
     }
+
+    /**
+     * @param School $school
+     * @return ToDo|null
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findLatestBySchool(School $school): ?ToDo
+    {
+        return $this->createQueryBuilder('t')
+            ->join('t.result', 'r')
+            ->where('r.school = :school')
+            ->setParameter('school', $school)
+            ->orderBy('t.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    public function countBySchool(School $school): int
+    {
+        return (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->join('t.result', 'r')
+            ->where('r.school = :school')
+            ->setParameter('school', $school)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function countOpenBySchool(School $school): int
+    {
+        return (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->join('t.result', 'r')
+            ->where('r.school = :school')
+            ->andWhere('t.archived = false')
+            ->setParameter('school', $school)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 }

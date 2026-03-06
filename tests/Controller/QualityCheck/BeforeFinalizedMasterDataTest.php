@@ -23,6 +23,6 @@ class BeforeFinalizedMasterDataTest extends AbstractTestController
     {
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/quality_check/');
-        $this->assertSame(Response::HTTP_FOUND, $this->client->getResponse()->getStatusCode());
+        $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
     }
 }

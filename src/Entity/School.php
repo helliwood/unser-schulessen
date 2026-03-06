@@ -11,142 +11,137 @@ namespace App\Entity;
 use App\Entity\FoodSurvey\FoodSurvey;
 use App\Entity\QualityCheck\Result;
 use App\Entity\Survey\Survey;
-use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\SchoolRepository")
- * @IgnoreAnnotation("phpcsSuppress")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\SchoolRepository::class)]
 class School implements \JsonSerializable
 {
     /**
      * @var int|null
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer", options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var string|null
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $schoolNumber;
 
     /**
      * @var string|null
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=255)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 255)]
     private $name;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $headmaster;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $phoneNumber;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $faxNumber;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $emailAddress;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $webpage;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $educationAuthority;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $schoolType;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $schoolOperator;
 
     /**
      * @var string|null
-     * @Assert\Length(max="1024")
-     * @ORM\Column(type="string", length=1024, nullable=true)
      */
+    #[Assert\Length(max: 1024)]
+    #[ORM\Column(type: 'string', length: 1024, nullable: true)]
     private $particularity;
 
     /**
      * @var Address|null
-     *
-     * @Assert\Valid()
-     * @ORM\OneToOne(targetEntity="\App\Entity\Address", cascade={"persist"})
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[Assert\Valid]
+    #[ORM\OneToOne(targetEntity: \App\Entity\Address::class, cascade: ['persist'])]
     private $address;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     /**
      * @var Person[]|ArrayCollection
-     * @ORM\OneToMany(targetEntity="Person", mappedBy="school")
      **/
+    #[ORM\OneToMany(targetEntity: \Person::class, mappedBy: 'school')]
     private $persons;
 
     /**
      * @var UserHasSchool[]|ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity="UserHasSchool", mappedBy="school")
      */
+    #[ORM\OneToMany(targetEntity: \UserHasSchool::class, mappedBy: 'school')]
     private $userHasSchool;
 
     /**
      * @var MasterData[]|ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity="MasterData", mappedBy="school")
      */
+    #[ORM\OneToMany(targetEntity: \MasterData::class, mappedBy: 'school')]
     private $masterData;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $auditEnd;
 
     /**
@@ -156,48 +151,61 @@ class School implements \JsonSerializable
 
     /**
      * @var string[] Zusätzliche beschreibende Flags für die Schulen
-     * @ORM\Column(type="json", nullable=true)
      */
+    #[ORM\Column(type: 'json', nullable: true)]
     private $flags = null;
 
     /**
      *
      * @var bool|null
-     * @ORM\Column(type="boolean", nullable=false, options={"default":false})
      */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private $miniCheck = false;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $miniCheckName;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $miniCheckEmail;
 
     /**
      * @var Collection|Result[]
-     * @ORM\OneToMany(targetEntity="\App\Entity\QualityCheck\Result", mappedBy="school", cascade={"persist", "remove"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\QualityCheck\Result::class, mappedBy: 'school', cascade: ['persist', 'remove'])]
     private $results;
 
     /**
      * @var Collection|Result[]
-     * @ORM\OneToMany(targetEntity="\App\Entity\Survey\Survey", mappedBy="school", cascade={"persist", "remove"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\Survey\Survey::class, mappedBy: 'school', cascade: ['persist', 'remove'])]
     private $surveys;
 
     /**
      * @var Collection|Result[]
-     * @ORM\OneToMany(targetEntity="\App\Entity\FoodSurvey\FoodSurvey", mappedBy="school", cascade={"persist", "remove"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\FoodSurvey\FoodSurvey::class, mappedBy: 'school', cascade: ['persist', 'remove'])]
     private $foodSurveys;
+
+    /**
+     * @var SchoolAuthority|null
+     */
+    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\SchoolAuthority::class, inversedBy: 'schools')]
+    private $schoolAuthority;
+
+    /**
+     * @var bool
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => true])]
+    private $schoolAuthorityAccessAllowed = true;
 
     /**
      * School constructor.
@@ -210,6 +218,7 @@ class School implements \JsonSerializable
         $this->masterData = new ArrayCollection();
         $this->results = new ArrayCollection();
         $this->foodResults = new ArrayCollection();
+        $this->schoolAuthorityAccessAllowed = true;
     }
 
     /**
@@ -740,5 +749,27 @@ class School implements \JsonSerializable
     public function __toString(): string
     {
         return $this->getName() ?? '';
+    }
+
+    public function getSchoolAuthority(): ?SchoolAuthority
+    {
+        return $this->schoolAuthority;
+    }
+
+    public function setSchoolAuthority(?SchoolAuthority $schoolAuthority): self
+    {
+        $this->schoolAuthority = $schoolAuthority;
+        return $this;
+    }
+
+    public function isSchoolAuthorityAccessAllowed(): bool
+    {
+        return $this->schoolAuthorityAccessAllowed;
+    }
+
+    public function setSchoolAuthorityAccessAllowed(bool $schoolAuthorityAccessAllowed): self
+    {
+        $this->schoolAuthorityAccessAllowed = $schoolAuthorityAccessAllowed;
+        return $this;
     }
 }

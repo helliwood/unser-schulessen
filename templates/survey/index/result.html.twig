@@ -3,7 +3,7 @@
 {% block body %}
     <div>
         <div class="print">
-            <h1>{{ school }}: Umfrage-Ergebnis vom {{ survey.getClosesAt|date("d.m.Y") }}</h1>
+            <h1>Umfrage-Ergebnis vom {{ survey.getClosesAt|date("d.m.Y") }}</h1>
         </div>
 
         <div class="panel">
@@ -15,27 +15,50 @@
                     <i class="fas fa-print mr-1"></i>Drucken
                 </button>
             </div>
-            <div class="row d-flex">
-                <table style="width: 100%;" border="0">
-                    {% set i = 1 %}
-                    {% for question in survey.questions %}
-                        {% if i % 2 == 1 %}
-                            <tr>
-                        {% endif %}
-                        <td style="width: 45%;">
-                            <h3>{{ question.question }}
+            <div class="row align-items-start">
+                {% for question in survey.questions %}
+                    {% if question.type == constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_SINGLE') or question.type == constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_MULTI') %}
+                        {% set answeredDisplay = 0 %}
+                        {% for choice in question.choices %}
+                            {% set answeredDisplay = answeredDisplay + choice.answers|length %}
+                        {% endfor %}
+                    {% else %}
+                        {% set answeredDisplay = question.answers|length %}
+                    {% endif %}
+                    {% set totalRaw = survey.numberOfParticipants > 0 ? survey.numberOfParticipants : answeredDisplay + question.notAnswered() %}
+                    {% set totalDisplay = totalRaw < answeredDisplay ? answeredDisplay : totalRaw %}
+                    {% set participantDisplay = survey.numberOfParticipants > 0 ? survey.numberOfParticipants : totalDisplay %}
+
+                    <div class="col-12 col-xl-6 mb-4 d-flex align-items-stretch">
+                        <div class="w-100 p-3 border rounded bg-white">
+                            <h3 class="mb-2">Frage {{ loop.index }}: {{ question.question }}
                                 {% if question.sustainable %}
-                                    <i class="fa fa-leaf ml-1" style="color: #006600;"
-                                       title="Nachhaltigkeitskriterium" style="color: #006600;"></i>
+                                    <i class="fa fa-leaf ml-1" style="color: #006600;" title="Nachhaltigkeitskriterium"></i>
                                 {% endif %}
                             </h3>
-                            <p>{{ constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_LABELS')[question.type] }} <br>
-                                {{ question.answered }} von {{ survey.numberOfParticipants }} Teilnehmern haben diese
-                                Frage beantwortet</p>
+                            <p class="mb-3">
+                                {{ constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_LABELS')[question.type] }}<br>
+                                {% if question.type == constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_MULTI') %}
+                                    {{ answeredDisplay }} Antworten von {{ participantDisplay }} Teilnehmern wurden abgegeben
+                                {% else %}
+                                    {{ answeredDisplay }} von {{ totalDisplay }} Teilnehmern haben diese Frage beantwortet
+                                {% endif %}
+                            </p>
 
-                            <div class="mt-auto ">
+                            {% if question.type == 'text' %}
+                                <b-button v-b-modal.modal-text-answers_{{ question.id }}>Antworten</b-button>
+                                <b-modal id="modal-text-answers_{{ question.id }}" title="{{ question.question }}" size="xl" ok-only>
+                                    <h5>Antworten</h5>
+                                    <ul>
+                                        {% for answer in question.answers %}
+                                            <li>{{ answer.textAnswer }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {{ answeredDisplay }} von {{ totalDisplay }} Teilnehmern haben diese Frage beantwortet
+                                </b-modal>
+                            {% else %}
                                 <apexchart type=pie
-                                           height=200
+                                           height=260
                                            :options="{
                                            {% if question.type == constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_HAPPY_UNHAPPY') %}
                                                    colors: ['#a9a9a9', '#28a745', '#de543d'],
@@ -47,33 +70,27 @@
                                                        formatter: function (seriesName, opts) {
                                                            const maxLength = 30;
                                                            return seriesName.length > maxLength
-                                                            ? seriesName.substring(0, maxLength) + '…'
-                                                            : seriesName;
-                                                        },
+                                                               ? seriesName.substring(0, maxLength) + '…'
+                                                               : seriesName;
+                                                       },
                                                    },
                                                    responsive: [{
-                                                   breakpoint: 480,
-                                                   options: {
-                                                   chart: {
-                                                   width: 200
-                                                   },
-                                                   legend: {
-                                                   position: 'bottom'
-                                                   },
-                                                   }
+                                                       breakpoint: 480,
+                                                       options: {
+                                                           chart: {
+                                                               width: 200
+                                                           },
+                                                           legend: {
+                                                               position: 'bottom'
+                                                           },
+                                                       }
                                                    }],
-                                                   }"
-                                           :series="[{{ question.notAnswered() }}, {{ question.answerValues | join(", ") }}]"></apexchart>
-
-                            </div>
-                        </td>
-                        {% if i % 2 == 0 %}
-                            <td style="width: 10%;"></td>
-                            </tr>
-                        {% endif %}
-                        {% set i = i + 1 %}
-                    {% endfor %}
-                </table>
+                                               }"
+                                           :series="[{{ question.notAnswered() }}, {{ question.answerValues | join(', ') }}]"></apexchart>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
             <div class="d-flex flex-row justify-content-end no-print mt-auto ">
                 <div class="d-flex flex-row">

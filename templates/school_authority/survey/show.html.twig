@@ -1,0 +1,119 @@
+{% extends 'base.html.twig' %}
+
+{% set stateLabels = constant('App\\Entity\\Survey\\Survey::STATE_LABELS') %}
+{% set questionTypeLabels = constant('App\\Entity\\Survey\\SurveyQuestion::TYPE_LABELS') %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <div class="d-flex flex-wrap align-items-center mb-3">
+            <h1 class="mb-0 mr-3">{{ survey.name }}</h1>
+            {% if survey.isSchoolAuthorityTemplate() %}
+                <span class="badge badge-info mr-2">Trägervorlage</span>
+            {% elseif survey.isSchoolAuthoritySurvey() %}
+                <span class="badge badge-primary mr-2">Schulträger-Umfrage</span>
+            {% else %}
+                <span class="badge badge-secondary mr-2">Standard</span>
+            {% endif %}
+            <span class="badge badge-light">{{ stateLabels[survey.state] ?? '-' }}</span>
+        </div>
+
+        <div class="row d-flex">
+            <div class="col-md-6 mb-3">
+                <div class="panel h-100">
+                    <h4 class="mb-2">
+                        <i class="far fa-calendar-alt text-primary2 mr-1"></i>Rahmen
+                    </h4>
+                    <div class="mb-1"><strong>Erstellt:</strong> {{ survey.createdAt ? survey.createdAt|date('d.m.Y') : '-' }}</div>
+                    <div class="mb-1"><strong>Ablauf:</strong> {{ survey.closesAt ? survey.closesAt|date('d.m.Y') : '-' }}</div>
+                    <div><strong>Fragen:</strong> {{ counts.questions }}</div>
+                    <hr>
+                    <h5 class="mb-2"><i class="fas fa-sliders-h mr-1 text-primary2"></i>Inhalt</h5>
+                    <div class="d-flex flex-wrap">
+                        {% if survey.state != constant('App\\Entity\\Survey\\Survey::STATE_CLOSED') %}
+                            <a class="btn btn-secondary mr-2 mb-2" href="{{ path('school_authority_survey_edit', {id: survey.id}) }}">
+                                <i class="far fa-edit mr-1"></i>Bearbeiten
+                            </a>
+                        {% endif %}
+                        <a class="btn btn-secondary mr-2 mb-2" href="{{ path('school_authority_survey_preview', {id: survey.id}) }}">
+                            <i class="far fa-eye mr-1"></i>Vorschau
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <div class="panel h-100">
+                    <h4 class="mb-2">
+                        <i class="fas fa-school text-primary2 mr-1"></i>Teilnahme
+                    </h4>
+                    <div class="mb-1"><strong>Eingeladen:</strong> {{ counts.schools }}</div>
+                    <div class="mb-1"><strong>Teilgenommen:</strong> {{ counts.schoolsParticipated }}</div>
+                    <div><strong>Noch offen:</strong> {{ counts.schoolsOpen }}</div>
+                    <hr>
+                    <h5 class="mb-2"><i class="fas fa-bullhorn mr-1 text-primary2"></i>Veröffentlichung & Auswertung</h5>
+                    <div class="d-flex flex-wrap">
+                        {% if survey.state == constant('App\\Entity\\Survey\\Survey::STATE_NOT_ACTIVATED') %}
+                            <a class="btn btn-success mr-2 mb-2" href="{{ path('school_authority_survey_state', {state: constant('App\\Entity\\Survey\\Survey::STATE_ACTIVE'), id: survey.id}) }}">
+                                <i class="fas fa-play mr-1"></i>Starten
+                            </a>
+                        {% endif %}
+                        {% if survey.state == constant('App\\Entity\\Survey\\Survey::STATE_ACTIVE') and not survey.isSchoolAuthorityTemplate() %}
+                            <a class="btn btn-danger mr-2 mb-2" href="{{ path('school_authority_survey_state', {state: constant('App\\Entity\\Survey\\Survey::STATE_CLOSED'), id: survey.id}) }}">
+                                <i class="fas fa-stop mr-1"></i>Beenden
+                            </a>
+                        {% endif %}
+                        {% if survey.isSchoolAuthorityTemplate() and survey.state == constant('App\\Entity\\Survey\\Survey::STATE_ACTIVE') %}
+                            <a class="btn btn-warning mr-2 mb-2" href="{{ path('school_authority_survey_state', {state: constant('App\\Entity\\Survey\\Survey::STATE_NOT_ACTIVATED'), id: survey.id}) }}">
+                                <i class="fas fa-pause mr-1"></i>Stoppen
+                            </a>
+                        {% endif %}
+                        {% if (survey.state == constant('App\\Entity\\Survey\\Survey::STATE_ACTIVE') or survey.state == constant('App\\Entity\\Survey\\Survey::STATE_CLOSED')) and not survey.isSchoolAuthorityTemplate() %}
+                            <a class="btn btn-secondary mr-2 mb-2" href="{{ path('school_authority_survey_result', {id: survey.id}) }}">
+                                <i class="fas fa-chart-bar mr-1"></i>Auswertung
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel mb-3">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="fas fa-list-ol mr-1 text-primary2"></i>Fragen & Typen</h4>
+                {% if survey.state != constant('App\\Entity\\Survey\\Survey::STATE_CLOSED') %}
+                    <a class="btn btn-secondary mt-2 mt-sm-0" href="{{ path('school_authority_survey_questions', {id: survey.id}) }}">
+                        <i class="fas fa-edit mr-1"></i>Fragen bearbeiten
+                    </a>
+                {% endif %}
+            </div>
+            {% if survey.questions|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                        <tr>
+                            <th style="width: 48px;">#</th>
+                            <th>Frage</th>
+                            <th style="width: 180px;">Typ</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for question in survey.questions %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ question.question }}</td>
+                                <td>
+                                    <span class="badge badge-light">
+                                        {{ questionTypeLabels[question.type] ?? question.type }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-muted">Noch keine Fragen angelegt.</div>
+            {% endif %}
+        </div>
+
+    </div>
+{% endblock %}

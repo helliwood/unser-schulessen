@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <h1>Papierkorb Umfragen</h1>
+        <div class="row d-flex">
+            {% include ('survey/index/partials/_trash_surveys.html.twig') %}
+        </div>
+        <div class="mt-2">
+            <a class="btn btn-link pl-0" href="{{ path('survey_home') }}">
+                <i class="fas fa-arrow-left mr-1"></i>Zurück zu den Umfragen
+            </a>
+        </div>
+    </div>
+{% endblock %}

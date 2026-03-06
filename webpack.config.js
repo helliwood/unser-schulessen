@@ -52,7 +52,17 @@ Encore
     // uncomment if you're having problems with a jQuery plugin
     .autoProvidejQuery()
 
-    .enableVueLoader()
+    .enableVueLoader(() => {}, {
+        version: 3,
+        runtimeCompilerBuild: true,
+    })
+    .configureDefinePlugin((options) => {
+        options.__VUE_OPTIONS_API__ = true;
+        options.__VUE_PROD_DEVTOOLS__ = false;
+    })
+    .addAliases({
+        vue$: '@vue/compat',
+    })
     // uncomment if you use API Platform Admin (composer req api-admin)
     //.enableReactPreset()
     //.addEntry('admin', './assets/js/admin.js')

@@ -1,0 +1,14 @@
+{% block body %}
+    {% if user.person %}
+        Hallo {{ user.person.salutation }} {{ user.person.firstName }} {{ user.person.lastName }},<br/><br/>
+    {% else %}
+        Herzlich willkommen,<br/><br/>
+    {% endif %}
+    Sie wurden zu "Unser Schulessen" als Schulträger von {{ schoolAuthority.name }} eingeladen.<br/><br/>
+
+    Klicken Sie auf folgenden Link und folgen den Anweisungen: <a href="{{ link }}">Einladung</a><br/><br/>
+
+    Sollten Sie den Link nicht anklicken können, kopieren Sie den folgenden Link bitte in ihren Browser: {{ link }}
+
+    {% include '/emails/signature.html.twig' %}
+{% endblock %} 

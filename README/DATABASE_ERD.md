@@ -1,5 +1,66 @@
 # Database Entity Relationship Diagram - Unser Schulessen
 
+## Update Note (March 2026)
+
+This ERD file still contains the full historical core model documentation.  
+The current stack and data model were extended with a **School Authority (Schulträger)** domain.
+
+### Current School Authority Extension (Add-on ERD)
+
+```mermaid
+erDiagram
+    SchoolAuthority {
+        int id PK
+        string name
+        string description
+        string contact_person
+        string contact_email
+        string contact_phone
+        datetime created_at
+    }
+
+    School {
+        int id PK
+        int school_authority_id FK
+        boolean school_authority_access_allowed
+    }
+
+    User {
+        int id PK
+        int school_authority_id FK
+        json roles
+    }
+
+    Survey {
+        int id PK
+        int school_authority_id FK
+        int school_id FK nullable
+        boolean school_authority_survey
+        boolean school_authority_template
+    }
+
+    SurveySchoolParticipation {
+        int id PK
+        int survey_id FK
+        int school_id FK
+        datetime created_at
+        datetime participated_at nullable
+    }
+
+    SchoolAuthority ||--o{ School : "owns"
+    SchoolAuthority ||--o{ User : "has authority users"
+    SchoolAuthority ||--o{ Survey : "creates authority surveys/templates"
+    Survey ||--o{ SurveySchoolParticipation : "assigned to schools"
+    School ||--o{ SurveySchoolParticipation : "participates"
+```
+
+### Related migration evidence
+
+- `migrations/Version20250623095737.php` (create `school_authority`, link from `school`)
+- `migrations/Version20250623101153.php` (link from `user`)
+- `migrations/Version20260226110337.php` (link from `survey`)
+- `migrations/Version20260227095500.php` (`school_authority_access_allowed`)
+
 ## Complete System ERD
 
 ```mermaid

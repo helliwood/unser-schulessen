@@ -1,7 +1,7 @@
 <div class="col-12 mb-4">
     <div class="panel h-100">
-        <h2><i class="fas fa-chart-bar text-primary2 mr-1"></i>Archivierte Umfragen</h2>
-        <div class="mb-2">Hier finden Sie alle archivierten Umfragen.</div>
+        <h2><i class="fas fa-chart-bar text-primary2 mr-1"></i>Beendete Umfragen</h2>
+        <div class="mb-2">Hier finden Sie alle beendeten Umfragen.</div>
         <data-table
                 api-url="{{ path('survey_list_closed') }}"
                 sort-by="createdAt"
@@ -31,6 +31,22 @@
                         :href="'/survey/result/'+row.item.id"><i
                             class="fas fa-chart-bar mr-1"></i>Auswertung
                 </b-button>
+                <b-button
+                        variant="danger"
+                        size="sm"
+                        :id="'btn-delete-survey-' + row.item.id"
+                        v-b-modal="'modal-delete-survey-' + row.item.id">
+                    <i class="far fa-trash-alt mr-1"></i>In Papierkorb
+                </b-button>
+                <b-modal
+                        :id="'modal-delete-survey-' + row.item.id"
+                        :title="'Umfrage in Papierkorb verschieben'"
+                        ok-title="Ja, löschen"
+                        cancel-title="Abbrechen"
+                        ok-variant="danger"
+                        @ok="callAndRefresh({action:'delete_survey', survey_id:row.item.id}, '{{ path('survey_list_closed') }}')">
+                    Möchten Sie die Umfrage wirklich in den Papierkorb verschieben?
+                </b-modal>
 
             </template>
         </data-table>

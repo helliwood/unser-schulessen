@@ -18,6 +18,41 @@
                         Sie den ersten Qualitätscheck starten. Tragen Sie die Mitglieder des Verpflegungsausschusses ein und laden Sie
                         diese ein. Ergänzen Sie unter Kontakte wichtige Firmen und Institutionen.<br>
                     {% endif %}
+                    {% if authorityOpenSurveyParticipations is not empty %}
+                        <hr>
+                        <h4 class="mb-2"><i class="fas fa-bullhorn text-primary2 mr-1"></i>Neue Träger-Umfragen</h4>
+                        <p class="mb-2">Bitte bearbeiten Sie diese offenen Träger-Umfragen.</p>
+                        <div class="table-responsive">
+                            <table class="table table-sm mb-0">
+                                <thead>
+                                <tr>
+                                    <th>Umfrage</th>
+                                    <th>Ablauf</th>
+                                    <th class="text-right">Aktion</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for participation in authorityOpenSurveyParticipations %}
+                                    {% set survey = participation.survey %}
+                                    <tr>
+                                        <td>{{ survey.name }}</td>
+                                        <td>{{ survey.closesAt ? survey.closesAt|date('d.m.Y') : '-' }}</td>
+                                        <td class="text-right">
+                                            {% if is_granted('ROLE_HEADMASTER') or is_granted('ROLE_FOOD_COMMISSIONER') %}
+                                                <a class="btn btn-primary btn-sm"
+                                                   href="{{ path('survey_public_authority_show', {uuid: survey.uuid}) }}">
+                                                    Zur Umfrage
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">Keine Berechtigung</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
             <div class="col-md-6 mb-4">
@@ -100,7 +135,15 @@
                 {% endif %}
 
                 {% include('index/partials/_survey.html.twig') %}
+                {% include('index/partials/_food_survey.html.twig') %}
+                {% include('index/partials/_documents.html.twig') %}
 
+            </div>
+        {% endif %}
+
+        {% if authorityCompletedSurveyParticipations is not empty %}
+            <div class="row d-flex">
+                {% include('index/partials/_authority_surveys.html.twig') %}
             </div>
         {% endif %}
 
@@ -114,15 +157,17 @@
             </div>
         {% endif %}
 
-        {% if not hasUpdatedMasterData and (is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')) %}
+        {% if showMasterDataModal %}
             <b-modal id="modal-question-pool"
                      title="Sind die Stammdaten noch aktuell?"
-                     ok-only v-if="{{ hasUpdatedMasterData }}" visible
+                     ok-only
+                     visible
                      ok-title="schließen">
                 <span>Bitte prüfen Sie jährlich Ihre <b>Stammdaten auf Aktualität</b>. Alle Pflichtfelder müssen auf den neusten Stand gebracht werden.<br><br>
                     Geben Sie die aktuellen Daten ein und speichern diese im Schritt 8 mit <b>„finalisieren“</b>.<br><br>
                     Alle Pflichtfelder müssen jährlich auf den neuesten Stand gebracht werden.</span>
             </b-modal>
         {% endif %}
+
     </div>
 {% endblock %}

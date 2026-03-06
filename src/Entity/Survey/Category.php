@@ -16,43 +16,41 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Category Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(name="survey_category")
- * @ORM\Entity(repositoryClass="App\Repository\Survey\CategoryRepository")
  */
+#[ORM\Table(name: 'survey_category')]
+#[ORM\Entity(repositoryClass: \App\Repository\Survey\CategoryRepository::class)]
 class Category implements \JsonSerializable
 {
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      *
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="150")
-     * @ORM\Column(type="string", length=150, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 150)]
+    #[ORM\Column(type: 'string', length: 150, nullable: false)]
     private $name;
 
     /**
      *
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, name="`order`")
      */
+    #[ORM\Column(type: 'smallint', nullable: false, name: '`order`')]
     private $order;
 
     /**
      * @var Question[]|ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity="\App\Entity\Survey\Question", mappedBy="category", orphanRemoval=true, indexBy="id")
-     * @ORM\OrderBy({"order":"ASC"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\Survey\Question::class, mappedBy: 'category', orphanRemoval: true, indexBy: 'id')]
+    #[ORM\OrderBy(['order' => 'ASC'])]
     private $questions;
 
     /**

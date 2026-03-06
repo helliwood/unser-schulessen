@@ -16,8 +16,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,20 +23,18 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * @Route("/master_data/contacts", name="master_data_contacts_")
- * @IsGranted("ROLE_USER")
- */
+#[Route(path: '/master_data/contacts', name: 'master_data_contacts_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
 class ContactsController extends AbstractController
 {
     /**
-     * @Route("/", name="list")
      * @param Request $request
      * @param TranslatorInterface $translator
      * @param EntityManagerInterface $entityManager
      * @return JsonResponse|Response
      * @throws NonUniqueResultException
      */
+    #[Route(path: '/', name: 'list')]
     public function list(Request $request, TranslatorInterface $translator, EntityManagerInterface $entityManager)
     {
         /** @var PersonRepository $sr */
@@ -63,13 +59,13 @@ class ContactsController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="new")
-     * @Security("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param MenuItem $menu
      * @param Request $request
      * @return RedirectResponse|Response
      * @throws Exception
      */
+    #[Route(path: '/new', name: 'new')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function new(MenuItem $menu, Request $request)
     {
         $school = $this->getUser()->getCurrentSchool();
@@ -105,13 +101,13 @@ class ContactsController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{id}", name="edit")
-     * @Security("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param Person $person
      * @param MenuItem $menu
      * @param Request $request
      * @return RedirectResponse|Response
      */
+    #[Route(path: '/edit/{id}', name: 'edit')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function edit(Person $person, MenuItem $menu, Request $request)
     {
         $menu['master_data']->addChild($person->getDisplayName(), [
@@ -143,12 +139,12 @@ class ContactsController extends AbstractController
     }
 
     /**
-     * @Route("/show/{id}", name="show")
      * @param Person $person
      * @param MenuItem $menu
      * @param Request $request
      * @return RedirectResponse|Response
      */
+    #[Route(path: '/show/{id}', name: 'show')]
     public function show(Person $person, MenuItem $menu, Request $request)
     {
         $menu['master_data']->addChild($person->getDisplayName(), [

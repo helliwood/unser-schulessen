@@ -1,0 +1,27 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="example-wrapper">
+        <h1>Neue Umfrage</h1>
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="fas fa-bullhorn text-primary2 mr-1"></i>Eigene Umfrage an Schulen</h2>
+                    <p>Erstellen Sie eine konkrete Umfrage, weisen Sie Schulen zu und legen Sie optional ein Ablaufdatum fest.</p>
+                    <a class="btn btn-secondary mt-auto align-self-start" href="{{ path('school_authority_survey_new_form', {'kind': 'survey'}) }}">
+                        <i class="fas fa-arrow-right mr-1"></i>Auswählen
+                    </a>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="far fa-copy text-primary2 mr-1"></i>Vorlage für Schulen</h2>
+                    <p>Erstellen Sie eine wiederverwendbare Trägervorlage, die Schulen zugeordnet und später aktiviert werden kann.</p>
+                    <a class="btn btn-secondary mt-auto align-self-start" href="{{ path('school_authority_survey_new_form', {'kind': 'template'}) }}">
+                        <i class="fas fa-arrow-right mr-1"></i>Auswählen
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -16,88 +16,90 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Survey Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(name="survey_surveyquestion")
- * @ORM\Entity(repositoryClass="App\Repository\Survey\SurveyQuestionRepository")
  */
+#[ORM\Table(name: 'survey_surveyquestion')]
+#[ORM\Entity(repositoryClass: \App\Repository\Survey\SurveyQuestionRepository::class)]
 class SurveyQuestion implements \JsonSerializable
 {
     public const TYPE_HAPPY_UNHAPPY = "happy_unhappy";
     public const TYPE_SINGLE = "single";
     public const TYPE_MULTI = "multi";
+    public const TYPE_TEXT = "text";
+
 
     public const TYPE_LABELS = [
         self::TYPE_HAPPY_UNHAPPY => 'zufrieden/unzufrieden',
         self::TYPE_SINGLE => 'Einfachauswahl',
         self::TYPE_MULTI => 'Mehrfachauswahl',
+        self::TYPE_TEXT => 'Freitext',
     ];
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var Survey
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Survey\Survey", inversedBy="questions", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Survey\Survey::class, inversedBy: 'questions', cascade: ['persist'], fetch: 'EAGER')]
     private $survey;
 
     /**
      *
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
     private $question;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="50")
-     * @ORM\Column(type="string", length=50, nullable=false, options={"default":"happy_unhappy"})
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
+    #[ORM\Column(type: 'string', length: 50, nullable: false, options: ['default' => 'happy_unhappy'])]
     private $type;
 
     /**
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, name="`order`")
      */
+    #[ORM\Column(type: 'smallint', nullable: false, name: '`order`')]
     private $order;
 
     /**
      * @var ArrayCollection|SurveyQuestionChoice[]
-     * @ORM\OneToMany(targetEntity="App\Entity\Survey\SurveyQuestionChoice", mappedBy="question", cascade={"persist"}, orphanRemoval=true)
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\Survey\SurveyQuestionChoice::class, mappedBy: 'question', cascade: ['persist'], orphanRemoval: true)]
     private $choices;
 
     /**
      * @var ArrayCollection|SurveyQuestionAnswer[]
-     * @ORM\OneToMany(targetEntity="App\Entity\Survey\SurveyQuestionAnswer", mappedBy="question")
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\Survey\SurveyQuestionAnswer::class, mappedBy: 'question')]
     private $answers;
 
     /**
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, name="`answered`", options={"default" : 0})
      */
+    #[ORM\Column(type: 'smallint', nullable: false, name: '`answered`', options: ['default' => 0])]
     private $answered = 0;
 
     /**
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, name="`not_answered`", options={"default" : 0})
      */
+    #[ORM\Column(type: 'smallint', nullable: false, name: '`not_answered`', options: ['default' => 0])]
     private $not_answered = 0;
 
     /**
      * @var bool
-     * @ORM\Column(type="boolean", nullable=true, name="sustainable", options={"default":"0"})
      */
+    #[ORM\Column(type: 'boolean', nullable: true, name: 'sustainable', options: ['default' => '0'])]
     private $sustainable = false;
 
     /**

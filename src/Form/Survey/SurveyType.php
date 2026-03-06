@@ -29,19 +29,22 @@ class SurveyType extends AbstractType
                 'disabled' => $options['data'] instanceof Survey &&
                     $options['data']->getState() === Survey::STATE_ACTIVE ?? false,
             ])
-            ->add('type', ChoiceType::class, [
+            ->add('introduction', TextareaType::class, [
+                'label' => "Einleitungstext",
+                "required" => false,
+            ])
+        ;
+
+        if (! $options['isSchoolAuthority']) {
+            $builder->add('type', ChoiceType::class, [
                 'disabled' => $options['data'] instanceof Survey &&
                     $options['data']->getState() === Survey::STATE_ACTIVE ?? false,
                 'choices' => [
                     'Offen' => Survey::TYPE_OPEN,
                     'Voucher' => Survey::TYPE_VOUCHER
                 ]
-            ])
-            ->add('introduction', TextareaType::class, [
-                'label' => "Einleitungstext",
-                "required" => false,
-            ])
-        ;
+            ]);
+        }
 
         if ($options['isAdmin']) {
             $builder->add('surveyTemplate', CheckboxType::class, [
@@ -49,7 +52,7 @@ class SurveyType extends AbstractType
                 'label' => 'Allgemeine Umfragen Vorlage'
             ]);
         }
-        if ($options['new']) {
+        if ($options['new'] && ! $options['isSchoolAuthority']) {
             $builder->add('numberOfVoucher', IntegerType::class, [
                 'required' => false
             ]);
@@ -59,7 +62,7 @@ class SurveyType extends AbstractType
             'widget' => 'single_text',
             'required' => false
         ]);
-        if ($options['new']) {
+        if ($options['new'] && ! $options['isSchoolAuthority']) {
             $builder->add('template', TextType::class, [
                 'data' => $options['template'],
                 'required' => false,
@@ -80,6 +83,7 @@ class SurveyType extends AbstractType
             'new' => false,
             'surveyIsActivated' => false,
             'isAdmin' => false,
+            'isSchoolAuthority' => false,
             'template' => null
         ]);
     }

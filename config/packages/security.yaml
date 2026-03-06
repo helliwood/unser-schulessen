@@ -1,6 +1,6 @@
 security:
   # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
-  encoders:
+  password_hashers:
     App\Entity\User: 'auto'
   providers:
     our_db_provider:
@@ -13,7 +13,7 @@ security:
     main:
       switch_user: true
       pattern: ^/
-      anonymous: lazy
+      lazy: true
       provider: our_db_provider
       user_checker: App\Security\UserChecker
       form_login:
@@ -37,6 +37,7 @@ security:
   role_hierarchy:
     ROLE_GUEST: [ ROLE_USER ]
     ROLE_KITCHEN: [ ROLE_USER ]
+    ROLE_SCHOOL_AUTHORITY: [ ROLE_USER ]
     ROLE_SCHOOL_AUTHORITIES: [ ROLE_KITCHEN, ROLE_GUEST ]
     ROLE_SCHOOL_AUTHORITIES_ACTIVE: [ ROLE_SCHOOL_AUTHORITIES ]
     ROLE_MENSA_AG: [ ROLE_SCHOOL_AUTHORITIES ]
@@ -45,11 +46,11 @@ security:
     ROLE_CONSULTANT: [ ROLE_HEADMASTER ]
     ROLE_ADMIN: [ ROLE_CONSULTANT, ROLE_ALLOWED_TO_SWITCH ]
   access_control:
-    - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/reset, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/invitation, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/sendMail, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/Umfrage, roles: IS_AUTHENTICATED_ANONYMOUSLY }
-    - { path: ^/Mini-Check, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    - { path: ^/login, roles: PUBLIC_ACCESS }
+    - { path: ^/reset, roles: PUBLIC_ACCESS }
+    - { path: ^/invitation, roles: PUBLIC_ACCESS }
+    - { path: ^/sendMail, roles: PUBLIC_ACCESS }
+    - { path: ^/Umfrage, roles: PUBLIC_ACCESS }
+    - { path: ^/Mini-Check, roles: PUBLIC_ACCESS }
     - { path: ^/, roles: [ ROLE_USER, IS_AUTHENTICATED_REMEMBERED ] }
   #always_authenticate_before_granting: true #damit die rollen bei jedem refresh aktualisiert werden (wichtig für schulwechsel) BUG: https://github.com/symfony/symfony/issues/32756

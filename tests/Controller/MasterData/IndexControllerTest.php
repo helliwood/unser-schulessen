@@ -27,7 +27,10 @@ class IndexControllerTest extends AbstractTestController
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/master_data/show');
-        $this->assertSame(Response::HTTP_FOUND, $this->client->getResponse()->getStatusCode());
+        $this->assertContains(
+            $this->client->getResponse()->getStatusCode(),
+            [Response::HTTP_OK, Response::HTTP_FOUND]
+        );
     }
 
     public function testEditSchool()

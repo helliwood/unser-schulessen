@@ -18,74 +18,70 @@ use Symfony\Component\Validator\Constraints as Assert;
  * ToDo-Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity(repositoryClass="App\Repository\QualityCircle\ToDoRepository")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\QualityCircle\ToDoRepository::class)]
 class ToDo implements \JsonSerializable
 {
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      *
      * @var string
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=150, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 150, nullable: false)]
     private $name;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     private $createdBy;
 
     /**
      * @var bool
-     * @ORM\Column(type="boolean", nullable=false)
      */
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private $archived = false;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $archivedAt;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT", nullable=true)
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     private $archivedBy;
 
     /**
      * @var Result|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Result")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Result::class)]
     private $result;
 
     /**
      * @var ToDoItem[]|ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity="\App\Entity\QualityCircle\ToDoItem", mappedBy="todo", orphanRemoval=true, indexBy="id")
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\QualityCircle\ToDoItem::class, mappedBy: 'todo', orphanRemoval: true, indexBy: 'id')]
     private $items;
 
     /**

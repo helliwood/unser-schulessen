@@ -14,6 +14,11 @@
                         Bearbeiten Sie hier Daten zum Schulessen, um mit dem Qualitäts-Check beginnen zu können.
                     </div>
                     <div class="mt-auto">
+                        {% if not hasFinalisedMasterData %}
+                            <div class="mt-2 py-2 px-0 text-muted text-left">
+                                Bitte füllen Sie ihre Stammdaten aus!
+                            </div>
+                        {% endif %}
                         {% if hasFinalisedMasterData %}
                             <a href="{{ path('master_data_show') }}" class="btn btn-primary mt-2"><i
                                         class="far fa-eye mr-1"></i>Stammdaten anzeigen</a>
@@ -27,29 +32,48 @@
                                 <i class="fas fa-print mr-1"></i>Stammdaten - PDF</a>
                             <a href="{{ path('master_data_portrait') }}" class="btn btn-primary mt-2">
                                 <i class="far fa-file-pdf mr-1"></i>Steckbrief Mensa</a>
-                        {% else %}
-                            <div class="inline mt-2 p-2 text-muted float-right">
-                                Bitte füllen Sie ihre Stammdaten aus!
-                            </div>
                         {% endif %}
                         <a href="{{ path('master_data_export_blank') }}" class="btn btn-primary mt-2">
                             <i class="fas fa-file-pdf mr-1"></i>Stammdaten - Blanko</a>
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
+            <div class="col-md-3 mb-4">
                 <div class="panel h-100 d-flex flex-column">
                     <h2><i class="fas fa-university text-primary2 mr-1"></i>{{ school.name }}</h2>
                     <div class="mb-2">
                         {{ school.address | nl2br }}
                     </div>
                     <div class="mt-auto">
+                        {% if school.schoolAuthority is not null %}
+                            <div class="mb-2">
+                                <div>Schulträger:</div>
+                                <div class="d-flex align-items-center flex-wrap mt-1">
+                                    <strong>{{ school.schoolAuthority.name }}</strong>
+                                    {% if school.schoolAuthorityAccessAllowed %}
+                                        <span class="badge badge-success ml-2">Zugriff erlaubt</span>
+                                    {% else %}
+                                        <span class="badge badge-danger ml-2">Zugriff verboten</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
                         {% if is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %}
                             <a href="{{ path('master_data_edit_school') }}" class="btn btn-secondary"><i
-                                        class="fas fa-edit mr-1"></i>Schule
+                                        class="fas fa-edit mr-1"></i>Profil
                                 bearbeiten</a>
                         {% endif %}
                     </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="far fa-life-ring text-primary2 mr-1"></i>Hilfe</h2>
+                    <p>Wie nutze ich das Modul Unsere Schule?</p>
+                    <p>Die Online-Hilfe gibt Ihnen nützliche Tipps.</p>
+                    <button v-b-modal.modal-help class="btn btn-secondary mt-auto" href="#">
+                        <i class="fas fa-link mr-1"></i>Hilfe aufrufen
+                    </button>
                 </div>
             </div>
         </div>
@@ -61,4 +85,53 @@
 
         {% endif %}
     </div>
+
+    <b-modal id="modal-help" title="Hilfe Unsere Schule" size="xl" ok-only>
+        <h5>Wofür ist das Modul „Unsere Schule“?</h5>
+        <p>Im Modul <strong>Unsere Schule</strong> verwalten Sie die Grundlagen für Ihr Qualitätsmanagement rund um das
+            Schulessen. Hier pflegen Sie Stammdaten, bearbeiten schulbezogene Angaben und verwalten Mitglieder und
+            Kontakte.</p>
+
+        <h5>Bereich „Stammdaten“</h5>
+        <p>In diesem Bereich erfassen und aktualisieren Sie alle fachlichen Informationen zum Verpflegungsangebot.</p>
+        <ul>
+            <li><strong>Stammdaten bearbeiten</strong>: Öffnet die Eingabemasken zur Pflege und Aktualisierung Ihrer
+                Daten.
+            </li>
+            <li><strong>Stammdaten anzeigen</strong>: Zeigt den aktuellen Datenstand in der Lesesicht.</li>
+            <li><strong>Stammdaten - PDF</strong>: Erstellt einen PDF-Export der gepflegten Stammdaten.</li>
+            <li><strong>Steckbrief Mensa</strong>: Erzeugt den kompakten Steckbrief für Abstimmung und Kommunikation.
+            </li>
+            <li><strong>Stammdaten - Blanko</strong>: Gibt die leere Vorlage zum externen Ausfüllen aus.</li>
+        </ul>
+
+        <h5>Bereich „Schule“</h5>
+        <p>Hier finden Sie die schulbezogenen Basisdaten (z. B. Adresse) und können diese bei Bedarf anpassen.</p>
+        <ul>
+            <li><strong>Schule bearbeiten</strong>: Öffnet die Bearbeitungsmaske für schulbezogene Stammdaten.</li>
+        </ul>
+
+        <h5>Bereich „Mitglieder“</h5>
+        <p>In der Mitgliederliste sehen Sie alle dem Standort zugeordneten Personen mit Rollen und Status. Von dort
+            aus können Sie neue Mitglieder einladen und bestehende Einträge bearbeiten.</p>
+        <ul>
+            <li><strong>Neues Mitglied</strong>: Legt einen neuen Nutzerzugang für die Schule an.</li>
+            <li><strong>Bearbeiten</strong>: Passt Daten und Berechtigungen eines vorhandenen Mitglieds an.</li>
+        </ul>
+
+        <h5>Bereich „Kontakte“</h5>
+        <p>Hier verwalten Sie wichtige Ansprechpersonen (intern und extern), die für Organisation und Kommunikation
+            rund um das Schulessen relevant sind.</p>
+        <ul>
+            <li><strong>Neuer Kontakt</strong>: Fügt eine neue Kontaktperson hinzu.</li>
+            <li><strong>Bearbeiten/Löschen</strong>: Pflegt oder entfernt bestehende Kontakte.</li>
+        </ul>
+
+        <h5>Empfohlene Reihenfolge</h5>
+        <ol>
+            <li>Schul- und Stammdaten vollständig pflegen.</li>
+            <li>Mitglieder und Kontakte aktuell halten.</li>
+            <li>Daten regelmäßig per PDF sichern und zur Abstimmung im Team nutzen.</li>
+        </ol>
+    </b-modal>
 {% endblock %}

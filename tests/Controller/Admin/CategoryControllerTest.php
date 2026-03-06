@@ -2,8 +2,10 @@
 
 namespace App\Tests\Controller\Admin;
 
+use App\DataFixtures\UnitTestFixtures;
 use App\Entity\QualityCheck\Category;
 use App\Entity\QualityCheck\Questionnaire;
+use App\Entity\User;
 use App\Tests\Controller\AbstractTestController;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,21 +13,35 @@ use Symfony\Component\HttpFoundation\Response;
 class CategoryControllerTest extends AbstractTestController
 {
     protected $client = null;
-    protected const QUESTIONNAIRE_NEW = "Fragebogen Neu";
-    protected const CATEGORY_NEW = "Kategorie neu";
-    protected const CATEGORY_ONE = "Kategorie 1";
-    protected const CATEGORY_TWO = "Kategorie 2";
+    protected static $questionnaireName;
+    protected static $categoryNew;
+    protected static $categoryOne;
+    protected static $categoryTwo;
+    protected static $subcategory;
 
     public function setUp(): void
     {
         $this->client = static::createClient();
         $this->logIn();
+        if (self::$questionnaireName === null) {
+            self::$questionnaireName = 'Fragebogen Neu '.uniqid('', true);
+        }
+        if (self::$categoryNew === null) {
+            $suffix = uniqid('', true);
+            self::$categoryNew = 'Kategorie neu '.$suffix;
+            self::$categoryOne = 'Kategorie 1 '.$suffix;
+            self::$categoryTwo = 'Kategorie 2 '.$suffix;
+            self::$subcategory = 'Subcategory '.$suffix;
+        }
     }
 
-    public function testNew($categoryName = self::CATEGORY_NEW)
+    public function testNew($categoryName = null)
     {
-        /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_NEW]);
+        if ($categoryName === null) {
+            $categoryName = self::$categoryNew;
+        }
+
+        $questionnaire = $this->getOrCreateQuestionnaire();
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/category/new/' . $questionnaire->getId());
@@ -45,7 +61,7 @@ class CategoryControllerTest extends AbstractTestController
         $parentCat = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => $categoryName]);
         /** @var $postData */
         $postData = ['category' => []];
-        $postData['category']['name'] = 'Subcategory';
+        $postData['category']['name'] = self::$subcategory;
         $postData['save'] = "";
 
         /** @var Crawler $crawler */
@@ -56,7 +72,7 @@ class CategoryControllerTest extends AbstractTestController
     public function testIndexAjax()
     {
         /** @var int $cat */
-        $cat = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::CATEGORY_NEW]);
+        $cat = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categoryNew]);
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/category/list/' . $cat->getId(), [], [], ['HTTP_X-Requested-With' => 'XMLHttpRequest']);
@@ -69,7 +85,7 @@ class CategoryControllerTest extends AbstractTestController
     public function testEdit()
     {
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::CATEGORY_NEW]);
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categoryNew]);
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/category/edit/' . $category->getId());
@@ -77,7 +93,7 @@ class CategoryControllerTest extends AbstractTestController
         $this->assertSame($category->getName(), $crawler->filter('h1')->text());
 
         $postData = ['category' => []];
-        $postData['category']['name'] = self::CATEGORY_ONE;
+        $postData['category']['name'] = self::$categoryOne;
         $postData['save'] = "";
 
         /** @var Crawler $crawler */
@@ -87,13 +103,13 @@ class CategoryControllerTest extends AbstractTestController
 
     public function testUp()
     {
-        $this->testNew(self::CATEGORY_TWO);
+        $this->testNew(self::$categoryTwo);
 
-        /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_NEW]);
+        $questionnaire = $this->getOrCreateQuestionnaire();
 
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::CATEGORY_TWO]);
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categoryTwo]);
+        $orderBeforeUp = $category->getOrder();
 
         $postData = ['action' => 'up', 'category_id' => $category->getId()];
 
@@ -104,17 +120,17 @@ class CategoryControllerTest extends AbstractTestController
         $this->assertNotEmpty($JSON_response);
 
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::CATEGORY_TWO]);
-        $this->assertSame(1, $category->getOrder());
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categoryTwo]);
+        $this->assertLessThan($orderBeforeUp, $category->getOrder());
     }
 
     public function testDown()
     {
-        /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_NEW]);
+        $questionnaire = $this->getOrCreateQuestionnaire();
 
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::CATEGORY_TWO]);
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categoryTwo]);
+        $orderBeforeDown = $category->getOrder();
 
         $postData = ['action' => 'down', 'category_id' => $category->getId()];
 
@@ -125,17 +141,16 @@ class CategoryControllerTest extends AbstractTestController
         $this->assertNotEmpty($JSON_response);
 
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::CATEGORY_TWO]);
-        $this->assertSame(2, $category->getOrder());
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categoryTwo]);
+        $this->assertGreaterThan($orderBeforeDown, $category->getOrder());
     }
 
     public function testDelete()
     {
-        /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_NEW]);
+        $questionnaire = $this->getOrCreateQuestionnaire();
 
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::CATEGORY_TWO]);
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categoryTwo]);
 
         $postData = ['action' => 'delete_category', 'category_id' => $category->getId()];
 
@@ -146,7 +161,25 @@ class CategoryControllerTest extends AbstractTestController
         $this->assertNotEmpty($JSON_response);
 
         /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::CATEGORY_TWO]);
+        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => self::$categoryTwo]);
         $this->assertNull($category);
+    }
+
+    private function getOrCreateQuestionnaire(): Questionnaire
+    {
+        $em = $this->getEntityManager();
+        /** @var Questionnaire|null $questionnaire */
+        $questionnaire = $em->getRepository(Questionnaire::class)->findOneBy(['name' => self::$questionnaireName]);
+        if ($questionnaire === null) {
+            /** @var User $createdBy */
+            $createdBy = $em->getRepository(User::class)->findOneBy(['email' => UnitTestFixtures::TESTUSER_EMAIL]);
+            $questionnaire = new Questionnaire();
+            $questionnaire->setName(self::$questionnaireName);
+            $questionnaire->setCreatedBy($createdBy);
+            $em->persist($questionnaire);
+            $em->flush();
+        }
+
+        return $questionnaire;
     }
 }

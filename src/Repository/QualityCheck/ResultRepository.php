@@ -12,6 +12,8 @@ use App\Entity\QualityCheck\Result;
 use App\Entity\School;
 use App\Entity\SchoolYear;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\NonUniqueResultException;
+use Doctrine\ORM\NoResultException;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -35,15 +37,16 @@ class ResultRepository extends ServiceEntityRepository
      * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration
      * @param School $school
      * @param string $sort
-     * @param bool   $sortDesc
-     * @param int    $page
-     * @param int    $limit
+     * @param bool $sortDesc
+     * @param int $page
+     * @param int $limit
      * @return array
-     * @throws \Doctrine\ORM\NonUniqueResultException
+     * @throws NonUniqueResultException
+     * @throws NoResultException
      */
     public function find4Ajax(School $school, string $sort, bool $sortDesc, int $page, int $limit): array
     {
-        $sortValues = ["createdAt", "finalisedAt"];
+        $sortValues = ["name", "createdAt", "finalisedAt"];
 
         if (! \in_array($sort, $sortValues)) {
             $sort = "createdAt";
@@ -112,5 +115,17 @@ class ResultRepository extends ServiceEntityRepository
         }
 
         return $total;
+    }
+
+    public function findLatestBySchool(\App\Entity\School $school): ?\App\Entity\QualityCheck\Result
+    {
+        return $this->createQueryBuilder('r')
+            ->andWhere('r.school = :school')
+            ->setParameter('school', $school)
+            ->andWhere('r.finalised = true')
+            ->orderBy('r.finalisedAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }

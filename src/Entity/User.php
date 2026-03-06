@@ -9,19 +9,18 @@
 namespace App\Entity;
 
 use DateTime;
-use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Validator\Constraints as Assert;
 
 /**
- * @ORM\Entity(repositoryClass="App\Repository\UserRepository")
- * @UniqueEntity("email")
- * @IgnoreAnnotation("phpcsSuppress")
  */
-class User extends AbstractEntity implements UserInterface, \Serializable, \JsonSerializable
+#[ORM\Entity(repositoryClass: \App\Repository\UserRepository::class)]
+#[UniqueEntity('email')]
+class User extends AbstractEntity implements UserInterface, PasswordAuthenticatedUserInterface, \Serializable, \JsonSerializable
 {
     public const STATE_NOT_ACTIVATED = 0;
     public const STATE_ACTIVE = 1;
@@ -32,6 +31,7 @@ class User extends AbstractEntity implements UserInterface, \Serializable, \Json
     public const ROLE_HEADMASTER = 'ROLE_HEADMASTER';
     public const ROLE_FOOD_COMMISSIONER = 'ROLE_FOOD_COMMISSIONER';
     public const ROLE_MENSA_AG = 'ROLE_MENSA_AG';
+    public const ROLE_SCHOOL_AUTHORITY = 'ROLE_SCHOOL_AUTHORITY';
     public const ROLE_SCHOOL_AUTHORITIES = 'ROLE_SCHOOL_AUTHORITIES';
     public const ROLE_SCHOOL_AUTHORITIES_ACTIVE = 'ROLE_SCHOOL_AUTHORITIES_ACTIVE';
     public const ROLE_KITCHEN = 'ROLE_KITCHEN';
@@ -44,75 +44,73 @@ class User extends AbstractEntity implements UserInterface, \Serializable, \Json
 
     /**
      * @var int|null
-     * @ORM\Id()
-     * @ORM\GeneratedValue()
-     * @ORM\Column(type="integer", options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var string|null
-     * @Assert\Email()
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=190, unique=true)
      */
+    #[Assert\Email]
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 190, unique: true)]
     private $email;
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $password;
 
     /**
      * @var Person|null
-     *
-     * @ORM\OneToOne(targetEntity="\App\Entity\Person", cascade={"persist"}, fetch="EAGER", inversedBy="user")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\OneToOne(targetEntity: \App\Entity\Person::class, cascade: ['persist'], fetch: 'EAGER', inversedBy: 'user')]
     private $person;
 
     /**
      * @var int
-     *
-     * @ORM\Column(type="smallint", nullable=false, options={"default" : 0})
      */
+    #[ORM\Column(type: 'smallint', nullable: false, options: ['default' => 0])]
     protected $state = self::STATE_NOT_ACTIVATED;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     /**
-     * @ORM\Column(type="json", nullable=true)
      * @var string[]|null
      */
+    #[ORM\Column(type: 'json', nullable: true)]
     private $roles = [];
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
      * @var DateTime|null
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $currentLogin;
 
     /**
-     * @ORM\Column(type="datetime", nullable=true)
      * @var DateTime|null
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $lastLogin;
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", length=32, nullable=true, unique=true)
      */
+    #[ORM\Column(type: 'string', length: 32, nullable: true, unique: true)]
     protected $resetPasswordHash;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     protected $hashExpirationDate;
 
     /**
@@ -122,17 +120,15 @@ class User extends AbstractEntity implements UserInterface, \Serializable, \Json
 
     /**
      * @var UserHasSchool[]|ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity="UserHasSchool", mappedBy="user")
      */
+    #[ORM\OneToMany(targetEntity: \UserHasSchool::class, mappedBy: 'user')]
     private $userHasSchool;
 
     /**
      * @var School|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\School", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\School::class, cascade: ['persist'], fetch: 'EAGER')]
     private $currentSchool;
 
     /**
@@ -142,20 +138,27 @@ class User extends AbstractEntity implements UserInterface, \Serializable, \Json
 
     /**
      * @var bool
-     * @ORM\Column(type="boolean", nullable=false, options={"default":false})
      */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private $employee = false;
 
     /**
      * @var bool
-     * @ORM\Column(type="boolean", nullable=false, options={"default":false})
      */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => false])]
     private $tempPassword = false;
 
     /**
      * @var string|null
      */
     private $newPassword;
+
+    /**
+     * @var SchoolAuthority|null
+     */
+    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\SchoolAuthority::class)]
+    private $schoolAuthority;
 
     /**
      * User constructor.
@@ -302,7 +305,7 @@ class User extends AbstractEntity implements UserInterface, \Serializable, \Json
      * @return string[]
      * @throws \Exception
      */
-    public function getRoles(): ?array
+    public function getRoles(): array
     {
         $roles = $this->roles;
         // guarantee every user at least has ROLE_USER
@@ -320,7 +323,7 @@ class User extends AbstractEntity implements UserInterface, \Serializable, \Json
      * @param string[] $roles
      * @return User
      */
-    public function setRoles(?array $roles): User
+    public function setRoles(array $roles): User
     {
         $this->roles = $roles;
         return $this;
@@ -623,6 +626,11 @@ class User extends AbstractEntity implements UserInterface, \Serializable, \Json
         return $this->getEmail();
     }
 
+    public function getUserIdentifier(): string
+    {
+        return $this->getEmail();
+    }
+
     /**
      * Removes sensitive data from the user.
      *
@@ -691,5 +699,16 @@ class User extends AbstractEntity implements UserInterface, \Serializable, \Json
     public function setNewPassword(?string $newPassword): void
     {
         $this->newPassword = $newPassword;
+    }
+
+    public function getSchoolAuthority(): ?SchoolAuthority
+    {
+        return $this->schoolAuthority;
+    }
+
+    public function setSchoolAuthority(?SchoolAuthority $schoolAuthority): self
+    {
+        $this->schoolAuthority = $schoolAuthority;
+        return $this;
     }
 }

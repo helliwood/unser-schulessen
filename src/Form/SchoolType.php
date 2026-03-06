@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\School;
+use App\Entity\SchoolAuthority;
 use App\Entity\User;
 use App\Entity\UserHasSchool;
 use Doctrine\ORM\EntityRepository;
@@ -39,6 +40,19 @@ class SchoolType extends AbstractType
             ->add('particularity', TextareaType::class, [
                 'required' => false
             ]);
+
+        if ($builder->getOption('is_admin_area') === true) {
+            $builder->add('schoolAuthority', EntityType::class, [
+                'class' => SchoolAuthority::class,
+                'choice_label' => 'name',
+                'required' => false,
+                'placeholder' => '--- Bitte auswählen falls vorhanden ---',
+                'label' => 'Schulträger (Auswahl)',
+                'query_builder' => static function (EntityRepository $er) {
+                    return $er->createQueryBuilder('sa')->orderBy('sa.name', 'ASC');
+                },
+            ]);
+        }
 
         if ($this->stateCountry === 'bb') {
             $builder->add('flags', CheckboxType::class, [

@@ -14,36 +14,35 @@ use Doctrine\ORM\Mapping as ORM;
  * SchoolYear Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity(repositoryClass="App\Repository\SchoolYearRepository")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\SchoolYearRepository::class)]
 class SchoolYear
 {
     /**
      *
      * @var string|null
-     * @ORM\Id
-     * @ORM\Column(type="string", nullable=false, length=4)
      */
+    #[ORM\Id]
+    #[ORM\Column(type: 'string', nullable: false, length: 4)]
     protected $year;
 
     /**
      *
      * @var string|null
-     * @ORM\Column(type="string", nullable=false)
      */
+    #[ORM\Column(type: 'string', nullable: false)]
     protected $label;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="date", nullable=false)
      */
+    #[ORM\Column(type: 'date', nullable: false)]
     protected $periodBegin;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="date", nullable=false)
      */
+    #[ORM\Column(type: 'date', nullable: false)]
     protected $periodEnd;
 
     /**

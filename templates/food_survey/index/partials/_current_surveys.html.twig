@@ -37,6 +37,10 @@
                            title="Der Teller-Check wird veröffentlicht. Für die Verbreitung bitte die Adresse kopieren.">
                             <i class="far fa-check-circle mr-1"></i>Aktivieren</a>
                     {% endif %}
+                    <a v-if="row.item.state=={{ stateActive }}"
+                       class="btn btn-danger btn-sm ml-1"
+                       :href="'/food-survey/state/{{ stateClosed }}/'+row.item.id">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Beenden</a>
 
                     <b-button-group size="sm">
                         <b-button v-if="row.item.state=={{ stateNotActivated }}" size="sm" variant="secondary"
@@ -73,13 +77,6 @@
                                     :href="'/food-survey/delete/'+row.item.id" title=""><i
                                         class="fas fa-trash mr-1"></i>Löschen
                             </b-dropdown-item>
-                            {#                            {% if is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE') %} #}
-                            <b-dropdown-item variant="danger"
-                                             v-if="row.item.state=={{ stateActive }}"
-                                             :href="'/food-survey/state/{{ stateClosed }}/'+row.item.id">
-                                <i class="fas fa-sign-out-alt mr-1" title=""></i>Beenden
-                            </b-dropdown-item>
-                            {#                            {% endif %} #}
                         </b-dropdown>
                     </b-button-group>
                 {% else %}

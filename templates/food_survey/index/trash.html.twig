@@ -1,0 +1,15 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div>
+        <h1>Papierkorb Teller-Checks</h1>
+        <div class="row d-flex">
+            {% include ('food_survey/index/partials/_trash_surveys.html.twig') %}
+        </div>
+        <div class="mt-2">
+            <a class="btn btn-link pl-0" href="{{ path('food_survey_home') }}">
+                <i class="fas fa-arrow-left mr-1"></i>Zurück zum Teller-Check
+            </a>
+        </div>
+    </div>
+{% endblock %}

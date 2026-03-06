@@ -14,10 +14,9 @@ use Doctrine\ORM\Mapping as ORM;
  * FoodSurveySpotAnswer Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity()
- * @ORM\Table(name="food_survey_spot_answer")
  */
+#[ORM\Table(name: 'food_survey_spot_answer')]
+#[ORM\Entity]
 class FoodSurveySpotAnswer implements \JsonSerializable
 {
     public const ANSWER_GOOD = 1;
@@ -32,31 +31,31 @@ class FoodSurveySpotAnswer implements \JsonSerializable
 
     /**
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private ?int $id;
 
     /**
      * @var FoodSurveyResult|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\FoodSurvey\FoodSurveyResult", inversedBy="answers")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\FoodSurvey\FoodSurveyResult::class, inversedBy: 'answers')]
     private ?FoodSurveyResult $foodSurveyResult;
 
 
     /**
      * @var FoodSurveySpot|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\FoodSurvey\FoodSurveySpot", inversedBy="answers")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\FoodSurvey\FoodSurveySpot::class, inversedBy: 'answers')]
     private ?FoodSurveySpot $foodSurveySpot;
 
     /**
      * @var int|null
-     * @ORM\Column(type="smallint", nullable=false, options={"unsigned":false})
      */
+    #[ORM\Column(type: 'smallint', nullable: false, options: ['unsigned' => false])]
     private ?int $answer = null;
 
     /**

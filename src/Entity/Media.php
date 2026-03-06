@@ -15,88 +15,86 @@ use Doctrine\ORM\Mapping as ORM;
  * Media Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table()
- * @ORM\Entity(repositoryClass="App\Repository\MediaRepository")
  */
+#[ORM\Table]
+#[ORM\Entity(repositoryClass: \App\Repository\MediaRepository::class)]
 class Media implements \JsonSerializable
 {
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     protected $id;
 
     /**
      * @var School|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\School", cascade={"persist"}, fetch="EAGER", inversedBy="masterData")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\School::class, cascade: ['persist'], fetch: 'EAGER', inversedBy: 'masterData')]
     protected $school;
 
     /**
      *
      * @var string|null
-     * @ORM\Column(type="text", nullable=true)
      */
+    #[ORM\Column(type: 'text', nullable: true)]
     protected $description;
 
     /**
      *
      * @var string|null
-     * @ORM\Column(type="string", length=250, nullable=false)
      */
+    #[ORM\Column(type: 'string', length: 250, nullable: false)]
     protected $fileName;
 
     /**
      *
      * @var string|null
-     * @ORM\Column(type="string", length=250, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 250, nullable: true)]
     protected $mimeType;
 
     /**
      *
      * @var int|null
-     * @ORM\Column(type="integer", nullable=true)
      */
+    #[ORM\Column(type: 'integer', nullable: true)]
     protected $fileSize;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: 'datetime')]
     protected $createdAt;
 
     /**
      * @var User|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class)]
     protected $createdBy;
 
     /**
      * @var bool
-     * @ORM\Column(type="boolean", nullable=false,options={"default":0})
      */
+    #[ORM\Column(type: 'boolean', nullable: false, options: ['default' => 0])]
     protected $directory = false;
 
     /**
      * @var Media|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Media", inversedBy="children")
-     * @ORM\JoinColumn(nullable=true, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Media::class, inversedBy: 'children')]
     protected $parent;
 
     /**
      * @var Media[]|ArrayCollection
-     * @ORM\OneToMany(targetEntity="\App\Entity\Media", mappedBy="parent", indexBy="id")
-     * @ORM\OrderBy({"directory":"DESC"})
-     * @ORM\OrderBy({"fileName":"ASC"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\Media::class, mappedBy: 'parent', indexBy: 'id')]
+    #[ORM\OrderBy(['directory' => 'DESC', 'fileName' => 'ASC'])]
     protected $children;
 
     /**

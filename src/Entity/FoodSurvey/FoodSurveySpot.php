@@ -17,57 +17,55 @@ use Doctrine\ORM\Mapping as ORM;
  * FoodSurveySpot Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity()
- * @ORM\Table(name="food_survey_spot")
  */
+#[ORM\Table(name: 'food_survey_spot')]
+#[ORM\Entity]
 class FoodSurveySpot implements \JsonSerializable
 {
     /**
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private ?int $id;
 
     /**
      * @var FoodSurvey|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\FoodSurvey\FoodSurvey", inversedBy="spots")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\FoodSurvey\FoodSurvey::class, inversedBy: 'spots')]
     private ?FoodSurvey $foodSurvey;
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", length=150, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 150, nullable: true)]
     private ?string $name = null;
 
     /**
      * @var string|null
-     * @ORM\Column(type="text", nullable=true)
      */
+    #[ORM\Column(type: 'text', nullable: true)]
     private ?string $data = null;
 
     /**
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, name="`order`")
      */
+    #[ORM\Column(type: 'smallint', nullable: false, name: '`order`')]
     private int $order = 1;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime", nullable=false)
      */
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private ?DateTime $createdAt;
 
     /**
      * @var ArrayCollection|Collection|FoodSurveySpotAnswer[]|null
-     *
-     * @ORM\OneToMany(targetEntity="\App\Entity\FoodSurvey\FoodSurveySpotAnswer", cascade={"persist"}, mappedBy="foodSurveySpot")
-     * @ORM\OrderBy({"answer": "ASC"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\FoodSurvey\FoodSurveySpotAnswer::class, cascade: ['persist'], mappedBy: 'foodSurveySpot')]
+    #[ORM\OrderBy(['answer' => 'ASC'])]
     private ?Collection $answers;
 
     /**

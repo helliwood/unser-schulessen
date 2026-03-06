@@ -9,7 +9,6 @@
 namespace App\Entity;
 
 use DateTime;
-use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\ORM\Mapping as ORM;
 use Exception;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
@@ -20,10 +19,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @author Maurice Karg <karg@helliwood.com>
  *
- * @ORM\Entity(repositoryClass="App\Repository\UserHasSchoolRepository")
- * @UniqueEntity(fields={"user","school"}, message="E-Mail nur 1x pro Schule.")
- * @IgnoreAnnotation("phpcsSuppress")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\UserHasSchoolRepository::class)]
+#[UniqueEntity(fields: ['user', 'school'], message: 'E-Mail nur 1x pro Schule.')]
 class UserHasSchool implements \JsonSerializable
 {
     public const STATE_REQUESTED = 0;
@@ -105,56 +103,51 @@ class UserHasSchool implements \JsonSerializable
 
     /**
      * @var User|null
-     *
-     * @ORM\Id
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER", inversedBy="userHasSchool")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\Id]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER', inversedBy: 'userHasSchool')]
     private $user;
 
     /**
      * @var School|null
-     *
-     * @ORM\Id
-     * @ORM\ManyToOne(targetEntity="\App\Entity\School", cascade={"persist"}, fetch="EAGER", inversedBy="userHasSchool")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\Id]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\School::class, cascade: ['persist'], fetch: 'EAGER', inversedBy: 'userHasSchool')]
     private $school;
 
     /**
      * @var PersonType|null
-     *
-     * @Assert\NotBlank()
-     * @ORM\ManyToOne(targetEntity="PersonType", cascade={"persist"})
-     * @ORM\JoinColumn(name="person_type", referencedColumnName="name", nullable=false, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(name: 'person_type', referencedColumnName: 'name', nullable: false, onDelete: 'RESTRICT')]
+    #[Assert\NotBlank]
+    #[ORM\ManyToOne(targetEntity: \PersonType::class, cascade: ['persist'])]
     private $personType;
 
     /**
      * @var string|null
-     *
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=190, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 190, nullable: false)]
     private $role;
 
     /**
      * @var int
-     *
-     * @ORM\Column(type="smallint", nullable=false, options={"default" : 0})
      */
+    #[ORM\Column(type: 'smallint', nullable: false, options: ['default' => 0])]
     private $state = self::STATE_REQUESTED;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $respondedAt;
 
     /**

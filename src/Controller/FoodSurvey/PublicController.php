@@ -21,16 +21,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/Essensumfrage", name="food_survey_public_")
- */
+#[Route(path: '/Essensumfrage', name: 'food_survey_public_')]
 class PublicController extends AbstractController
 {
     /**
-     * @Route("/{uuid}", name="show")
      * @param FoodSurvey $foodSurvey
      * @return Response
      */
+    #[Route(path: '/{uuid}', name: 'show')]
     public function show(FoodSurvey $foodSurvey): Response
     {
         return $this->render('food_survey/public/show.html.twig', [
@@ -39,12 +37,12 @@ class PublicController extends AbstractController
     }
 
     /**
-     * @Route("/save-result/{uuid}", name="save_result")
      * @param FoodSurvey             $foodSurvey
      * @param Request                $request
      * @param EntityManagerInterface $entityManager
      * @return Response
      */
+    #[Route(path: '/save-result/{uuid}', name: 'save_result')]
     public function saveResult(FoodSurvey $foodSurvey, Request $request, EntityManagerInterface $entityManager): Response
     {
         $foodSurveyResult = new FoodSurveyResult();
@@ -64,12 +62,12 @@ class PublicController extends AbstractController
     }
 
     /**
-     * @Route("/image/{id}", name="image")
      * @param FoodSurvey $foodSurvey
      * @return BinaryFileResponse
      * @throws ImagickDrawException
      * @throws ImagickException
      */
+    #[Route(path: '/image/{id}', name: 'image')]
     public function image(FoodSurvey $foodSurvey): Response
     {
         $file = $this->getParameter('food_survey_directory') . '/' . $foodSurvey->getId() . '.jpg';

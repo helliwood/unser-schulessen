@@ -15,12 +15,10 @@ use Doctrine\ORM\Mapping\UniqueConstraint;
  * MiniCheckAnswer Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(uniqueConstraints={
- *   @UniqueConstraint(columns={"question_id", "result_id"})
- * })
- * @ORM\Entity
  */
+#[ORM\Table]
+#[UniqueConstraint(columns: ['question_id', 'result_id'])]
+#[ORM\Entity]
 class MiniCheckAnswer
 {
     public const ANSWER_TRUE = "true";
@@ -35,28 +33,20 @@ class MiniCheckAnswer
         self::ANSWER_NOT_ANSWERED => "Nicht beantwortet"
     ];
 
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
-     */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private ?int $id = null;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="Question")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
-     **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \Question::class)]
     private ?Question $question = null;
 
-    /**
-     * @ORM\Column(type="string", length=150, nullable=true)
-     */
+    #[ORM\Column(type: 'string', length: 150, nullable: true)]
     private ?string $answer;
 
-    /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\QualityCheck\MiniCheckResult", inversedBy="answers")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
-     **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\MiniCheckResult::class, inversedBy: 'answers')]
     private ?MiniCheckResult $result = null;
 
     public function getId(): ?int

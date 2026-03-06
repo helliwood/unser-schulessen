@@ -19,7 +19,9 @@
                         {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
                         {{ form_row(form.name) }}
                         {{ form_row(form.introduction) }}
-                        {{ form_row(form.type) }}
+                        {% if form.type is defined %}
+                            {{ form_row(form.type) }}
+                        {% endif %}
                         <div id="voucherField" style="display: none;">
                             {{ form_row(form.numberOfVoucher) }}
                         </div>

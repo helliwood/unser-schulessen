@@ -4,6 +4,16 @@
         <div>Verwalten Sie die Stammdaten Ihrer Schule zum Schulessen sowie Personen mit Zugang und
             Kontakte.
         </div>
+        {% if app.user.currentSchool is not null and app.user.currentSchool.schoolAuthority is not null %}
+            <div class="text-muted small mt-2">
+                Schulträger: <strong>{{ app.user.currentSchool.schoolAuthority.name }}</strong>
+            </div>
+        {% endif %}
+        {% if not hasUpdatedMasterData and (is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')) %}
+            <div class="text-muted small mt-2">
+                Hinweis: Bitte prüfen Sie Ihre Stammdaten jährlich auf Aktualität.
+            </div>
+        {% endif %}
         <div class="mt-auto"><a class="btn btn-secondary mt-3"
                                 href="{{ path('master_data_home') }}"><i
                         class="fas fa-link mr-1"></i>Öffnen</a>

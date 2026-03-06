@@ -22,10 +22,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  * FoodSurvey Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(name="food_survey")
- * @ORM\Entity(repositoryClass="App\Repository\FoodSurvey\FoodSurveyRepository")
  */
+#[ORM\Table(name: 'food_survey')]
+#[ORM\Entity(repositoryClass: \App\Repository\FoodSurvey\FoodSurveyRepository::class)]
 class FoodSurvey implements \JsonSerializable
 {
     public const STATE_NOT_ACTIVATED = 0;
@@ -42,80 +41,82 @@ class FoodSurvey implements \JsonSerializable
      * The internal primary identity key.
      *
      * @var UuidInterface
-     *
-     * @ORM\Column(type="uuid", unique=true)
      */
+    #[ORM\Column(type: 'uuid', unique: true)]
     private UuidInterface $uuid;
 
     /**
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private ?int $id;
 
     /**
      * @var School|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\School", inversedBy="foodSurveys")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\School::class, inversedBy: 'foodSurveys')]
     private ?School $school;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="150")
-     * @ORM\Column(type="string", length=150, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 150)]
+    #[ORM\Column(type: 'string', length: 150, nullable: false)]
     private string $name;
 
     /**
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, options={"default" : 0})
      */
+    #[ORM\Column(type: 'smallint', nullable: false, options: ['default' => 0])]
     private int $state = self::STATE_NOT_ACTIVATED;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $activatedAt = null;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private ?DateTime $closesAt = null;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime", nullable=false)
      */
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private ?DateTime $createdAt;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     private ?User $createdBy = null;
 
     /**
      * @var ArrayCollection|Collection|FoodSurveyResult[]|null
-     *
-     * @ORM\OneToMany(targetEntity="\App\Entity\FoodSurvey\FoodSurveyResult", cascade={"persist"}, mappedBy="foodSurvey")
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\FoodSurvey\FoodSurveyResult::class, cascade: ['persist'], mappedBy: 'foodSurvey')]
     private ?Collection $results;
 
     /**
      * @var ArrayCollection|Collection|FoodSurveySpot[]|null
-     *
-     * @ORM\OneToMany(targetEntity="\App\Entity\FoodSurvey\FoodSurveySpot", cascade={"persist"}, mappedBy="foodSurvey")
-     * @ORM\OrderBy({"order": "ASC"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\FoodSurvey\FoodSurveySpot::class, cascade: ['persist'], mappedBy: 'foodSurvey')]
+    #[ORM\OrderBy(['order' => 'ASC'])]
     private ?Collection $spots;
+
+    /**
+     * @var bool
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $deleted = false;
 
     /**
      * Survey constructor.
@@ -302,7 +303,8 @@ class FoodSurvey implements \JsonSerializable
             ->setActivatedAt(null)
             ->setClosesAt(null)
             ->setCreatedAt(new DateTime())
-            ->setState(0);
+            ->setState(0)
+            ->setDeleted(false);
 
         $spots = $this->getSpots();
         $this->spots = new ArrayCollection();
@@ -328,7 +330,19 @@ class FoodSurvey implements \JsonSerializable
             'closesAt' => $this->getClosesAt(),
             'createdAt' => $this->getCreatedAt(),
             'createdBy' => $this->getCreatedBy() ? $this->getCreatedBy()->getDisplayName() : null,
-            'spots' => $this->getSpots()->toArray()
+            'spots' => $this->getSpots()->toArray(),
+            'deleted' => $this->isDeleted(),
         ];
+    }
+
+    public function isDeleted(): bool
+    {
+        return $this->deleted;
+    }
+
+    public function setDeleted(bool $deleted): FoodSurvey
+    {
+        $this->deleted = $deleted;
+        return $this;
     }
 }

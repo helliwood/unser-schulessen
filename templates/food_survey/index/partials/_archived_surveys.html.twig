@@ -1,7 +1,7 @@
 <div class="col-12 mb-4">
     <div class="panel h-100">
-        <h2><i class="fas fa-chart-bar text-primary2 mr-1"></i>Archivierte Teller-Checks</h2>
-        <div class="mb-2">Hier finden Sie alle archivierten Teller-Checks.</div>
+        <h2><i class="fas fa-chart-bar text-primary2 mr-1"></i>Beendete Teller-Checks</h2>
+        <div class="mb-2">Hier finden Sie alle beendeten Teller-Checks.</div>
         <data-table
                 api-url="{{ path('food_survey_list_closed') }}"
                 sort-by="createdAt"
@@ -37,6 +37,22 @@
                         :href="'/food-survey/export/'+row.item.id"><i
                             class="fas fa-file-pdf mr-1"></i>Download
                 </b-button>
+                <b-button
+                        variant="danger"
+                        size="sm"
+                        :id="'btn-delete-food-survey-' + row.item.id"
+                        v-b-modal="'modal-delete-food-survey-' + row.item.id">
+                    <i class="far fa-trash-alt mr-1"></i>In Papierkorb
+                </b-button>
+                <b-modal
+                        :id="'modal-delete-food-survey-' + row.item.id"
+                        :title="'Teller-Check in Papierkorb verschieben'"
+                        ok-title="Ja, löschen"
+                        cancel-title="Abbrechen"
+                        ok-variant="danger"
+                        @ok="callAndRefresh({action:'delete_survey', survey_id:row.item.id}, '{{ path('food_survey_list_closed') }}')">
+                    Möchten Sie den Teller-Check wirklich in den Papierkorb verschieben?
+                </b-modal>
             </template>
         </data-table>
     </div>

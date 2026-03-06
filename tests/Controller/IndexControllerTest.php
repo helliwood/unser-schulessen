@@ -18,9 +18,6 @@ class IndexControllerTest extends AbstractTestController
     protected $client = null;
     protected $em;
 
-    const accept = "TestAccept@helliwood.de";
-    const decline = "TestDecline@helliwood.de";
-
     public function setUp(): void
     {
         $this->client = static::createClient();
@@ -47,11 +44,13 @@ class IndexControllerTest extends AbstractTestController
      */
     public function testAcceptInvite()
     {
+        $email = 'testaccept+'.uniqid('', true).'@helliwood.de';
+
         /** @var  School $school */
         $school = $this->em->getRepository(School::class)->findOneBy(['name' => 'Testschule']);
 
         $postData = ['user_has_school' => []];
-        $postData['user_has_school']['email'] = self::accept;
+        $postData['user_has_school']['email'] = $email;
         $postData['user_has_school']['personType'] = PersonType::TYPE_HEADMASTER;
         $postData['user_has_school']['sendInvitation'] = "1";
         $postData['user_has_school']['role'] = User::ROLE_HEADMASTER;
@@ -62,7 +61,7 @@ class IndexControllerTest extends AbstractTestController
         $this->assertSame(Response::HTTP_FOUND, $this->client->getResponse()->getStatusCode());
 
 
-        $user = $this->em->getRepository(User::class)->findOneBy(['email' => self::accept]);
+        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
         $user->setState(User::STATE_ACTIVE);
 
         $user->setPassword('$2y$13$2P0qdvoVTmbzJSDNybMayeehoANXNHec.LoMrcUmcpLyrELAGI0ke');
@@ -72,7 +71,7 @@ class IndexControllerTest extends AbstractTestController
 
         $this->logOut();
 
-        $this->logIn(self::accept, 'lol');
+        $this->logIn($email, 'lol');
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/accept_invite/' . $school->getId());
@@ -85,11 +84,13 @@ class IndexControllerTest extends AbstractTestController
      */
     public function testDeclineInvite()
     {
+        $email = 'testdecline+'.uniqid('', true).'@helliwood.de';
+
         /** @var  School $school */
         $school = $this->em->getRepository(School::class)->findOneBy(['name' => 'Testschule']);
 
         $postData = ['user_has_school' => []];
-        $postData['user_has_school']['email'] = self::decline;
+        $postData['user_has_school']['email'] = $email;
         $postData['user_has_school']['personType'] = "Schulträger";
         $postData['user_has_school']['sendInvitation'] = "1";
         $postData['user_has_school']['role'] = User::ROLE_FOOD_COMMISSIONER;
@@ -99,7 +100,7 @@ class IndexControllerTest extends AbstractTestController
         $crawler = $this->client->request('POST', '/admin/school/members/' . $school->getId() . '/new', $postData);
         $this->assertSame(Response::HTTP_FOUND, $this->client->getResponse()->getStatusCode());
 
-        $user = $this->em->getRepository(User::class)->findOneBy(['email' => self::decline]);
+        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
         $user->setState(User::STATE_ACTIVE);
 
         $user->setPassword('$2y$13$2P0qdvoVTmbzJSDNybMayeehoANXNHec.LoMrcUmcpLyrELAGI0ke');
@@ -109,7 +110,7 @@ class IndexControllerTest extends AbstractTestController
 
         $this->logOut();
 
-        $this->logIn(self::decline, 'lol');
+        $this->logIn($email, 'lol');
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/decline_invite/' . $school->getId());
@@ -123,6 +124,8 @@ class IndexControllerTest extends AbstractTestController
      */
     public function testChangeSchool()
     {
+        $email = 'testchangeschool+'.uniqid('', true).'@helliwood.de';
+
 //        $this->client->catchExceptions(false);
 //        /** @var Crawler $crawler */
 //        $this->client->request('POST', '/admin/school/members/999/new');
@@ -157,7 +160,7 @@ class IndexControllerTest extends AbstractTestController
         $school = $this->em->getRepository(School::class)->findOneBy(['name' => 'Change Schule']);
 
         $postData = ['user_has_school' => []];
-        $postData['user_has_school']['email'] = self::accept;
+        $postData['user_has_school']['email'] = $email;
         $postData['user_has_school']['personType'] = PersonType::TYPE_HEADMASTER;
         $postData['user_has_school']['sendInvitation'] = "1";
         $postData['user_has_school']['role'] = User::ROLE_FOOD_COMMISSIONER;
@@ -167,16 +170,21 @@ class IndexControllerTest extends AbstractTestController
         $crawler = $this->client->request('POST', '/admin/school/members/' . $school->getId() . '/new', $postData);
         $this->assertSame(Response::HTTP_FOUND, $this->client->getResponse()->getStatusCode());
 
+        $user = $this->em->getRepository(User::class)->findOneBy(['email' => $email]);
+        $user->setState(User::STATE_ACTIVE);
+        $user->setPassword('$2y$13$2P0qdvoVTmbzJSDNybMayeehoANXNHec.LoMrcUmcpLyrELAGI0ke');
+        $this->em->persist($user);
+        $this->em->flush();
+
         $this->logOut();
 
-        $user = $this->em->getRepository(User::class)->findOneBy(['email' => self::accept]);
         $userHasSchool = $this->em->getRepository(UserHasSchool::class)->findOneBy(['user' => $user, 'school' => $school]);
         $userHasSchool->setState(User::STATE_ACTIVE);
 
         $this->em->persist($userHasSchool);
         $this->em->flush();
 
-        $this->logIn(self::accept, 'lol');
+        $this->logIn($email, 'lol');
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/change_school/' . $school->getId());

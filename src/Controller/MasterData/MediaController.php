@@ -15,8 +15,6 @@ use App\Form\MediaType;
 use App\Repository\MediaRepository;
 use Exception;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -26,22 +24,21 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Annotation\Route;
+use Twig\Environment;
 
-/**
- * @Route("/master_data/media", name="master_data_media_")
- * @IsGranted("ROLE_USER")
- */
+#[Route(path: '/master_data/media', name: 'master_data_media_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
 class MediaController extends AbstractController
 {
     /**
-     * @Route("/{id}", name="home", defaults={"id"=null}, requirements={"id"="[0-9]*"})
      * @param MenuItem   $menu
      * @param Request    $request
      * @param Media|null $media
      * @return JsonResponse|Response
      * @throws Exception
      */
-    public function index(MenuItem $menu, Request $request, ?Media $media)
+    #[Route(path: '/{id}', name: 'home', defaults: ['id' => null], requirements: ['id' => '[0-9]*'])]
+    public function index(MenuItem $menu, Request $request, ?Media $media, Environment $twig)
     {
         /** @var MediaRepository $rr */
         $mr = $this->getDoctrine()->getRepository(Media::class);
@@ -86,30 +83,30 @@ class MediaController extends AbstractController
             'route' => 'master_data_media_file_new'
         ]);
 
-//        if ($media) {
-//            $menu['master_data_media']->addChild($media->getFileName(), [
-//                'route' => 'master_data_media_home',
-//                'routeParameters' => ['id' => $media->getId()]
-//            ])->setCurrent(true);
-////            dd($menu);
-//        }
+        $template = 'master_data/media/partials/_' . $this->stateCountry . '.html.twig';
+        $template_exists = false;
+        if ($twig->getLoader()->exists($template)) {
+            // Template existiert
+            $template_exists = true;
+        }
 
         return $this->render('master_data/media/index.html.twig', [
             'school' => $this->getUser()->getCurrentSchool(),
             'parent' => $media,
+            'offers' => $template_exists
         ]);
     }
 
 
     /**
-     * @Route("/file/new/{id}", name="file_new", defaults={"id"=null}, requirements={"id"="[0-9]*"})
-     * @Security("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param MenuItem   $menu
      * @param Request    $request
      * @param Media|null $mediasParent
      * @return RedirectResponse|Response
      * @throws Exception
      */
+    #[Route(path: '/file/new/{id}', name: 'file_new', defaults: ['id' => null], requirements: ['id' => '[0-9]*'])]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function new(MenuItem $menu, Request $request, ?Media $mediasParent = null)
     {
         $school = $this->getUser()->getCurrentSchool();
@@ -169,14 +166,14 @@ class MediaController extends AbstractController
     }
 
     /**
-     * @Route("/directory/new/{id}", name="directory_new", defaults={"id"=null}, requirements={"id"="[0-9]*"})
-     * @Security("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param MenuItem   $menu
      * @param Request    $request
      * @param Media|null $mediasParent
      * @return RedirectResponse|Response
      * @throws Exception
      */
+    #[Route(path: '/directory/new/{id}', name: 'directory_new', defaults: ['id' => null], requirements: ['id' => '[0-9]*'])]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function directoryNew(MenuItem $menu, Request $request, ?Media $mediasParent)
     {
         $school = $this->getUser()->getCurrentSchool();
@@ -222,11 +219,11 @@ class MediaController extends AbstractController
     }
 
     /**
-     * @Route("/download/{id}", name="download")
      * @param Media $media
      * @return BinaryFileResponse
      * @throws Exception
      */
+    #[Route(path: '/download/{id}', name: 'download')]
     public function download(Media $media): BinaryFileResponse
     {
         $file = $this->getParameter('documents_directory') . '/' .

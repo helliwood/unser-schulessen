@@ -21,8 +21,7 @@ class BeforeErrorControllerTest extends AbstractTestController
     public function testBeforeError()
     {
         /** @var Crawler $crawler */
-        $crawler = $this->client->request('GET', '/quality_circle/todo/new');
-        // The test environment has proper test data, so before() doesn't redirect
-        $this->assertSame(Response::HTTP_FOUND, $this->client->getResponse()->getStatusCode());
+        $crawler = $this->client->request('GET', '/quality_circle/todo/new-open');
+        $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
     }
 }

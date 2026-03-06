@@ -11,7 +11,7 @@
         <h1>Dokumentenspeicher</h1>
 
         <div class="row d-flex">
-            <div class="col-md-6 mb-4">
+            <div class="col-md-4 mb-4">
                 <div class="panel h-100 d-flex flex-column">
                     <h2><i class="fas fa-file text-primary2"></i> Dokumente</h2>
                     <div>Hier können Sie Dokumente hochladen und herunterladen.</div>
@@ -26,12 +26,22 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
+            <div class="col-md-4 mb-4">
                 <div class="panel h-100 d-flex flex-column">
                     <h2><i class="fas fa-file text-primary2"></i> Angebote</h2>
                     <div>
                         {% include ('master_data/media/partials/_offers.html.twig') %}
                     </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="panel h-100 d-flex flex-column">
+                    <h2><i class="far fa-life-ring text-primary2 mr-1"></i>Hilfe</h2>
+                    <p>Wie nutze ich den Dokumentenspeicher?</p>
+                    <p>Die Online-Hilfe gibt Ihnen nützliche Tipps.</p>
+                    <button v-b-modal.modal-help class="btn btn-secondary mt-auto" href="#">
+                        <i class="fas fa-link mr-1"></i>Hilfe aufrufen
+                    </button>
                 </div>
             </div>
         </div>
@@ -48,12 +58,14 @@
                     {% if parent %}
                         {% set sub = parent %}
                         {% set bread = [sub] %}
-                        {% for i in 0..100 if sub != null %}
-                            {% if sub.parent %}
-                                {% set sub = sub.parent %}
-                                {% set bread = bread|merge([sub]) %}
-                            {% else %}
-                                {% set sub = null %}
+                        {% for i in 0..100 %}
+                            {% if sub != null %}
+                                {% if sub.parent %}
+                                    {% set sub = sub.parent %}
+                                    {% set bread = bread|merge([sub]) %}
+                                {% else %}
+                                    {% set sub = null %}
+                                {% endif %}
                             {% endif %}
                         {% endfor %}
                         {% if bread|length > 0 %}
@@ -122,4 +134,39 @@
             </div>
         </div>
     </div>
+
+    <b-modal id="modal-help" title="Hilfe Dokumentenspeicher" size="xl" ok-only>
+        <h5>Wofür ist der Dokumentenspeicher?</h5>
+        <p>Der Dokumentenspeicher dient als zentrale Ablage für Dateien rund um das Qualitätsmanagement des
+            Schulessens. Dokumente können strukturiert abgelegt, wiedergefunden und im Team geteilt werden.</p>
+
+        <h5>Obere Aktionskarten</h5>
+        <ul>
+            <li><strong>Dokumente</strong>: Einstieg für das Anlegen neuer Verzeichnisse und Dateien.</li>
+            <li><strong>Angebote</strong>: Zeigt zusätzliche bereitgestellte Inhalte und Vorlagen.</li>
+            <li><strong>Hilfe</strong>: Öffnet diese Anleitung mit den wichtigsten Arbeitsschritten.</li>
+        </ul>
+
+        <h5>Buttons und Funktionen</h5>
+        <ul>
+            <li><strong>Neues Verzeichnis</strong>: Erstellt einen neuen Ordner in der aktuellen Ebene.</li>
+            <li><strong>Neues Dokument</strong>: Lädt eine neue Datei in die aktuelle Ebene hoch.</li>
+            <li><strong>Öffnen</strong>: Wechselt in das ausgewählte Verzeichnis.</li>
+            <li><strong>Download</strong>: Lädt die ausgewählte Datei herunter.</li>
+            <li><strong>Löschen</strong> (Papierkorb): Entfernt Datei oder Verzeichnis. Beim Verzeichnis werden
+                enthaltene Dateien mit gelöscht.
+            </li>
+        </ul>
+
+        <h5>Navigation und Übersicht</h5>
+        <p>Über den Pfad oberhalb der Tabelle (Home / Unterordner) wechseln Sie schnell zwischen Ebenen. In der Liste
+            sehen Sie Dateiname, Erstellungsdatum und Ersteller sowie die verfügbaren Aktionen.</p>
+
+        <h5>Empfohlene Ablagestruktur</h5>
+        <ol>
+            <li>Verzeichnisse nach Themen oder Schuljahr anlegen (z. B. „Qualitäts-Check“, „Umfragen“, „Protokolle“).</li>
+            <li>Dateien mit eindeutigen Namen und Datum speichern.</li>
+            <li>Regelmäßig veraltete Entwürfe bereinigen und finale Dokumente konsistent ablegen.</li>
+        </ol>
+    </b-modal>
 {% endblock %}

@@ -8,7 +8,6 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -17,9 +16,8 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @author Maurice Karg <karg@helliwood.com>
  *
- * @ORM\Entity
- * @IgnoreAnnotation("phpcsSuppress")
  */
+#[ORM\Entity]
 class Address implements \JsonSerializable
 {
     public const DISTRICTS_BY = [
@@ -36,38 +34,38 @@ class Address implements \JsonSerializable
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     protected $id;
 
     /**
      *
      * @var string
-     * @ORM\Column(type="string", length=50, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
     protected $street;
 
     /**
      *
      * @var string
-     * @ORM\Column(type="string", length=5, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 5, nullable: true)]
     protected $postalcode;
 
     /**
      *
      * @var string
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=50, nullable=true)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
     protected $city;
 
     /**
      * @var string
-     * @ORM\Column(type="string", length=5, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 5, nullable: true)]
     protected $district;
 
     /**

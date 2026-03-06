@@ -10,26 +10,14 @@ use Symfony\Component\Security\Core\Security;
 
 final class CheckCurrentSchoolListener
 {
-    /**
-     * @var string
-     */
-    protected $stateCountry;
+    protected string $stateCountry;
 
-    /**
-     * @var Security
-     */
-    protected $security;
-
-    public function __construct(Security $security, ParameterBagInterface $params)
+    public function __construct(protected Security $security, ParameterBagInterface $params)
     {
-        $this->security = $security;
         $this->stateCountry = $params->get('app_state_country');
     }
 
-    /**
-     * @param ControllerEvent $event
-     * @throws \Exception
-     */
+    /** @throws \Exception */
     public function __invoke(ControllerEvent $event): void
     {
         if ($this->security->getUser()
@@ -43,9 +31,7 @@ final class CheckCurrentSchoolListener
             )
         ) {
             if (! $event->getController()[0] instanceof IndexController || $event->getController()[1] !== 'index') {
-                $event->setController(static function () {
-                    return new RedirectResponse('/');
-                });
+                $event->setController(static fn () => new RedirectResponse('/'));
             }
         }
     }

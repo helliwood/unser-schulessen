@@ -14,6 +14,10 @@
                     </div>
                     <div class="font-weight-bold">{{ school.name }}</div>
                     {{ school.address | nl2br }}
+                    <div class="mt-2">
+                        <strong>Schulträger:</strong>
+                        {{ school.schoolAuthority ? school.schoolAuthority.name : '-' }}
+                    </div>
                     <div class="text-muted mt-2">Erstellt am {{ school.createdAt | date("d.m.Y") }}</div>
                     {% if school.miniCheckName or school.miniCheckEmail %}
                         <div class="row">
@@ -98,7 +102,7 @@
                                     </b-dropdown-item>
                                     <b-dropdown-item
                                             v-if="(row.item.state == 1 || row.item.state == 4) && row.item.user.id != {{ app.user.id }} "
-                                            :href="'/?_switch_user='+row.item.user.email"
+                                            :href="'/?_switch_user='+encodeURIComponent(row.item.user.email)"
                                             variant="primary"><i class="fas fa-user-secret"></i> Impersonieren
 
                                         <b-button v-if="row.item.state == 0" v-b-modal="'modal-'+row.item.user.id"

@@ -16,16 +16,13 @@ use App\Repository\QuestionRepository;
 use App\Service\QualityCheckService;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/admin/questionnaire/category/questions", name="admin_questionnaire_category_questions_")
- * @IsGranted("ROLE_ADMIN")
- */
+#[Route(path: '/admin/questionnaire/category/questions', name: 'admin_questionnaire_category_questions_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class QuestionController extends AbstractController
 {
     /**
@@ -44,7 +41,6 @@ class QuestionController extends AbstractController
         $this->qualityCheckService = $qualityCheckService;
     }
     /**
-     * @Route("/{id}", name="home")
      * @param Category $category
      * @param Request  $request
      * @param MenuItem $menu
@@ -52,6 +48,7 @@ class QuestionController extends AbstractController
      * @throws \Exception
      * @throws \Throwable
      */
+    #[Route(path: '/{id}', name: 'home')]
     public function index(Category $category, Request $request, MenuItem $menu)
     {
         if ($request->isXmlHttpRequest()) {
@@ -109,12 +106,12 @@ class QuestionController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{id}", name="edit", requirements={"id": "\d+"})
      * @param Question $question
      * @param Request  $request
      * @param MenuItem $menu
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      * */
+    #[Route(path: '/edit/{id}', name: 'edit', requirements: ['id' => '\d+'])]
     public function edit(Question $question, Request $request, MenuItem $menu)
     {
         $questionnaireIsActivated = $question->getCategory()->getQuestionnaire()->getState() !== 0;
@@ -169,13 +166,13 @@ class QuestionController extends AbstractController
     }
 
     /**
-     * @Route("/new/{id}", name="new")
      * @param Request  $request
      * @param Category $category
      * @param MenuItem $menu
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      * @throws \Exception
      */
+    #[Route(path: '/new/{id}', name: 'new')]
     public function new(Request $request, Category $category, MenuItem $menu)
     {
         $question = new Question();

@@ -8,7 +8,6 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Annotations\Annotation\IgnoreAnnotation;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -17,94 +16,91 @@ use Symfony\Component\Validator\Constraints as Assert;
  *
  * @author Maurice Karg <karg@helliwood.com>
  *
- * @ORM\Entity(repositoryClass="App\Repository\PersonRepository")
- * @IgnoreAnnotation("phpcsSuppress")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\PersonRepository::class)]
 class Person implements \JsonSerializable
 {
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     protected $id;
 
     /**
      *
      * @var string|null
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=50, nullable=true)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
     protected $salutation;
 
     /**
      *
      * @var string|null
-     * @ORM\Column(type="string", length=25, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 25, nullable: true)]
     protected $academicTitle;
 
     /**
      *
      * @var string
-     * @ORM\Column(type="string", length=50, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
     protected $firstName;
 
     /**
      *
      * @var string
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=50, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 50, nullable: false)]
     protected $lastName;
 
     /**
      *
      * @var string|null
-     * @Assert\Email()
-     * @ORM\Column(type="string", length=150, nullable=true)
      */
+    #[Assert\Email]
+    #[ORM\Column(type: 'string', length: 150, nullable: true)]
     protected $email;
 
     /**
      *
      * @var string|null
-     * @ORM\Column(type="string", length=50, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 50, nullable: true)]
     protected $telephone;
 
     /**
      *
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     protected $note;
 
     /**
      * @var PersonType|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\PersonType", cascade={"persist"})
-     * @ORM\JoinColumn(name="person_type", referencedColumnName="name", nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(name: 'person_type', referencedColumnName: 'name', nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\PersonType::class, cascade: ['persist'])]
     protected $personType;
 
     /**
      * @var School|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\School", inversedBy="persons", fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\School::class, inversedBy: 'persons', fetch: 'EAGER')]
     private $school;
 
     /**
      * @var User|null
-     *
-     * @Assert\Valid()
-     * @ORM\OneToOne(targetEntity="\App\Entity\User", mappedBy="person", cascade={"persist"})
      */
+    #[Assert\Valid]
+    #[ORM\OneToOne(targetEntity: \App\Entity\User::class, mappedBy: 'person', cascade: ['persist'])]
     private $user;
 
     /**

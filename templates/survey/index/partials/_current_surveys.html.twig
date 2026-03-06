@@ -44,12 +44,16 @@
                            title="Die Umfrage wird veröffentlicht. Für die Verbreitung bitte die Adresse kopieren.">
                             <i class="far fa-check-circle mr-1"></i>Aktivieren</a>
                     {% endif %}
+                    <a v-if="row.item.state=={{ stateActive }}"
+                       class="btn btn-danger btn-sm ml-1"
+                       :href="'/survey/state/{{ stateClosed }}/'+row.item.id">
+                        <i class="fas fa-sign-out-alt mr-1"></i>Beenden</a>
 
                     <b-button-group size="sm">
                         <b-button size="sm" variant="secondary" :href="'/survey/edit/'+row.item.id">
                             <i class="fas fa-edit mr-1"></i>Bearbeiten
                         </b-button>
-                        <b-dropdown size="sm" right text="..." v-b-tooltip.hover.right.v-danger
+                        <b-dropdown size="sm" right text="" v-b-tooltip.hover.right.v-danger
                                     title="Ermöglicht weitere Optionen der Bearbeitung der Umfrage." aria-label="Weitere Optionen">
                             <b-dropdown-item
                                     variant="primary"
@@ -86,11 +90,6 @@
                                              v-if="row.item.type=='{{ constant('App\\Entity\\Survey\\Survey::TYPE_VOUCHER') }}'"
                                              :href="'/survey/voucher/'+row.item.id"><i
                                         class="fas fa-qrcode mr-1" title=""></i> Voucher
-                            </b-dropdown-item>
-                            <b-dropdown-item variant="danger"
-                                             v-if="row.item.state=={{ stateActive }}"
-                                             :href="'/survey/state/{{ stateClosed }}/'+row.item.id">
-                                <i class="fas fa-sign-out-alt mr-1" title=""></i>Beenden
                             </b-dropdown-item>
                             {% if is_granted('ROLE_FOOD_COMMISSIONER') %}
                                 <b-dropdown-item variant="danger"

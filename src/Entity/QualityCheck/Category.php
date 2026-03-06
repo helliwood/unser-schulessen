@@ -19,90 +19,83 @@ use Symfony\Component\Validator\Context\ExecutionContextInterface;
  * Category Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(uniqueConstraints={
- *   @UniqueConstraint(columns={"questionnaire_id", "parent_id", "name"})
- * })
- * @ORM\Entity(repositoryClass="App\Repository\CategoryRepository")
  */
+#[ORM\Table]
+#[UniqueConstraint(columns: ['questionnaire_id', 'parent_id', 'name'])]
+#[ORM\Entity(repositoryClass: \App\Repository\CategoryRepository::class)]
 class Category implements \JsonSerializable
 {
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      *
      * @var string
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=150, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 150, nullable: false)]
     private $name;
 
     /**
      * @var string|null
-     * @Assert\Length(max="1024")
-     * @ORM\Column(type="string", length=1024, nullable=true)
      */
+    #[Assert\Length(max: 1024)]
+    #[ORM\Column(type: 'string', length: 1024, nullable: true)]
     private $note;
 
     /**
      * @var string|null
-     * @Assert\Length(max="512")
-     * @ORM\Column(type="string", length=512, nullable=true)
      */
+    #[Assert\Length(max: 512)]
+    #[ORM\Column(type: 'string', length: 512, nullable: true)]
     private $miniCheckInfo;
 
     /**
      *
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, name="`order`")
      */
+    #[ORM\Column(type: 'smallint', nullable: false, name: '`order`')]
     private $order;
 
     /**
      * @var Category
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Category")
-     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Category::class)]
     private $previous;
 
     /**
      * @var Category|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Category", inversedBy="children")
-     * @ORM\JoinColumn(nullable=true, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Category::class, inversedBy: 'children')]
     private $parent;
 
     /**
      * @var Category[]|ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity="\App\Entity\QualityCheck\Category", mappedBy="parent", orphanRemoval=true, indexBy="id")
-     * @ORM\OrderBy({"order":"ASC"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\QualityCheck\Category::class, mappedBy: 'parent', orphanRemoval: true, indexBy: 'id')]
+    #[ORM\OrderBy(['order' => 'ASC'])]
     private $children;
 
     /**
      * @var Questionnaire
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Questionnaire", inversedBy="categories")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Questionnaire::class, inversedBy: 'categories')]
     private $questionnaire;
 
     /**
      * @var Question[]|ArrayCollection
-     *
-     * @ORM\OneToMany(targetEntity="\App\Entity\QualityCheck\Question", mappedBy="category", orphanRemoval=true, indexBy="id")
-     * @ORM\OrderBy({"order":"ASC"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\QualityCheck\Question::class, mappedBy: 'category', orphanRemoval: true, indexBy: 'id')]
+    #[ORM\OrderBy(['order' => 'ASC'])]
     private $questions;
 
     /**
@@ -115,9 +108,9 @@ class Category implements \JsonSerializable
 
     /**
      * Wird vom Form aufgerufen
-     * @Assert\Callback
      * @param ExecutionContextInterface $context
      */
+    #[Assert\Callback]
     public function validate(ExecutionContextInterface $context): void
     {
         $categories = ! \is_null($this->getParent()) ? $this->getParent()->getChildren() : $this->getQuestionnaire()->getCategories();

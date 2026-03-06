@@ -8,7 +8,7 @@
 // any CSS you require will output into a single css file (app.css in this case)
 require('../css/app.scss');
 
-import Vue from 'vue'
+import { createApp, configureCompat } from 'vue'
 import BootstrapVue from 'bootstrap-vue'
 import VGauge from "vgauge";
 import Datetime from 'vue-datetime'
@@ -32,20 +32,9 @@ import QuestionFlags from "./components/QuestionFlags";
 import 'vue-datetime/dist/vue-datetime.css'
 
 moment.locale('de');
-Vue.prototype.moment = moment;
-Vue.use(BootstrapVue, {
-    BModal: {
-        cancelTitle: 'Abbrechen',
-    },
-})
+configureCompat({ MODE: 2 });
 
-Vue.use(VueApexCharts);
-Vue.component('apexchart', VueApexCharts);
-
-Vue.use(Datetime);
-
-new Vue({
-    el: '#app',
+const app = createApp({
     components: {
         DataTable,
         FormDateTime,
@@ -140,6 +129,21 @@ new Vue({
     }
 });
 
+app.config.globalProperties.moment = moment;
+
+app.use(BootstrapVue, {
+    BModal: {
+        cancelTitle: 'Abbrechen',
+    },
+});
+
+app.use(VueApexCharts);
+app.component('apexchart', VueApexCharts);
+
+app.use(Datetime);
+
+app.mount('#app');
+
 // Enter verbieten, um Forms nicht ausversehen abzuschicken (in textareas aber erlauben)
 window.addEventListener('keydown', (event) => {
     if (event.key === "Enter" && event.target.localName != "textarea") {
@@ -170,4 +174,3 @@ if (document.getElementById('user_has_school_personType')) {
         }
     }
 }
-

@@ -10,24 +10,19 @@ namespace App\Controller\QualityCircle;
 
 use App\Controller\AbstractController;
 use App\Entity\QualityCircle\ToDoNew;
-use App\EventSubscriber\BeforeControllerInterface;
 use App\Repository\QualityCircle\ToDoNewRepository;
 use App\Service\QualityCheckService;
 use Exception;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/quality_circle", name="quality_circle_")
- * @IsGranted("ROLE_KITCHEN")
- */
-class IndexController extends AbstractController implements BeforeControllerInterface
+#[Route(path: '/quality_circle', name: 'quality_circle_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_KITCHEN')]
+class IndexController extends AbstractController
 {
     /**
      * @var QualityCheckService
@@ -56,24 +51,10 @@ class IndexController extends AbstractController implements BeforeControllerInte
     }
 
     /**
-     * @param ControllerEvent $event
-     * @throws Exception
-     */
-    public function before(ControllerEvent $event): void
-    {
-        if (! $this->qualityCheckService->getLastResult()) {
-            $this->getErrorMessage('Sie müssen erst den Qualitäts-Check bearbeiten.');
-            $event->setController(function () {
-                return $this->redirectToRoute('home');
-            });
-        }
-    }
-
-    /**
-     * @Route("/", name="home")
      * @return Response|JsonResponse
      * @throws Exception
      */
+    #[Route(path: '/', name: 'home')]
     public function index(Request $request): Response
     {
         /** @var ToDoNewRepository $tdr */
@@ -92,6 +73,7 @@ class IndexController extends AbstractController implements BeforeControllerInte
 
         return $this->render('quality_circle/index/index.html.twig', [
             'flag_definitions' => $this->qualityCheckService->getFlagDefinitions(),
+            'hasQualityCheck' => (bool) $this->qualityCheckService->getLastResult(),
         ]);
     }
 }

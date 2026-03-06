@@ -17,50 +17,49 @@ use Doctrine\ORM\Mapping as ORM;
  * FoodSurveyResult Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(name="food_survey_result")
- * @ORM\Entity(repositoryClass="App\Repository\FoodSurvey\FoodSurveyRepository")
  */
+#[ORM\Table(name: 'food_survey_result')]
+#[ORM\Entity(repositoryClass: \App\Repository\FoodSurvey\FoodSurveyRepository::class)]
 class FoodSurveyResult implements \JsonSerializable
 {
 
     /**
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private ?int $id;
 
     /**
      * @var FoodSurvey|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\FoodSurvey\FoodSurvey", inversedBy="results")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      **/
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\FoodSurvey\FoodSurvey::class, inversedBy: 'results')]
     private ?FoodSurvey $foodSurvey;
 
     /**
      * @var FoodSurveySpotAnswer[]|Collection|ArrayCollection|null
-     * @ORM\OneToMany(targetEntity="App\Entity\FoodSurvey\FoodSurveySpotAnswer", mappedBy="foodSurveyResult")
      **/
+    #[ORM\OneToMany(targetEntity: \App\Entity\FoodSurvey\FoodSurveySpotAnswer::class, mappedBy: 'foodSurveyResult')]
     private Collection $answers;
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", length=1024, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 1024, nullable: true)]
     private ?string $userAgent;
 
     /**
      * @var string|null
-     * @ORM\Column(type="string", length=100, nullable=true)
      */
+    #[ORM\Column(type: 'string', length: 100, nullable: true)]
     private ?string $userIp;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime", nullable=false)
      */
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private ?DateTime $createdAt;
 
     /**

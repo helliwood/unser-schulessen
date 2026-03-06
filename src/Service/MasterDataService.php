@@ -600,6 +600,60 @@ class MasterDataService
         return $result;
     }
 
+    /**
+     * @param MasterData $masterData
+     * @param bool $getBlank
+     * @return array
+     */
+    public function getDataForMasterData(MasterData $masterData, bool $getBlank = false): array
+    {
+        $result = [];
+        foreach (self::getConfig() as $step => $config) {
+            $data = [];
+            foreach ($masterData->getEntries($config['name']) as $entry) {
+                $data[$entry->getKey()] = $entry->getValue();
+            }
+
+            $items = [];
+            foreach ($config['items'] as $key => $options) {
+                if (! $getBlank && isset($data[$key]) && ! empty($data[$key])) {
+                    $value = $data[$key];
+                    switch ($options['type']) {
+                        case ChoiceType::class:
+                            if (\is_array($value)) {
+                                $valueResult = [];
+                                foreach ($value as $item) {
+                                    $valueResult[] = \array_search($item, $config['items'][$key]['choices']);
+                                }
+                                $value = \implode(', ', $valueResult);
+                            } else {
+                                $value = \array_search($value, $config['items'][$key]['choices']);
+                            }
+                            break;
+                        case TimeType::class:
+                            $value = (new \DateTime($value))->format('H:i');
+                            break;
+                        case DateType::class:
+                            $value = (new \DateTime($value))->format('d.m.Y');
+                            break;
+                        case CheckboxType::class:
+                            $value = $value ? 'Ja' : 'Nein';
+                            break;
+                        case MoneyType::class:
+                            $value = \number_format($value, 2, ',', '.') . ' €';
+                            break;
+                    }
+                    $items[$key] = ['question' => $config['items'][$key]['label'], 'value' => $value];
+                } else {
+                    $items[$key] = ['question' => $config['items'][$key]['label']];
+                }
+            }
+            $result[$step] = ['name' => $config['label'], 'items' => $items];
+        }
+
+        return $result;
+    }
+
     public function addMissingSchoolYear(): SchoolYear
     {
         $now = new \DateTime();

@@ -14,19 +14,15 @@ use App\Entity\Survey\Question;
 use App\Form\Survey\QuestionType;
 use App\Repository\Survey\QuestionRepository;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/admin/survey/questions", name="admin_survey_questions_")
- * @IsGranted("ROLE_ADMIN")
- */
+#[Route(path: '/admin/survey/questions', name: 'admin_survey_questions_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class QuestionController extends AbstractController
 {
     /**
-     * @Route("/{id}", name="home")
      * @param Category $category
      * @param Request  $request
      * @param MenuItem $menu
@@ -34,6 +30,7 @@ class QuestionController extends AbstractController
      * @throws \Exception
      * @throws \Throwable
      */
+    #[Route(path: '/{id}', name: 'home')]
     public function index(Category $category, Request $request, MenuItem $menu)
     {
         if ($request->isXmlHttpRequest()) {
@@ -79,12 +76,12 @@ class QuestionController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{id}", name="edit", requirements={"id": "\d+"})
      * @param Question $question
      * @param Request  $request
      * @param MenuItem $menu
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      * */
+    #[Route(path: '/edit/{id}', name: 'edit', requirements: ['id' => '\d+'])]
     public function edit(Question $question, Request $request, MenuItem $menu)
     {
         $form = $this->createForm(QuestionType::class, $question, []);
@@ -117,13 +114,13 @@ class QuestionController extends AbstractController
     }
 
     /**
-     * @Route("/new/{id}", name="new")
      * @param Request  $request
      * @param Category $category
      * @param MenuItem $menu
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      * @throws \Exception
      */
+    #[Route(path: '/new/{id}', name: 'new')]
     public function new(Request $request, Category $category, MenuItem $menu)
     {
         $question = new Question();

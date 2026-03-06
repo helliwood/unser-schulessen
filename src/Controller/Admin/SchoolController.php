@@ -21,23 +21,20 @@ use App\Repository\SchoolRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Doctrine\ORM\NoResultException;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/admin/school", name="admin_school_")
- * @IsGranted("ROLE_ADMIN")
- */
+#[Route(path: '/admin/school', name: 'admin_school_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class SchoolController extends AbstractController
 {
     /**
-     * @Route("/", name="home")
      * @param Request $request
      * @return Response
      */
+    #[Route(path: '/', name: 'home')]
     public function index(Request $request): Response
     {
         return $this->render('admin/school/index.html.twig', [
@@ -47,13 +44,13 @@ class SchoolController extends AbstractController
     }
 
     /**
-     * @Route("/list/{tag}", name="list", defaults={"tag"=null})
      * @param string|null $tag
      * @param Request $request
      * @return JsonResponse|Response
      * @throws NoResultException
      * @throws NonUniqueResultException
      */
+    #[Route(path: '/list/{tag}', name: 'list', defaults: ['tag' => null])]
     public function getSchoolList(?string $tag, Request $request): JsonResponse
     {
         /** @var SchoolRepository $sr */
@@ -75,19 +72,20 @@ class SchoolController extends AbstractController
             $request->query->getBoolean('sortDesc', false),
             $request->query->getInt('page', 1),
             $request->query->getInt('size', 1),
-            $tag
+            $tag,
+            $request->query->get('search', '')
         ));
     }
 
 
     /**
-     * @Route("/show/{id}", name="show")
      * @param School $school
      * @param Request $request
      * @param MenuItem $menu
      * @return JsonResponse|\Symfony\Component\HttpFoundation\Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      */
+    #[Route(path: '/show/{id}', name: 'show')]
     public function show(School $school, Request $request, MenuItem $menu)
     {
         if ($request->isXmlHttpRequest()) {
@@ -114,11 +112,11 @@ class SchoolController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="new")
      * @param MenuItem $menu
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      */
+    #[Route(path: '/new', name: 'new')]
     public function new(MenuItem $menu, Request $request)
     {
         $menu['admin']['school']->addChild('Schule hinzufügen', [
@@ -157,12 +155,12 @@ class SchoolController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{id}", name="edit")
      * @param School $school
      * @param MenuItem $menu
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      */
+    #[Route(path: '/edit/{id}', name: 'edit')]
     public function edit(School $school, MenuItem $menu, Request $request)
     {
         $menu['admin']['school']->addChild($school->getName() . ' bearbeiten', [

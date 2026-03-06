@@ -2,8 +2,11 @@
 
 namespace App\Tests\Controller\Admin;
 
+use App\DataFixtures\UnitTestFixtures;
 use App\Entity\QualityCheck\Category;
 use App\Entity\QualityCheck\Question;
+use App\Entity\QualityCheck\Questionnaire;
+use App\Entity\User;
 use App\Tests\Controller\AbstractTestController;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,17 +14,29 @@ use Symfony\Component\HttpFoundation\Response;
 class QuestionControllerTest extends AbstractTestController
 {
     protected $client = null;
+    protected static $questionNew;
+    protected static $questionEdit;
+    protected static $questionSecond;
+    protected static $questionnaireName;
+    protected static $categoryName;
 
     public function setUp(): void
     {
         $this->client = static::createClient();
         $this->logIn();
+        if (self::$questionNew === null) {
+            $suffix = uniqid('', true);
+            self::$questionNew = 'Frage Neu '.$suffix;
+            self::$questionEdit = 'Frage 1 '.$suffix;
+            self::$questionSecond = 'Frage 2 '.$suffix;
+            self::$questionnaireName = 'Fragebogen Neu '.$suffix;
+            self::$categoryName = 'Kategorie 1 '.$suffix;
+        }
     }
 
     public function testIndex()
     {
-        /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 1']);
+        $category = $this->getOrCreateCategory();
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/questionnaire/category/questions/' . $category->getId());
@@ -29,10 +44,13 @@ class QuestionControllerTest extends AbstractTestController
         $this->assertSame($category->getName() . ' Fragen', $crawler->filter('h1')->text());
     }
 
-    public function testNew($question = 'Frage Neu', $withFormula = true)
+    public function testNew($question = null, $withFormula = true)
     {
-        /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 1']);
+        if ($question === null) {
+            $question = self::$questionNew;
+        }
+
+        $category = $this->getOrCreateCategory();
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/questionnaire/category/questions/new/' . $category->getId());
@@ -57,7 +75,7 @@ class QuestionControllerTest extends AbstractTestController
     public function testEdit()
     {
         /** @var Question $question */
-        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => 'Frage Neu']);
+        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => self::$questionNew]);
         $this->assertTrue($question->isFlagEqual('sustainable', true));
 
         /** @var Crawler $crawler */
@@ -66,56 +84,53 @@ class QuestionControllerTest extends AbstractTestController
         $this->assertSame($question->getQuestion(), $crawler->filter('h1')->text());
 
         $questionaireState = $question->getCategory()->getQuestionnaire()->getState();
-        $postData = ['question' => ['formula' => []]];
-        $postData['question']['question'] = 'Frage 1';
-        $postData['question']['sustainable'] = true;
+        $form = $crawler->selectButton('save')->form();
+        $form['question']['question']->setValue(self::$questionEdit);
 
-        if($questionaireState === 0) {
-            $postData['question']['type'] = "not_needed";
-            $postData['question']['formula']['formula_true'] = "";
-            $postData['question']['formula']['formula_false'] = "";
+        if ($questionaireState === 0) {
+            $form['question']['type']->setValue("not_needed");
+            $form['question']['formula']['formula_true']->setValue("");
+            $form['question']['formula']['formula_false']->setValue("");
         }
-        $postData['save'] = "";
 
         /** @var Crawler $crawler */
-        $crawler = $this->client->request('POST', '/admin/questionnaire/category/questions/edit/' . $question->getId(), $postData);
+        $crawler = $this->client->submit($form);
         $this->assertSame(Response::HTTP_FOUND, $this->client->getResponse()->getStatusCode());
     }
 
     public function testEditWithFormula()
     {
         /** @var Question $question */
-        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => 'Frage 1']);
+        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => self::$questionEdit]);
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/questionnaire/category/questions/edit/' . $question->getId());
         $this->assertSame(Response::HTTP_OK, $this->client->getResponse()->getStatusCode());
         $this->assertSame($question->getQuestion(), $crawler->filter('h1')->text());
 
-        $postData = ['question' => ['formula' => []]];
-        $postData['question']['question'] = 'Frage 1';
-        $postData['question']['type'] = "needed";
-        $postData['question']['formula']['formula_true'] = "> 3";
-        $postData['question']['formula']['formula_false'] = "<= 2";
-        $postData['save'] = "";
+        $form = $crawler->selectButton('save')->form();
+        $form['question']['question']->setValue(self::$questionEdit);
+        $form['question']['type']->setValue("needed");
+        $form['question']['formula']['formula_true']->setValue("> 3");
+        $form['question']['formula']['formula_false']->setValue("<= 2");
 
         /** @var Crawler $crawler */
-        $crawler = $this->client->request('POST', '/admin/questionnaire/category/questions/edit/' . $question->getId(), $postData);
+        $crawler = $this->client->submit($form);
         $this->assertSame(Response::HTTP_FOUND, $this->client->getResponse()->getStatusCode());
     }
 
     public function testNewAgain()
     {
-        $this->testNew('Frage 2', false);
+        $this->testNew(self::$questionSecond, false);
     }
 
     public function testUp()
     {
-        /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 1']);
+        $category = $this->getOrCreateCategory();
 
         /** @var Question $question */
-        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => 'Frage 2']);
+        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => self::$questionSecond]);
+        $orderBeforeUp = $question->getOrder();
 
         $postData = ['action' => 'up', 'question_id' => $question->getId()];
 
@@ -126,17 +141,17 @@ class QuestionControllerTest extends AbstractTestController
         $this->assertNotEmpty($JSON_response);
 
         /** @var Question $question */
-        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => 'Frage 2']);
-        $this->assertSame(1, $question->getOrder());
+        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => self::$questionSecond]);
+        $this->assertLessThan($orderBeforeUp, $question->getOrder());
     }
 
     public function testDown()
     {
-        /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 1']);
+        $category = $this->getOrCreateCategory();
 
         /** @var Question $question */
-        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => 'Frage 2']);
+        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => self::$questionSecond]);
+        $orderBeforeDown = $question->getOrder();
 
         $postData = ['action' => 'down', 'question_id' => $question->getId()];
 
@@ -147,17 +162,16 @@ class QuestionControllerTest extends AbstractTestController
         $this->assertNotEmpty($JSON_response);
 
         /** @var Question $question */
-        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => 'Frage 2']);
-        $this->assertSame(2, $question->getOrder());
+        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => self::$questionSecond]);
+        $this->assertGreaterThan($orderBeforeDown, $question->getOrder());
     }
 
     public function testDelete()
     {
-        /** @var Category $category */
-        $category = $this->getEntityManager()->getRepository(Category::class)->findOneBy(['name' => 'Kategorie 1']);
+        $category = $this->getOrCreateCategory();
 
         /** @var Question $question */
-        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => 'Frage 2']);
+        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => self::$questionSecond]);
 
         $postData = ['action' => 'delete_question', 'question_id' => $question->getId()];
 
@@ -168,7 +182,38 @@ class QuestionControllerTest extends AbstractTestController
         $this->assertNotEmpty($JSON_response);
 
         /** @var Question $question */
-        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => 'Frage 2']);
+        $question = $this->getEntityManager()->getRepository(Question::class)->findOneBy(['question' => self::$questionSecond]);
         $this->assertNull($question);
+    }
+
+    private function getOrCreateCategory(): Category
+    {
+        $em = $this->getEntityManager();
+        /** @var Category|null $category */
+        $category = $em->getRepository(Category::class)->findOneBy(['name' => self::$categoryName]);
+        if ($category !== null) {
+            return $category;
+        }
+
+        /** @var Questionnaire|null $questionnaire */
+        $questionnaire = $em->getRepository(Questionnaire::class)->findOneBy(['name' => self::$questionnaireName]);
+        if ($questionnaire === null) {
+            /** @var User $createdBy */
+            $createdBy = $em->getRepository(User::class)->findOneBy(['email' => UnitTestFixtures::TESTUSER_EMAIL]);
+            $questionnaire = new Questionnaire();
+            $questionnaire->setName(self::$questionnaireName);
+            $questionnaire->setCreatedBy($createdBy);
+            $em->persist($questionnaire);
+            $em->flush();
+        }
+
+        $category = new Category();
+        $category->setName(self::$categoryName);
+        $category->setOrder(1);
+        $category->setQuestionnaire($questionnaire);
+        $em->persist($category);
+        $em->flush();
+
+        return $category;
     }
 }

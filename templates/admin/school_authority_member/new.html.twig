@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Mitglied einladen</h1>
+    <div class="panel p-4 w-100">
+        {{ form_start(form) }}
+            <div class="form-group">
+                {{ form_label(form.email) }}
+                {{ form_widget(form.email, {'attr': {'class': 'form-control'}}) }}
+                {{ form_errors(form.email) }}
+            </div>
+            <div class="form-group">
+                {{ form_widget(form.sendInvitation) }}
+                {{ form_label(form.sendInvitation) }}
+            </div>
+            <button type="submit" class="btn btn-success">Einladen</button>
+            <a href="{{ path('admin_school_authority_show', {'id': schoolAuthority.id}) }}" class="btn btn-warning">Abbrechen</a>
+        {{ form_end(form) }}
+    </div>
+{% endblock %} 

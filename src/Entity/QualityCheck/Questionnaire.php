@@ -19,10 +19,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Questionnaire Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity(repositoryClass="App\Repository\QuestionnaireRepository")
- * @UniqueEntity("name")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\QuestionnaireRepository::class)]
+#[UniqueEntity('name')]
 class Questionnaire implements \JsonSerializable
 {
 
@@ -33,53 +32,52 @@ class Questionnaire implements \JsonSerializable
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      *
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="190")
-     * @ORM\Column(type="string", length=190, nullable=false, unique=true)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 190)]
+    #[ORM\Column(type: 'string', length: 190, nullable: false, unique: true)]
     private $name;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=false)
      */
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private $date;
 
     /**
      * @var Category[]|ArrayCollection
-     * @ORM\OneToMany(targetEntity="\App\Entity\QualityCheck\Category", mappedBy="questionnaire", cascade={"persist"}, orphanRemoval=true)
-     * @ORM\OrderBy({"order":"ASC"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\QualityCheck\Category::class, mappedBy: 'questionnaire', cascade: ['persist'], orphanRemoval: true)]
+    #[ORM\OrderBy(['order' => 'ASC'])]
     private $categories;
 
     /**
      * @var User|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class)]
     private $createdBy;
 
     /**
      * @var Questionnaire|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\QualityCheck\Questionnaire")
-     * @ORM\JoinColumn(nullable=true, onDelete="SET NULL")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'SET NULL')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Questionnaire::class)]
     private $basedOn;
 
     /**
      * @var int
-     *
-     * @ORM\Column(type="smallint", nullable=false, options={"default" : 0})
      */
+    #[ORM\Column(type: 'smallint', nullable: false, options: ['default' => 0])]
     protected $state = self::STATE_NEW;
 
     /**

@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard - Schulträger{% endblock %}
+
+{% block body %}
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">Dashboard</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="panel h-100 d-flex flex-column">
+                <h2><i class="fas fa-building text-primary2 mr-1"></i>Meine Schulen</h2>
+                <p>Übersicht und Details aller zugeordneten Schulen.</p>
+                <div class="text-muted"><strong>{{ schoolCount }}</strong> Schulen</div>
+                <a href="{{ path('school_authority_schools') }}" class="btn btn-secondary mt-3 align-self-start">
+                    <i class="far fa-eye mr-1"></i>
+                    Öffnen
+                </a>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="panel h-100 d-flex flex-column">
+                <h2><i class="fas fa-chart-bar text-primary2 mr-1"></i>Umfragen</h2>
+                <p>Schulträger-Umfragen erstellen und verwalten.</p>
+                <div class="text-muted"><strong>{{ surveyCount }}</strong> Umfragen</div>
+                <a href="{{ path('school_authority_surveys') }}" class="btn btn-secondary mt-3 align-self-start">
+                    <i class="far fa-eye mr-1"></i>
+                    Öffnen
+                </a>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="panel h-100 d-flex flex-column">
+                <h2><i class="far fa-id-card text-primary2 mr-1"></i>Trägerprofil</h2>
+                <p>Stammdaten des Schulträgers bearbeiten.</p>
+                <a href="{{ path('school_authority_profile') }}" class="btn btn-secondary mt-3 align-self-start">
+                    <i class="far fa-eye mr-1"></i>
+                    Öffnen
+                </a>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="panel h-100 d-flex flex-column">
+                <h2><i class="far fa-life-ring text-primary2 mr-1"></i>Hilfe</h2>
+                <p>Kurzanleitung für das Schulträger-Dashboard und zentrale Funktionen.</p>
+                <div class="text-muted mb-2">
+                    <div><strong>Support:</strong> info@unser-schulessen.de</div>
+                </div>
+                <button v-b-modal.modal-help-school-authority-dashboard class="btn btn-secondary mt-auto align-self-start" type="button">
+                    <i class="fas fa-link mr-1"></i>
+                    Hilfe aufrufen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <b-modal id="modal-help-school-authority-dashboard" title="Hilfe Träger-Dashboard" size="xl" ok-only>
+        <h5>Überblick</h5>
+        <p>Im Träger-Dashboard verwalten Sie Schulen, Umfragen und Stammdaten Ihres Schulträgers an einem Ort.</p>
+
+        <h5>Meine Schulen</h5>
+        <p>Zeigt alle zugeordneten Schulen mit Status und Kennzahlen. In der Detailansicht sehen Sie u. a.
+            Qualitäts-Check, Zufriedenheitsumfragen und Teller-Checks.</p>
+        <ul>
+            <li><strong>Kein Zugriff</strong>: Die Schule ist sichtbar, aber für den Trägerzugriff gesperrt.</li>
+            <li><strong>Anzeigen</strong>: Öffnet die Schul-Detailansicht mit Auswertungen.</li>
+        </ul>
+
+        <h5>Umfragen</h5>
+        <p>Hier erstellen und steuern Sie Schulträger-Umfragen sowie Vorlagen.</p>
+        <ul>
+            <li>Schulen zuweisen, Fragen pflegen, Vorschau prüfen, starten/stoppen und auswerten.</li>
+            <li>In der Übersicht sehen Sie Status, Ablaufdatum und Anzahl zugeordneter Schulen.</li>
+        </ul>
+
+        <h5>Trägerprofil</h5>
+        <p>Hier pflegen Sie die Stammdaten Ihres Schulträgers (Name, Kontakt, Beschreibung).</p>
+
+        <h5>Support</h5>
+        <p>Bei Fragen: <a href="mailto:info@unser-schulessen.de">info@unser-schulessen.de</a></p>
+    </b-modal>
+{% endblock %}

@@ -7,13 +7,10 @@ use App\Service\IconHelper;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
-class IconInlineExtension extends AbstractExtension
+final class IconInlineExtension extends AbstractExtension
 {
-    private IconHelper $helper;
-
-    public function __construct(IconHelper $helper)
+    public function __construct(private IconHelper $helper)
     {
-        $this->helper = $helper;
     }
 
     public function getFunctions(): array

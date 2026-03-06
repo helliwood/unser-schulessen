@@ -10,12 +10,15 @@ use Symfony\Component\HttpFoundation\Response;
 class QuestionnaireControllerTest extends AbstractTestController
 {
     protected $client = null;
-    protected const QUESTIONNAIRE_NEW = 'Fragebogen Neu';
+    protected static $questionnaireName;
 
     public function setUp(): void
     {
         $this->client = static::createClient();
         $this->logIn();
+        if (self::$questionnaireName === null) {
+            self::$questionnaireName = 'Fragebogen Neu '.uniqid('', true);
+        }
     }
 
     public function testIndex()
@@ -43,7 +46,7 @@ class QuestionnaireControllerTest extends AbstractTestController
         $this->assertSame('Neuer Fragebogen', $crawler->filter('h1')->text());
 
         $postData = ['questionnaire' => []];
-        $postData['questionnaire']['name'] = self::QUESTIONNAIRE_NEW;
+        $postData['questionnaire']['name'] = self::$questionnaireName;
         $postData['questionnaire']['basedOn'] = "";
         $postData['save'] = "";
 
@@ -55,7 +58,7 @@ class QuestionnaireControllerTest extends AbstractTestController
     public function testDelete()
     {
         /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_NEW]);
+        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::$questionnaireName]);
 
         $postData = ['action' => 'delete_questionnaire', 'questionnaire_id' => $questionnaire->getId()];
 
@@ -74,7 +77,7 @@ class QuestionnaireControllerTest extends AbstractTestController
     public function testShow()
     {
         /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_NEW]);
+        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::$questionnaireName]);
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/questionnaire/show/' . $questionnaire->getId());
@@ -85,7 +88,7 @@ class QuestionnaireControllerTest extends AbstractTestController
     public function testShow4Ajax()
     {
         /** @var Questionnaire $questionnaire */
-        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::QUESTIONNAIRE_NEW]);
+        $questionnaire = $this->getEntityManager()->getRepository(Questionnaire::class)->findOneBy(['name' => self::$questionnaireName]);
 
         /** @var Crawler $crawler */
         $crawler = $this->client->request('GET', '/admin/questionnaire/show/' . $questionnaire->getId(), [], [], ['HTTP_X-Requested-With' => 'XMLHttpRequest']);

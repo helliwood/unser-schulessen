@@ -9,8 +9,10 @@
 namespace App\Entity\Survey;
 
 use App\Entity\School;
+use App\Entity\SchoolAuthority;
 use App\Entity\User;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Exception;
 use Ramsey\Uuid\Uuid;
@@ -21,10 +23,9 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Survey Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(name="survey_survey")
- * @ORM\Entity(repositoryClass="App\Repository\Survey\SurveyRepository")
  */
+#[ORM\Table(name: 'survey_survey')]
+#[ORM\Entity(repositoryClass: \App\Repository\Survey\SurveyRepository::class)]
 class Survey implements \JsonSerializable
 {
     public const STATE_NOT_ACTIVATED = 0;
@@ -49,92 +50,103 @@ class Survey implements \JsonSerializable
      * The internal primary identity key.
      *
      * @var UuidInterface
-     *
-     * @ORM\Column(type="uuid", unique=true)
      */
+    #[ORM\Column(type: 'uuid', unique: true)]
     private $uuid;
 
     /**
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var School|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\School", inversedBy="surveys")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      **/
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\School::class, inversedBy: 'surveys')]
     private $school;
 
     /**
-     * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="150")
-     * @ORM\Column(type="string", length=150, nullable=false)
+     * @var SchoolAuthority|null
      */
+    #[ORM\JoinColumn(nullable: true)]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\SchoolAuthority::class, inversedBy: 'surveys')]
+    private $schoolAuthority;
+
+    /**
+     * @var string
+     */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 150)]
+    #[ORM\Column(type: 'string', length: 150, nullable: false)]
     private $name;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @Assert\Length(max="50")
-     * @ORM\Column(type="string", length=50, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 50)]
+    #[ORM\Column(type: 'string', length: 50, nullable: false)]
     private $type;
 
     /**
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, options={"default" : 0})
      */
+    #[ORM\Column(type: 'smallint', nullable: false, options: ['default' => 0])]
     private $state = self::STATE_NOT_ACTIVATED;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $activatedAt;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $closesAt;
 
     /**
      * @var \DateTime|null
-     * @ORM\Column(type="datetime", nullable=false)
      */
+    #[ORM\Column(type: 'datetime', nullable: false)]
     private $createdAt;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     private $createdBy;
 
     /**
      * @var int
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $numberOfParticipants = 0;
 
     /**
      * @var ArrayCollection|SurveyQuestion[]
-     * @ORM\OneToMany(targetEntity="\App\Entity\Survey\SurveyQuestion", cascade={"persist"}, mappedBy="survey", orphanRemoval=true)
-     * @ORM\OrderBy({"order":"ASC"})
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\Survey\SurveyQuestion::class, cascade: ['persist'], mappedBy: 'survey', orphanRemoval: true)]
+    #[ORM\OrderBy(['order' => 'ASC'])]
     private $questions;
 
     /**
      * @var SurveyVoucher[]|ArrayCollection
-     * @ORM\OneToMany(targetEntity="\App\Entity\Survey\SurveyVoucher", mappedBy="survey")
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\Survey\SurveyVoucher::class, mappedBy: 'survey')]
     private $vouchers;
+
+    /**
+     * @var Collection|SurveySchoolParticipation[]
+     */
+    #[ORM\OneToMany(targetEntity: \App\Entity\Survey\SurveySchoolParticipation::class, mappedBy: 'survey', cascade: ['persist', 'remove'])]
+    private $schoolParticipations;
 
     /**
      * virtual field for create form
@@ -144,16 +156,22 @@ class Survey implements \JsonSerializable
 
     /**
      * @var bool|null
-     * @ORM\Column(type="boolean", nullable=true, options={"default":false})
      */
+    #[ORM\Column(type: 'boolean', nullable: true, options: ['default' => false])]
     private $surveyTemplate = false;
 
     /**
      * @var string|null
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=true)
      */
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
     private $introduction = null;
+
+    /**
+     * @var bool
+     */
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private $deleted = false;
 
     /**
      * Survey constructor.
@@ -163,6 +181,7 @@ class Survey implements \JsonSerializable
         $this->uuid = Uuid::uuid4();
         $this->questions = new ArrayCollection();
         $this->vouchers = new ArrayCollection();
+        $this->schoolParticipations = new ArrayCollection();
         $this->createdAt = new \DateTime();
     }
 
@@ -217,6 +236,30 @@ class Survey implements \JsonSerializable
     public function setSchool(?School $school): Survey
     {
         $this->school = $school;
+        if ($school !== null) {
+            $this->schoolAuthority = null;
+        }
+        return $this;
+    }
+
+    /**
+     * @return SchoolAuthority|null
+     */
+    public function getSchoolAuthority(): ?SchoolAuthority
+    {
+        return $this->schoolAuthority;
+    }
+
+    /**
+     * @param SchoolAuthority|null $schoolAuthority
+     * @return Survey
+     */
+    public function setSchoolAuthority(?SchoolAuthority $schoolAuthority): Survey
+    {
+        $this->schoolAuthority = $schoolAuthority;
+        if ($schoolAuthority !== null) {
+            $this->school = null;
+        }
         return $this;
     }
 
@@ -471,6 +514,70 @@ class Survey implements \JsonSerializable
         return $this;
     }
 
+    public function isDeleted(): bool
+    {
+        return $this->deleted;
+    }
+
+    public function setDeleted(bool $deleted): Survey
+    {
+        $this->deleted = $deleted;
+        return $this;
+    }
+
+    /**
+     * Träger-Umfrage (vom Schulträger, nicht nur einer Schule zugeordnet)
+     * @return bool
+     */
+    public function isSchoolAuthoritySurvey(): bool
+    {
+        return $this->schoolAuthority !== null && $this->school === null;
+    }
+
+    /**
+     * Träger-Vorlage (wird vom Schulträger verwaltet und Schulen zugewiesen)
+     * @return bool
+     */
+    public function isSchoolAuthorityTemplate(): bool
+    {
+        return $this->schoolAuthority !== null
+            && $this->school === null
+            && $this->surveyTemplate === true;
+    }
+
+    /**
+     * @return Collection|SurveySchoolParticipation[]
+     */
+    public function getSchoolParticipations(): Collection
+    {
+        return $this->schoolParticipations;
+    }
+
+    /**
+     * @param SurveySchoolParticipation $participation
+     * @return Survey
+     */
+    public function addSchoolParticipation(SurveySchoolParticipation $participation): Survey
+    {
+        if (! $this->schoolParticipations->contains($participation)) {
+            $this->schoolParticipations->add($participation);
+            $participation->setSurvey($this);
+        }
+        return $this;
+    }
+
+    /**
+     * @param SurveySchoolParticipation $participation
+     * @return Survey
+     */
+    public function removeSchoolParticipation(SurveySchoolParticipation $participation): Survey
+    {
+        if ($this->schoolParticipations->contains($participation)) {
+            $this->schoolParticipations->removeElement($participation);
+        }
+        return $this;
+    }
+
 
     /**
      * @throws Exception
@@ -482,7 +589,11 @@ class Survey implements \JsonSerializable
             ->setClosesAt(null)
             ->setNumberOfParticipants(0)
             ->setCreatedAt(new \DateTime())
-            ->setState(0);
+            ->setState(0)
+            ->setDeleted(false);
+        if ($this->schoolAuthority !== null) {
+            $this->setSchoolAuthority(null);
+        }
         $questions = $this->getQuestions();
         $this->questions = new ArrayCollection();
         foreach ($questions as $question) {
@@ -509,7 +620,8 @@ class Survey implements \JsonSerializable
             'numberOfParticipants' => $this->getNumberOfParticipants(),
             'closesAt' => $this->getClosesAt(),
             'createdAt' => $this->getCreatedAt(),
-            'createdBy' => $this->getCreatedBy() ? $this->getCreatedBy()->getDisplayName() : null
+            'createdBy' => $this->getCreatedBy() ? $this->getCreatedBy()->getDisplayName() : null,
+            'deleted' => $this->isDeleted(),
         ];
     }
 }

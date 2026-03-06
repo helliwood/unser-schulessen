@@ -17,8 +17,6 @@ use App\Repository\UserHasSchoolRepository;
 use Doctrine\ORM\NonUniqueResultException;
 use Exception;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -29,21 +27,19 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-/**
- * @Route("/master_data/members", name="master_data_members_")
- * @IsGranted("ROLE_USER")
- */
+#[Route(path: '/master_data/members', name: 'master_data_members_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_USER')]
 class MemberController extends AbstractController
 {
     /**
-     * @Route("/", name="list")
      * @param Request $request
      * @return JsonResponse|Response
      * @throws NonUniqueResultException
      * @throws Exception
      */
+    #[Route(path: '/', name: 'list')]
     public function list(Request $request)
     {
         /** @var UserHasSchoolRepository $sr */
@@ -59,14 +55,19 @@ class MemberController extends AbstractController
                             $user = $em->getRepository(User::class)->find($request->get('user_id', null));
                             $userHasSchool = $em->getRepository(UserHasSchool::class)
                                 ->findOneBy(['user' => $user, 'school' => $this->getUser()->getCurrentSchool()]);
-                            $em->remove($userHasSchool);
-                            $em->flush();
+                            if ($userHasSchool) {
+                                $em->remove($userHasSchool);
+                                $em->flush();
+                            }
                             break;
 
                         case "block_user":
                             $user = $em->getRepository(User::class)->find($request->get('user_id', null));
                             $userHasSchool = $em->getRepository(UserHasSchool::class)
                                 ->findOneBy(['user' => $user, 'school' => $this->getUser()->getCurrentSchool()]);
+                            if (! $userHasSchool) {
+                                break;
+                            }
 
                             if ($userHasSchool->getState() === UserHasSchool::STATE_ACCEPTED) {
                                 $userHasSchool->setState(UserHasSchool::STATE_BLOCKED);
@@ -139,12 +140,12 @@ class MemberController extends AbstractController
     }
 
     /**
-     * @Route("/list-inactive", name="list_inactive")
      * @param Request $request
      * @return JsonResponse|Response
      * @throws NonUniqueResultException
      * @throws Exception
      */
+    #[Route(path: '/list-inactive', name: 'list_inactive')]
     public function listInactive(Request $request)
     {
         /** @var UserHasSchoolRepository $sr */
@@ -160,14 +161,19 @@ class MemberController extends AbstractController
                         $user = $em->getRepository(User::class)->find($request->get('user_id', null));
                         $userHasSchool = $em->getRepository(UserHasSchool::class)
                             ->findOneBy(['user' => $user, 'school' => $this->getUser()->getCurrentSchool()]);
-                        $em->remove($userHasSchool);
-                        $em->flush();
+                        if ($userHasSchool) {
+                            $em->remove($userHasSchool);
+                            $em->flush();
+                        }
                         break;
 
                     case "block_user":
                         $user = $em->getRepository(User::class)->find($request->get('user_id', null));
                         $userHasSchool = $em->getRepository(UserHasSchool::class)
                             ->findOneBy(['user' => $user, 'school' => $this->getUser()->getCurrentSchool()]);
+                        if (! $userHasSchool) {
+                            break;
+                        }
 
                         if ($userHasSchool->getState() === UserHasSchool::STATE_ACCEPTED) {
                             $userHasSchool->setState(UserHasSchool::STATE_BLOCKED);
@@ -193,11 +199,11 @@ class MemberController extends AbstractController
     }
 
     /**
-     * @Route("/inactive", name="inactive")
-     * @Security("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @return JsonResponse|Response
      * @throws Exception
      */
+    #[Route(path: '/inactive', name: 'inactive')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function index()
     {
         return $this->render('master_data/members/inactive.html.twig', [
@@ -206,13 +212,13 @@ class MemberController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="new")
-     * @Security("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param MenuItem $menu
      * @param Request $request
      * @return RedirectResponse|Response
      * @throws Exception
      */
+    #[Route(path: '/new', name: 'new')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function new(MenuItem $menu, Request $request)
     {
         $school = $this->getUser()->getCurrentSchool();
@@ -264,8 +270,6 @@ class MemberController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{id}", name="edit")
-     * @Security("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')")
      * @param User $user
      * @param MenuItem $menu
      * @param Request $request
@@ -273,6 +277,8 @@ class MemberController extends AbstractController
      * @throws Exception
      * @throws TransportExceptionInterface
      */
+    #[Route(path: '/edit/{id}', name: 'edit')]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted(new \Symfony\Component\ExpressionLanguage\Expression("is_granted('ROLE_FOOD_COMMISSIONER') or is_granted('ROLE_SCHOOL_AUTHORITIES_ACTIVE')"))]
     public function edit(User $user, MenuItem $menu, Request $request)
     {
         $menu['master_data']->addChild($user->getDisplayName(), [
@@ -349,20 +355,20 @@ class MemberController extends AbstractController
     }
 
     /**
-     * @Route("/{school}/change-password/{id}", name="change_password")
      * @param School $school
      * @param User $user
      * @param MenuItem $menu
      * @param Request $request
-     * @param UserPasswordEncoderInterface $encoder
+     * @param UserPasswordHasherInterface $encoder
      * @return RedirectResponse|Response
      */
+    #[Route(path: '/{school}/change-password/{id}', name: 'change_password')]
     public function changePassword(
         School $school,
         User $user,
         MenuItem $menu,
         Request $request,
-        UserPasswordEncoderInterface $encoder
+        UserPasswordHasherInterface $encoder
     ) {
         $menu['admin']['school']->addChild($school->getName(), [
             'route' => 'admin_school_show',
@@ -381,7 +387,7 @@ class MemberController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             // save temp password
-            $encoded = $encoder->encodePassword($user, $user->getNewPassword());
+            $encoded = $encoder->hashPassword($user, $user->getNewPassword());
             $user->setPassword($encoded);
             $user->setTempPassword(true);
 

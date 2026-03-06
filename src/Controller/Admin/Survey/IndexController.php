@@ -13,25 +13,22 @@ use App\Entity\Survey\Category;
 use App\Form\Survey\CategoryType;
 use App\Repository\Survey\CategoryRepository;
 use Knp\Menu\MenuItem;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-/**
- * @Route("/admin/survey", name="admin_survey_")
- * @IsGranted("ROLE_ADMIN")
- */
+#[Route(path: '/admin/survey', name: 'admin_survey_')]
+#[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
 class IndexController extends AbstractController
 {
     /**
-     * @Route("/", name="home")
      * @param Request $request
      * @return Response
      * @throws \Doctrine\ORM\NonUniqueResultException
      * @throws \Throwable
      */
+    #[Route(path: '/', name: 'home')]
     public function index(Request $request): Response
     {
         /** @var CategoryRepository $cr */
@@ -70,10 +67,10 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/new", name="new")
      * @param Request $request
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      */
+    #[Route(path: '/new', name: 'new')]
     public function new(Request $request)
     {
         $em = $this->getDoctrine()->getManager();
@@ -99,12 +96,12 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/edit/{id}", name="edit")
      * @param Category $category
      * @param Request  $request
      * @param MenuItem $menu
      * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
      */
+    #[Route(path: '/edit/{id}', name: 'edit')]
     public function edit(Category $category, Request $request, MenuItem $menu)
     {
         $menu['admin']['survey']->addChild($category->getName(), [

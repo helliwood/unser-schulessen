@@ -16,47 +16,46 @@ use Symfony\Component\Validator\Constraints as Assert;
  * Survey Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Table(name="survey_surveyquestion_choice")
- * @ORM\Entity()
  */
+#[ORM\Table(name: 'survey_surveyquestion_choice')]
+#[ORM\Entity]
 class SurveyQuestionChoice
 {
     /**
      *
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var SurveyQuestion
-     * @ORM\ManyToOne(targetEntity="\App\Entity\Survey\SurveyQuestion", inversedBy="choices", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\Survey\SurveyQuestion::class, inversedBy: 'choices', cascade: ['persist'], fetch: 'EAGER')]
     private $question;
 
     /**
      *
      * @var string|null
-     * @Assert\NotBlank()
-     * @Assert\Length(max="255")
-     * @ORM\Column(type="string", length=255, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
+    #[ORM\Column(type: 'string', length: 255, nullable: false)]
     private $choice;
 
     /**
      * @var int
-     * @ORM\Column(type="smallint", nullable=false, name="`order`")
      */
+    #[ORM\Column(type: 'smallint', nullable: false, name: '`order`')]
     private $order;
 
     /**
      * @var ArrayCollection|SurveyQuestionChoiceAnswer[]
-     * @ORM\OneToMany(targetEntity="App\Entity\Survey\SurveyQuestionChoiceAnswer", mappedBy="choice")
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\Survey\SurveyQuestionChoiceAnswer::class, mappedBy: 'choice')]
     private $answers;
 
     /**

@@ -30,6 +30,8 @@
                 <nav class="navbar navbar-expand-md navbar-light bg-white align-items-center h-100">
                     {% if app.user.currentSchool %}
                         <i class="fas fa-university mr-2 text-primary mr-1"></i>{{ app.user.currentSchool.name }}
+                    {% elseif app.user is not null and app.user.schoolAuthority is not null %}
+                        <i class="fas fa-building mr-2 text-primary mr-1"></i>{{ app.user.schoolAuthority.name }}
                     {% endif %}
                     {# <div class="badge badge-primary-light ml-2">BETA Version</div> #}
                     <div class="ml-auto d-flex align-items-center">
@@ -45,7 +47,7 @@
                             </template>
                             {% if is_granted('ROLE_PREVIOUS_ADMIN') %}
                                 <b-dropdown-item
-                                        href="{{ path('admin_school_show', {'id': app.user.currentSchool.id, '_switch_user': '_exit'}) }}">
+                                        href="{{ path('home', {'_switch_user': '_exit'}) }}">
                                     Impersonierung
                                     beenden
                                 </b-dropdown-item>
@@ -102,6 +104,41 @@
     </div>
 </div>
 {{ encore_entry_script_tags('app') }}
+{% if app.environment == 'dev' %}
+    <style>
+        .sf-toolbar.sf-display-none {
+            display: block !important;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toolbar = document.querySelector('.sf-toolbar');
+
+            if (!toolbar) {
+                return;
+            }
+
+            toolbar.classList.remove('sf-display-none');
+            toolbar.style.display = 'block';
+
+            const main = toolbar.querySelector('[id^="sfToolbarMainContent-"]');
+            const clear = toolbar.querySelector('[id^="sfToolbarClearer-"]');
+            const mini = toolbar.querySelector('[id^="sfMiniToolbar-"]');
+
+            if (main) {
+                main.style.display = 'block';
+            }
+
+            if (clear) {
+                clear.style.display = 'block';
+            }
+
+            if (mini) {
+                mini.style.display = 'none';
+            }
+        });
+    </script>
+{% endif %}
 {% block javascripts %}{% endblock %}
 </body>
 </html>

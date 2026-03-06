@@ -16,58 +16,57 @@ use Symfony\Component\Validator\Constraints as Assert;
  * ToDoItem-Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity(repositoryClass="App\Repository\QualityCircle\ToDoItemRepository")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\QualityCircle\ToDoItemRepository::class)]
 class ToDoItem implements \JsonSerializable
 {
     /**
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var ToDo
-     * @ORM\ManyToOne(targetEntity="App\Entity\QualityCircle\ToDo", inversedBy="items")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCircle\ToDo::class, inversedBy: 'items')]
     private $todo;
 
     /**
      * @var Answer
-     * @ORM\ManyToOne(targetEntity="App\Entity\QualityCheck\Answer")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Answer::class)]
     private $answer;
 
     /**
      * @var bool
-     * @ORM\Column(type="boolean", nullable=false)
      */
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private $closed = false;
 
     /**
      * @var bool|null
-     * @Assert\NotNull
-     * @Assert\Type("bool")
-     * @ORM\Column(type="boolean", nullable=true)
      */
+    #[Assert\NotNull]
+    #[Assert\Type('bool')]
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $completed;
 
     /**
      * @var string|null
-     * @Assert\Length(max="1024")
-     * @ORM\Column(type="string", length=1024, nullable=true)
      */
+    #[Assert\Length(max: 1024)]
+    #[ORM\Column(type: 'string', length: 1024, nullable: true)]
     private $note;
 
     /**
      * @var ActionPlan|null
-     * @ORM\OneToOne(targetEntity="App\Entity\QualityCircle\ActionPlan", mappedBy="todoItem")
      */
+    #[ORM\OneToOne(targetEntity: \App\Entity\QualityCircle\ActionPlan::class, mappedBy: 'todoItem')]
     private $actionPlan;
 
     /**

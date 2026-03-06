@@ -20,99 +20,96 @@ use Symfony\Component\Validator\Constraints as Assert;
  * ToDoNew-Entity
  *
  * @author Maurice Karg <karg@helliwood.com>
- *
- * @ORM\Entity(repositoryClass="App\Repository\QualityCircle\ToDoNewRepository")
  */
+#[ORM\Entity(repositoryClass: \App\Repository\QualityCircle\ToDoNewRepository::class)]
 class ToDoNew implements \JsonSerializable
 {
     /**
      * @var int|null
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer", nullable=false, options={"unsigned":true})
      */
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer', nullable: false, options: ['unsigned' => true])]
     private $id;
 
     /**
      * @var string
-     * @Assert\NotBlank()
-     * @ORM\Column(type="string", length=150, nullable=false)
      */
+    #[Assert\NotBlank]
+    #[ORM\Column(type: 'string', length: 150, nullable: false)]
     private $name;
 
     /**
      * @var string
-     * @Assert\Length(max="2048")
-     * @ORM\Column(type="string", length=2048, nullable=true)
      */
+    #[Assert\Length(max: 2048)]
+    #[ORM\Column(type: 'string', length: 2048, nullable: true)]
     private $description;
 
     /**
      * @var bool|null
-     * @Assert\Type("bool")
-     * @ORM\Column(type="boolean", nullable=true)
      */
+    #[Assert\Type('bool')]
+    #[ORM\Column(type: 'boolean', nullable: true)]
     private $completed;
 
     /**
      * @var string|null
-     * @Assert\Length(max="2048")
-     * @ORM\Column(type="string", length=2048, nullable=true)
      */
+    #[Assert\Length(max: 2048)]
+    #[ORM\Column(type: 'string', length: 2048, nullable: true)]
     private $note;
 
     /**
      * @var School|null
-     * @ORM\ManyToOne(targetEntity="\App\Entity\School", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=false, onDelete="CASCADE")
      */
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\School::class, cascade: ['persist'], fetch: 'EAGER')]
     private $school;
 
     /**
      * @var Answer|null
-     * @ORM\ManyToOne(targetEntity="App\Entity\QualityCheck\Answer")
-     * @ORM\JoinColumn(nullable=false, onDelete="RESTRICT", nullable=true)
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\QualityCheck\Answer::class)]
     private $answer;
 
     /**
      * @var ActionPlanNew[]|ArrayCollection
-     * @ORM\OneToMany(targetEntity="\App\Entity\QualityCircle\ActionPlanNew", mappedBy="toDo", cascade={"persist"}, fetch="EAGER")
      */
+    #[ORM\OneToMany(targetEntity: \App\Entity\QualityCircle\ActionPlanNew::class, mappedBy: 'toDo', cascade: ['persist'], fetch: 'EAGER')]
     private $actionPlans;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime")
      */
+    #[ORM\Column(type: 'datetime')]
     private $createdAt;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT")
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     private $createdBy;
 
     /**
      * @var bool
-     * @ORM\Column(type="boolean", nullable=false)
      */
+    #[ORM\Column(type: 'boolean', nullable: false)]
     private $closed = false;
 
     /**
      * @var DateTime|null
-     * @ORM\Column(type="datetime", nullable=true)
      */
+    #[ORM\Column(type: 'datetime', nullable: true)]
     private $closedAt;
 
     /**
      * @var User|null
-     *
-     * @ORM\ManyToOne(targetEntity="\App\Entity\User", cascade={"persist"}, fetch="EAGER")
-     * @ORM\JoinColumn(nullable=true, onDelete="RESTRICT", nullable=true)
      */
+    #[ORM\JoinColumn(nullable: true, onDelete: 'RESTRICT')]
+    #[ORM\ManyToOne(targetEntity: \App\Entity\User::class, cascade: ['persist'], fetch: 'EAGER')]
     private $closedBy;
 
     /**

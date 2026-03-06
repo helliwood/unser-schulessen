@@ -6,9 +6,7 @@ use App\DataFixtures\UnitTestFixtures;
 use App\Entity\User;
 use Doctrine\ORM\EntityManager;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\DomCrawler\Crawler;
-use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 class AbstractTestController extends WebTestCase
@@ -22,21 +20,12 @@ class AbstractTestController extends WebTestCase
      */
     protected function logIn($email = UnitTestFixtures::TESTUSER_EMAIL, $password = UnitTestFixtures::TESTUSER_PASSWORD)
     {
-        $session = $this->client->getContainer()->get('session');
-        $authenticationManager = static::$container->get('security.authentication.manager');
-        $firewall = 'main';
-        $token = $authenticationManager->authenticate(
-            new UsernamePasswordToken(
-                $email,
-                $password,
-                $firewall
-            )
-        );
-        $session->set('_security_' . $firewall, serialize($token));
-        $session->save();
-
-        $cookie = new Cookie($session->getName(), $session->getId());
-        $this->client->getCookieJar()->set($cookie);
+        unset($password);
+        $user = static::getContainer()->get('doctrine')->getRepository(User::class)->findOneBy(['email' => $email]);
+        if (! $user instanceof User) {
+            throw new \RuntimeException(sprintf('Test user with email "%s" not found.', $email));
+        }
+        $this->client->loginUser($user, 'main');
     }
 
     /**
@@ -52,7 +41,7 @@ class AbstractTestController extends WebTestCase
      */
     protected function getEntityManager(): EntityManager
     {
-        return self::$container->get('doctrine.orm.entity_manager');
+        return static::getContainer()->get('doctrine.orm.entity_manager');
     }
 
     /**
@@ -60,6 +49,6 @@ class AbstractTestController extends WebTestCase
      */
     protected function getUser(): UserInterface
     {
-        return self::$container->get('security.token_storage')->getToken()->getUser();
+        return static::getContainer()->get('security.token_storage')->getToken()->getUser();
     }
 }

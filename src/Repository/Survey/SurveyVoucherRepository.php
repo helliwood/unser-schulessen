@@ -8,6 +8,7 @@
 
 namespace App\Repository\Survey;
 
+use App\Entity\School;
 use App\Entity\Survey\Survey;
 use App\Entity\Survey\SurveyVoucher;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -100,5 +101,22 @@ class SurveyVoucherRepository extends ServiceEntityRepository
     public function isVoucherInUse(SurveyVoucher $voucher): bool
     {
         return $voucher->getAnswers()->count() > 0;
+    }
+
+    /**
+     * @param School $school
+     * @return SurveyVoucher|null
+     * @throws \Doctrine\ORM\NonUniqueResultException
+     */
+    public function findLatestBySchool(School $school): ?SurveyVoucher
+    {
+        return $this->createQueryBuilder('sv')
+            ->join('sv.survey', 's')
+            ->where('s.school = :school')
+            ->setParameter('school', $school)
+            ->orderBy('sv.createdAt', 'DESC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
     }
 }
