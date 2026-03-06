@@ -34,7 +34,7 @@ erDiagram
     Survey {
         int id PK
         int school_authority_id FK
-        int school_id FK nullable
+        int school_id FK
         boolean school_authority_survey
         boolean school_authority_template
     }
@@ -44,12 +44,12 @@ erDiagram
         int survey_id FK
         int school_id FK
         datetime created_at
-        datetime participated_at nullable
+        datetime participated_at
     }
 
     SchoolAuthority ||--o{ School : "owns"
     SchoolAuthority ||--o{ User : "has authority users"
-    SchoolAuthority ||--o{ Survey : "creates authority surveys/templates"
+    SchoolAuthority ||--o{ Survey : "creates authority surveys"
     Survey ||--o{ SurveySchoolParticipation : "assigned to schools"
     School ||--o{ SurveySchoolParticipation : "participates"
 ```
