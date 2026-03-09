@@ -1,8 +1,8 @@
 <template>
   <div>
     <datetime :disabled="disabled ? true : false" input-class="form-control" type="datetime" format="dd. LLLL yyyy HH:mm"
-              :hidden-name="name" v-model="datetime">1
-      <template slot="after">
+              :hidden-name="name" v-model="datetime">
+      <template #after>
         <button v-if="!disabled" class="btn btn-danger float-right"
                 style="border-top-left-radius: 0; border-bottom-left-radius: 0;" type="button"
                 @click="datetime=null;"><i class="fas fa-trash-alt"></i>

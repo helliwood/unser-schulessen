@@ -13,11 +13,10 @@
             </div>
             <b-table
                     v-bind="$attrs"
-                    v-on="$listeners"
                     ref="table"
                     id="my-table"
                     striped
-                    :busy.sync="isBusy"
+                    :busy="isBusy"
                     :items="myProvider"
                     :current-page="currentPage"
                     :api-url="url"
@@ -30,7 +29,7 @@
                     :caption="caption"
                     @row-clicked="rowClickedHere"
                     empty-text="Keine Daten vorhanden">
-                <template v-for="(_, slot) of $scopedSlots" v-slot:[slot]="scope">
+                <template v-for="(_, slot) of $slots" v-slot:[slot]="scope">
                     <slot :name="slot" v-bind="scope" :row="scope" :callAndRefresh="callAndRefresh"
                           :setApiUrlAndRefresh="setApiUrlAndRefresh"/>
                 </template>
@@ -99,7 +98,7 @@
                 searchDebounceTimer: null
             }
         },
-        beforeDestroy() {
+        beforeUnmount() {
             if (this.searchDebounceTimer) {
                 clearTimeout(this.searchDebounceTimer);
             }

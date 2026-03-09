@@ -55,8 +55,8 @@
         {%- set widget_attr = {attr: {'aria-describedby': id ~"_help"}} -%}
     {%- endif -%}
     <quality-check-sub-category id="{{ name }}" :open="{{ row_attr.open ? 'true' : 'false' }}">
-        <template slot="label">{{- form_label(form) -}}</template>
-        <template slot="form">
+        <template #label>{{- form_label(form) -}}</template>
+        <template #form>
             <div class="px-3 pb-3">{{- help -}}</div>
             {% set hasChoice = false %}
             {% for child in form.children %}

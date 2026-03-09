@@ -9,7 +9,7 @@
                 <div class="panel h-100">
                     {% if survey.getState == stateNotActivated %}
                         <b-dropdown variant="secondary" class="float-right">
-                            <template slot="button-content">
+                            <template #button-content>
                                 Frage hinzufügen
                             </template>
                             {% for type, label in surveyQuestionTypeLabels %}

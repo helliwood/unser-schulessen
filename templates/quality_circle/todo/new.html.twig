@@ -36,7 +36,7 @@
                 <div class="col result">
                     <h4>Qualitäts-Check vom {{ result.finalisedAt | date('d.m.Y') }}</h4>
                     <quality-circle-to-do-form>
-                        <template slot-scope="props">
+                        <template #default="props">
                             {% for category in result.answeredCategories %}
                                 <b-card no-body class="my-2">
                                     <b-card-header class="" role="tab" v-b-toggle.accordion-{{ category.id }}>

@@ -4,14 +4,15 @@
     {% for userHasSchool in app.user.userHasSchool %}
         <div class="col-12 col-md-6 col-lg-4 mb-3">
             <b-card>
-                <div slot="header">
+                <template #header>
                     <i class="fas fa-university mr-2 text-primary2"></i>
                     <strong>{{ userHasSchool.school.name }}</strong>
-                </div>
+                </template>
                 Zugriff: {{ constant('App\\Entity\\UserHasSchool::ROLE_LABELS')[userHasSchool.role] }}
                 <br/><br/>
                 {{ userHasSchool.school.address | nl2br }}
-                <div slot="footer" class="d-flex align-items-center justify-content-between">
+                <template #footer>
+                    <div class="d-flex align-items-center justify-content-between">
                     {% if userHasSchool.state  == constant('App\\Entity\\UserHasSchool::STATE_REQUESTED') %}
                         Anfrage erhalten:
                         <b-button variant="success" size="sm"
@@ -24,12 +25,12 @@
                         <b-modal id="reject-{{ userHasSchool.school.id }}"
                                  title="Anfrage ablehnen"
                                  cancel-title="Abbrechen">
-                            <div slot="modal-footer">
+                            <template #modal-footer>
                                 <b-button variant="danger"
                                           href="{{ path('decline_invite', {'school':userHasSchool.school.id}) }}">
                                     <i class="fas fa-times mr-1"></i>Ablehnen
                                 </b-button>
-                            </div>
+                            </template>
                             Möchten Sie die Einladung von
                             <strong>{{ userHasSchool.school.name }}</strong> wirklich
                             ablehnen?<br/><br/>
@@ -54,7 +55,8 @@
                     {% elseif userHasSchool.state  == constant('App\\Entity\\UserHasSchool::STATE_BLOCKED') %}
                         Blockiert
                     {% endif %}
-                </div>
+                    </div>
+                </template>
             </b-card>
         </div>
     {% endfor %}
