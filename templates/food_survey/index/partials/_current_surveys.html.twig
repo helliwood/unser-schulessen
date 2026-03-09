@@ -56,6 +56,10 @@
 
                         <b-dropdown size="sm" right text="" v-b-tooltip.hover.right.v-danger
                                     title="Ermöglicht weitere Optionen der Bearbeitung des Teller-Checks.">
+                            <template #button-content>
+                                <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+                                <span class="sr-only">Weitere Optionen öffnen</span>
+                            </template>
                             <b-dropdown-item
                                     v-if="row.item.state=={{ stateNotActivated }}"
                                     variant="primary" target="_blank"

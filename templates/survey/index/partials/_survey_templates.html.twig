@@ -32,6 +32,10 @@
                         </b-button>
                         <b-dropdown size="sm" right text="" v-b-tooltip.hover.right.v-danger
                                     title="Ermöglicht weitere Optionen der Bearbeitung der Umfrage." aria-label="Weitere Optionen">
+                            <template #button-content>
+                                <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+                                <span class="sr-only">Weitere Optionen öffnen</span>
+                            </template>
                             <b-dropdown-item
                                     variant="primary"
                                     :href="'/survey/questions/'+row.item.id" title=""><i
