@@ -1,4 +1,4 @@
-FROM php:8.4-apache
+FROM php:8.4-apache@sha256:1e4d8ddf81c7c55b3306e852ec3cc5a8f0e5ceeb4897efeab2a87de17016786b
 
 # Pakete hinzufügen
 RUN apt-get update \

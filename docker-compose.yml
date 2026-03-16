@@ -16,7 +16,7 @@ services:
       - XDEBUG_CONFIG=idekey=PHPSTORM remote_host=host.docker.internal
       - PHP_IDE_CONFIG=serverName=mein-schulessen
   db:
-    image: mariadb:11.8
+    image: mariadb:11.8@sha256:8164f184d16c30e2f159e30518113667b796306dff0fe558876ab1ff521a682f
     restart: always
     volumes:
       - ./mysql11:/var/lib/mysql
@@ -28,7 +28,7 @@ services:
     ports:
       - "8889:3306"
   testdb:
-    image: mariadb:11.8
+    image: mariadb:11.8@sha256:8164f184d16c30e2f159e30518113667b796306dff0fe558876ab1ff521a682f
     restart: always
     volumes:
       - ./mysql_test11:/var/lib/mysql
